@@ -192,6 +192,30 @@ lemma table_sum_smul' {S : Type*} {m : ℕ} [NonUnitalNonAssocSemiring S] [Modul
     rw [List.mulPointwise_ofFn, one_smul]
 
 
+lemma table_sum_sum {S : Type*} {m : ℕ} [NonUnitalNonAssocSemiring S] [Module R S]
+    [SMulCommClass R S S] [IsScalarTower R S S] (B : Basis (Fin n) R S)
+    (a : Fin l → Fin m → Fin n → R) (b : Fin n → R)
+    (hc : List.ofFn b = List.sum (List.ofFn (fun i =>
+      (List.sum (List.ofFn (fun j => List.ofFn (a i j))))))) :
+    (B.equivFun.symm b) =  ∑ (i : Fin l), ∑ (j : Fin m) , (B.equivFun.symm (a i j)) := by
+    rcases m with hz | m
+    · simp at hc ⊢
+      induction' l with l hi
+      · simp only [List.replicate_zero, List.sum_nil] at hc
+        erw [List.ofFn_eq_nil_iff] at hc
+        convert Finset.sum_empty
+        rw [Finset.univ_eq_empty_iff.mpr]
+        rw [hc]
+        exact Fin.isEmpty'
+      · rw [List.replicate_succ] at hc
+        simp only [List.sum_zero_cons] at hc
+        simp only [forall_const] at hi
+        exact hi hc
+    · simp_rw [← List.sum_ofFn' (show m + 1 ≠ 0 by exact Ne.symm (Nat.zero_ne_add_one m)) ] at hc
+      convert table_sum_smul' B _ _ hc
+      simp only [Basis.equivFun_symm_apply, map_sum, map_smul]
+
+
 /-- A version of `table_mul_list'` in which the entries of the times table
   are given by lists instead of vectors `Fin n → R`. This performs better. -/
 def table_mul_list (T : Fin n → Fin n → List R) (a : List R) (b : List R) :=
@@ -203,6 +227,25 @@ lemma table_mul_eq_table_mul' (T' :  Fin n → Fin n → Fin n → R) (T : Fin n
     (h : ∀ i j , T i j = List.ofFn (T' i j)) : table_mul_list T a b = table_mul_list' T' a b := by
   unfold table_mul_list' table_mul_list
   simp_rw [h]
+
+lemma table_sum_mul {S : Type*} {m : ℕ} [NonUnitalNonAssocSemiring S] [Module R S]
+    [SMulCommClass R S S] [IsScalarTower R S S] (B : Basis (Fin n) R S)
+    (basisMulBasis: ∀ i j k , B.repr (B i * B j) k = T i j k)
+    (a : Fin m → Fin n → R) (b : Fin m → Fin n → R) (c : Fin n → R)
+    (hc : List.ofFn c = List.sum (List.ofFn (fun i => table_mul_list' T (List.ofFn (a i)) (List.ofFn (b i)) ))) :
+    (B.equivFun.symm c) = ∑ (i : Fin m), ((B.equivFun.symm (a i)) * (B.equivFun.symm (b i))) := by
+    let d : Fin m → Fin n → R := fun i =>
+        FnOfList n (table_mul_list' T (List.ofFn (a i)) (List.ofFn (b i))) (table_mul_list_length T _ _)
+    have hd : ∀ i, List.ofFn (d i) = table_mul_list' T (List.ofFn (a i)) (List.ofFn (b i)) := by
+      exact fun i ↦ listOfFn_of_FnOfList n _ (table_mul_list_length T (List.ofFn (a i)) (List.ofFn (b i)))
+    have : ∀ i, (B.equivFun.symm (d i)) = (B.equivFun.symm (a i)) * (B.equivFun.symm (b i)) := by
+      intro i
+      symm
+      refine table_mul_list_eq_mul T B _ _ _ basisMulBasis (hd i)
+    simp_rw [← this]
+    simp_rw [← hd] at hc
+    exact table_sum_smul' B d c hc
+
 
 /-- Exponentiation by squaring given a times table `T`. -/
 def nPow_sq_table (T : Fin n → Fin n → List R) (a : List R) (m : ℕ) : List R :=
@@ -306,3 +349,51 @@ lemma table_nPow_sq_table_eq_pow {S : Type*} [Semiring S] [Module R S] [SMulComm
           (Nat.zero_lt_succ _) (Nat.one_lt_ofNat)))
           (Nat.div_pos (nataux2 (Nat.succ m) (Nat.succ_ne_zero m) hp) (Nat.ofNat_pos)) d auxd,
           ← pow_add , nataux _ hp]
+
+
+
+lemma table_polynomial_eval {S : Type*} [Semiring S] [Module R S] [SMulCommClass R S S]
+    [IsScalarTower R S S] (T' :  Fin n → Fin n → Fin n → R ) (T : Fin n → Fin n → List R)
+    (B : Basis (Fin n) R S) (L : List R) [NeZero L.length]
+    (z : Fin n → R) (hBz : B.equivFun.symm z = 1)
+    (a : Fin n → R) (c : Fin n → R)
+    (basisMulBasis: ∀ i j k , B.repr (B i * B j) k = T' i j k)
+    (heq : ∀ i j , T i j = List.ofFn (T' i j))
+    (hpol : List.ofFn c = List.sum
+      (List.ofFn (fun (i : Fin (L.length)) => if i = 0 then List.mulPointwise (L[i]) (List.ofFn z)
+      else List.mulPointwise (L[i]) (nPow_sq_table T (List.ofFn a) i) ))) :
+    (B.equivFun.symm c) = ∑ (i : Fin L.length), L[i] • (B.equivFun.symm a) ^ i.val := by
+    let x : Fin (L.length) → (Fin n → R) := fun i =>
+      if h : i = 0 then
+      FnOfList n (List.mulPointwise (L[i]) (List.ofFn z))
+      (by rw [List.mulPointwise_length] ; exact List.length_ofFn z )
+      else
+      FnOfList n (List.mulPointwise (L[i]) (nPow_sq_table T (List.ofFn a) i))
+      (by rw [List.mulPointwise_length, nPow_sq_table_length T' T _ i.val ((Fin.pos_iff_ne_zero' _).2 h) heq (
+        List.length_ofFn a)])
+    have hpola : (fun (i : Fin (L.length)) => if i = 0 then List.mulPointwise (L[i]) (List.ofFn z)
+      else List.mulPointwise (L[i]) (nPow_sq_table T (List.ofFn a) i) ) = fun i => List.ofFn (x i) := by
+      apply funext ?_
+      intro i
+      by_cases hz : i = 0
+      · simp only [hz, ↓reduceIte, Fin.getElem_fin, Fin.val_zero', ↓reduceDIte, x]
+        rw [listOfFn_of_FnOfList]
+      · simp only [hz, ↓reduceIte, Fin.getElem_fin, ↓reduceDIte, x]
+        rw [listOfFn_of_FnOfList]
+    rw [hpola] at hpol
+    rw [table_sum_smul' B _ _ hpol]
+    congr
+    ext i
+    by_cases hc : i = 0
+    · simp only [Fin.getElem_fin, hc, ↓reduceDIte, Fin.val_zero', x]
+      rw [← table_mulPointwise_eq_smul B z _ L[0], hBz, pow_zero]
+      exact listOfFn_of_FnOfList n _ _
+    · simp only [Fin.getElem_fin, hc, ↓reduceDIte, x]
+      rw [← table_mulPointwise_eq_smul B (FnOfList n (nPow_sq_table T (List.ofFn a) i) (nPow_sq_table_length T' T _ i.val ((Fin.pos_iff_ne_zero' _).2 hc) heq (
+        List.length_ofFn a)) ) _ L[i]]
+      · congr
+        symm
+        rw [table_nPow_sq_table_eq_pow T' T B _ basisMulBasis heq _ ((Fin.pos_iff_ne_zero' _).2 hc) _]
+        exact listOfFn_of_FnOfList n _ _
+      simp_rw [listOfFn_of_FnOfList]
+      rfl
