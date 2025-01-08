@@ -11,6 +11,7 @@ import Mathlib.Data.ZMod.Algebra
 import IdealArithmetic.QuotientModules
 import Mathlib.Algebra.Module.Submodule.RestrictScalars
 import Mathlib.Tactic
+import Mathlib.GroupTheory.OrderOfElement
 
 section I
 variable (O R : Type*) [CommRing O] [CommRing R] [CommRing S]
@@ -634,6 +635,16 @@ def ZModP_algebra_of_mem {O : Type*} [CommRing O] (I : Ideal O)
 attribute [-instance]  Lean.Omega.IntList.instAdd
 
 -- We don't include computation tools as part of the parameters of the structure.
+/-
+This structure bundles an ideal `I` with a certifificate of its primality. Even more,
+it proves that the residue field is given by adjoining a root of a polynomial f.
+`r` : rank of `O`
+`n` : inertia degree / dimension of the residue field as an `F_p`-algebra.
+`f` : polynomial such that `O⧸I` is isomorphic to `F_p[X]/(f)`
+`a` : represents the lift of the root of `f` in `O⧸I`.
+`c` : represents the element `f(a)`, which lives in `I`.
+-/
+
 structure PrimeIdeal (O : Type*) (p : ℕ) [Fact $ Nat.Prime p] [CommRing O]  where
   r : ℕ
   n : ℕ
@@ -689,9 +700,15 @@ lemma PrimeIdeal_residue_field_dimension {O : Type*} {p : ℕ} [Fact $ Nat.Prime
   rw [PrimeIdeal_polynomial_degree ]
   exact isAdjoinRoot_of_adjoin_root_irreducible_finite  hcardaux
 
+lemma PrimeIdeal_quotient_int_smul {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
+    (I : PrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] (m : ℤ) (x : O) :
+    Ideal.Quotient.mk I.I (m • x) = (m : ZMod p) • Ideal.Quotient.mk I.I x := by
+  simp only [zsmul_eq_mul, map_mul, map_intCast]
+  rw [Algebra.smul_def]
+  simp only [map_intCast]
+
 lemma PrimeIdeal_polynomial_aeval {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
-  (I : PrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)]
-  (hcom : ∀ (m : ℤ) (x : O), Ideal.Quotient.mk I.I (m • x) = (m : ZMod p) • Ideal.Quotient.mk I.I x) :
+  (I : PrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
   (aeval ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a))) I.f = 0 := by
   have hPlen : I.P.length = (ofList (List.map (algebraMap ℤ (ZMod p)) I.P)).natDegree + 1 := by
       rw [← I.hfeq, PrimeIdeal_polynomial_degree]
@@ -702,7 +719,7 @@ lemma PrimeIdeal_polynomial_aeval {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [Co
   have aux : ∀ x , I.f.coeff x • ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a ^ x))
     = (Ideal.Quotient.mk I.I) ((I.P.getD x 0) • (I.TT.basis.equivFun.symm I.a ^ x)) := by
     intro x
-    rw [hcom]
+    rw [PrimeIdeal_quotient_int_smul]
     have : ∀ x, ((I.P.getD x 0) : ZMod p) = I.f.coeff x := by
       rw [I.hfeq]
       intro j
@@ -727,28 +744,22 @@ lemma PrimeIdeal_polynomial_aeval {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [Co
 
 
 noncomputable def isAdjoinRoot_quot_ofPrimeIdeal {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
-    (I : PrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)]
-    (hcom : ∀ (m : ℤ) (x : O), Ideal.Quotient.mk I.I (m • x) = (m : ZMod p) • Ideal.Quotient.mk I.I x) :
+    (I : PrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
     IsAdjoinRoot (O ⧸ I.I) (I.f) := by
     haveI := PrimeIdeal_residue_field_finite_dimensional I
     refine IsAdjoinRoot_of_adjoin_root_irreducible I.f I.hirr ?_ ?_
     use Ideal.Quotient.mk I.I (I.TT.basis.equivFun.symm I.a)
-    · exact PrimeIdeal_polynomial_aeval I hcom
+    · exact PrimeIdeal_polynomial_aeval I
     · exact PrimeIdeal_residue_field_dimension I
 
 
 noncomputable def PrimeIdeal_residue_field_is_field {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
     (I : PrimeIdeal O p) : IsField (O ⧸ I.I) := by
   haveI := ZModP_algebra_of_mem I.I p I.hpmem
-  have hcom : ∀ (m : ℤ) (x : O), Ideal.Quotient.mk I.I (m • x) = (m : ZMod p) • Ideal.Quotient.mk I.I x := by
-    intro m x
-    simp only [zsmul_eq_mul, map_mul, map_intCast]
-    rw [Algebra.smul_def]
-    simp only [map_intCast]
   haveI := PrimeIdeal_residue_field_finite_dimensional I
   refine field_of_adjoin_root_irreducible (K := O ⧸ I.I) I.f I.hirr ?_ ?_
   · use ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a))
-    exact PrimeIdeal_polynomial_aeval I hcom
+    exact PrimeIdeal_polynomial_aeval I
   · exact PrimeIdeal_residue_field_dimension I
 
 lemma PrimeIdeal_isPrime {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
@@ -756,6 +767,177 @@ lemma PrimeIdeal_isPrime {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
     refine Ideal.IsMaximal.isPrime ?_
     rw [Ideal.Quotient.maximal_ideal_iff_isField_quotient]
     exact PrimeIdeal_residue_field_is_field I
+
+open Classical
+
+lemma unit_eq_primitive_root_pow {R : Type*} [CommRing R] [Fintype R]
+    {ζ : R} (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (x : Rˣ) :
+    ∃ (n : ℕ), ζ ^ n = x := by
+  have hu : IsUnit ζ := IsPrimitiveRoot.isUnit hr Fintype.card_pos
+  obtain ⟨ζ',hz ⟩ := hu
+  haveI : Fintype (Subgroup.zpowers ζ') := by exact
+    (Subgroup.zpowers ζ').instFintypeSubtypeMemOfDecidablePred
+  have heq : Subgroup.zpowers ζ' = ⊤ := by
+    refine Subgroup.eq_top_of_le_card _ ?_
+    rw [← Fintype.card_eq_nat_card (α := (Subgroup.zpowers ζ')), Fintype.card_zpowers,
+    ← orderOf_units, hz, ← IsPrimitiveRoot.eq_orderOf hr, Fintype.card_eq_nat_card]
+  have hmem : x ∈ Subgroup.zpowers ζ' := by
+    rw [heq]
+    exact trivial
+  rw [Subgroup.mem_zpowers_iff] at hmem
+  obtain ⟨k ,hk⟩ := hmem
+  use (k % (orderOf ζ')).natAbs
+  have hpow : ζ' ^ (k % (orderOf ζ')) = x := by
+    rw [Int.emod_def, zpow_sub, hk, zpow_mul, zpow_natCast, pow_orderOf_eq_one]
+    simp only [one_zpow, inv_one, mul_one]
+  have hnpow : (↑(Int.natAbs (k % (orderOf ζ'))) : ℤ) = k % (orderOf ζ')  := by
+    simp only [Int.natCast_natAbs, abs_eq_self]
+    refine Int.emod_nonneg k (Int.ofNat_ne_zero.mpr ?_)
+    have hu : orderOf ζ' = orderOf ζ := by
+      rw [← hz]
+      exact Eq.symm orderOf_units
+    rw [hu]
+    rw [← IsPrimitiveRoot.eq_orderOf hr]
+    exact Fintype.card_ne_zero
+  rw [← hnpow] at hpow
+  rw [← hpow, zpow_natCast]
+  simp only [Units.val_pow_eq_pow_val, hz]
+
+
+noncomputable def LogFiniteRing {R : Type*} [CommRing R] [Fintype R] {ζ : R}
+    (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (p : ℕ) : R → ZMod p := by
+  intro x
+  by_cases hc : IsUnit x
+  · choose n _ using unit_eq_primitive_root_pow hr (hc.unit)
+    exact (n : ZMod p)
+  · exact 0
+
+-- AVAILABLE IN UPDATED MATHLIB
+@[to_additive]
+theorem orderOf_dvd_sub_iff_zpow_eq_zpow [Group G] {x : G} {a b : ℤ} : (orderOf x : ℤ) ∣ a - b ↔ x ^ a = x ^ b := by
+  rw [orderOf_dvd_iff_zpow_eq_one, zpow_sub, mul_inv_eq_one]
+
+
+lemma LogFiniteRing_of_pow  {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
+    (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ)) (n : ℕ) :
+    LogFiniteRing hr p (ζ ^ n) = (n : ZMod p) := by
+  have hc : IsUnit (ζ ^ n) := by
+    refine IsUnit.pow n ?_
+    exact IsPrimitiveRoot.isUnit hr Fintype.card_pos
+  obtain ⟨ζ', hz ⟩ := IsPrimitiveRoot.isUnit hr Fintype.card_pos
+  unfold LogFiniteRing
+  simp only [hc, ↓reduceDIte]
+  have aux := choose_spec (unit_eq_primitive_root_pow hr hc.unit)
+  simp_rw [IsUnit.unit_spec, ← hz, ← Units.val_pow_eq_pow_val, ← zpow_natCast, Units.eq_iff,
+    ← orderOf_dvd_sub_iff_zpow_eq_zpow, ← orderOf_units, hz, ← IsPrimitiveRoot.eq_orderOf hr] at aux
+  symm
+  refine (ZMod.eq_iff_modEq_nat p).mpr ?_
+  refine Nat.modEq_of_dvd ?_
+  refine dvd_trans (Int.natCast_dvd_natCast.2 hdvd) ?_
+  convert aux
+  simp only [IsUnit.unit_spec]
+  simp_rw [ ← hz, ← Units.val_pow_eq_pow_val, ← zpow_natCast, Units.eq_iff,
+    ← orderOf_dvd_sub_iff_zpow_eq_zpow, ← orderOf_units, hz, ← IsPrimitiveRoot.eq_orderOf hr]
+
+
+lemma LogFiniteRing_of_ne_unit_eq_zero {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
+    (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ))
+    {x : R} (hx : ¬ IsUnit x) : LogFiniteRing hr p x = 0 := by
+    unfold LogFiniteRing
+    simp only [hx, ↓reduceDIte]
+
+lemma LogFiniteRing_mul {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
+   (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ)) (x y : R)
+   (hx : IsUnit x) (hy : IsUnit y) :
+   LogFiniteRing hr p (x * y) = LogFiniteRing hr p x + LogFiniteRing hr p y := by
+  obtain ⟨n, hn⟩ :=  unit_eq_primitive_root_pow hr hx.unit
+  obtain ⟨m, hm⟩ :=  unit_eq_primitive_root_pow hr hy.unit
+  rw [IsUnit.unit_spec] at hn hm
+  have hmn : ζ ^ (n + m) = x * y := by
+    rw [← hn, ← hm, pow_add]
+  rw [← hmn, ← hm, ← hn, LogFiniteRing_of_pow hr hdvd, LogFiniteRing_of_pow hr hdvd, LogFiniteRing_of_pow hr hdvd]
+  simp only [Nat.cast_add]
+
+lemma LogFiniteRing_one {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
+    (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ)) :
+    LogFiniteRing hr p 1  = 0 := by
+  rw [← pow_zero ζ, LogFiniteRing_of_pow hr hdvd]
+  simp only [Nat.cast_zero]
+
+-- AVAILABLE IN UPDATED MATHLIB
+@[to_additive (attr := simp)]
+lemma IsUnit.prod_iff {f : α → β} [CommMonoid β] : IsUnit (∏ a ∈ s, f a) ↔ ∀ a ∈ s, IsUnit (f a) := by
+  induction s using Finset.cons_induction with
+  | empty => simp
+  | cons a s ha hs => rw [Finset.prod_cons, IsUnit.mul_iff, hs, Finset.forall_mem_cons]
+
+lemma LogFiniteRing_prod {R ι : Type*} {p : ℕ} [CommRing R] [Fintype R] (s : Finset ι) {ζ : R}
+   (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ))
+   (x : ι → R) (hx : ∀ i ∈ s, IsUnit (x i)) :
+  LogFiniteRing hr p (∏ i ∈ s, x i) = ∑ i ∈ s, LogFiniteRing hr p (x i) := by
+  induction' s using Finset.cons_induction_on with a s ha ih
+  · simp only [Finset.prod_empty, Finset.sum_empty]
+    exact LogFiniteRing_one hr hdvd
+  · rw [Finset.forall_mem_cons] at hx
+    simp only [Finset.cons_eq_insert, ha, not_false_eq_true, Finset.prod_insert, Finset.sum_insert, ← ih hx.2]
+    refine LogFiniteRing_mul hr hdvd _ _ ?_ ?_
+    · exact hx.1
+    · rw [IsUnit.prod_iff]
+      exact hx.2
+
+lemma LogFiniteRing_p_power_eq_zero {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R} (hp : p ≠ 0)
+  (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ)) (x : R) :
+  LogFiniteRing hr p (x ^ p) = 0 := by
+  by_cases hc : IsUnit x
+  · obtain ⟨m, hm⟩ := unit_eq_primitive_root_pow hr hc.unit
+    simp only [IsUnit.unit_spec] at hm
+    rw [← hm, ← pow_mul, LogFiniteRing_of_pow hr hdvd _]
+    simp only [Nat.cast_mul, CharP.cast_eq_zero, mul_zero]
+  · rw [← isUnit_pow_iff hp] at hc
+    exact LogFiniteRing_of_ne_unit_eq_zero hr hc
+
+lemma LogFiniteRing_pow {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
+    (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ)) (x : R) :
+    LogFiniteRing hr p (x ^ n)  = n * LogFiniteRing hr p x := by
+    by_cases hc : IsUnit x
+    · obtain ⟨m, hm⟩ := unit_eq_primitive_root_pow hr hc.unit
+      simp only [IsUnit.unit_spec] at hm
+      rw [← hm, ← pow_mul, LogFiniteRing_of_pow hr hdvd _, LogFiniteRing_of_pow hr hdvd _]
+      simp only [Nat.cast_mul, mul_comm]
+    · by_cases hn : n = 0
+      · rw [hn]
+        simp only [pow_zero, Nat.cast_zero, zero_mul]
+        rw [LogFiniteRing_one hr hdvd ]
+      · have hcc := hc
+        rw [← isUnit_pow_iff hn] at hc
+        rw [LogFiniteRing_of_ne_unit_eq_zero hr hc, LogFiniteRing_of_ne_unit_eq_zero hr hcc]
+        simp only [mul_zero]
+
+
+
+
+
+
+
+
+
+  --rw [← Int.natCast_inj, ZMod.intCast_eq_intCast_iff_dvd_sub]
+
+
+
+
+
+
+-- (hdvd : p ∣ Fintype.card Rˣ)
+
+
+/- def LogFiniteRing {F : Type*} {p : ℕ} [Field F] [Fintype F]
+  (hdvd : p ∣ Fintype.card F ) (ζ : F)
+  (hr : IsPrimitiveRoot ζ (Fintype.card F - 1)) : F → ZMod p := by
+  intro x
+  by_cases hc : x = 0
+  · exact 0 -/
+
 
 
 
