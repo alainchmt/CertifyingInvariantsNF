@@ -12,6 +12,7 @@ import IdealArithmetic.QuotientModules
 import Mathlib.Algebra.Module.Submodule.RestrictScalars
 import Mathlib.Tactic
 import Mathlib.GroupTheory.OrderOfElement
+import Mathlib.Data.Matrix.Rank
 
 section I
 variable (O R : Type*) [CommRing O] [CommRing R] [CommRing S]
@@ -885,9 +886,13 @@ lemma LogFiniteRing_prod {R ι : Type*} {p : ℕ} [CommRing R] [Fintype R] (s : 
     · rw [IsUnit.prod_iff]
       exact hx.2
 
-lemma LogFiniteRing_p_power_eq_zero {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R} (hp : p ≠ 0)
+lemma LogFiniteRing_p_power_eq_zero {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
   (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ)) (x : R) :
   LogFiniteRing hr p (x ^ p) = 0 := by
+  have hp : p ≠ 0
+  · by_contra h
+    rw [h, zero_dvd_iff] at hdvd
+    exact Fintype.card_ne_zero hdvd
   by_cases hc : IsUnit x
   · obtain ⟨m, hm⟩ := unit_eq_primitive_root_pow hr hc.unit
     simp only [IsUnit.unit_spec] at hm
@@ -913,6 +918,125 @@ lemma LogFiniteRing_pow {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
         rw [LogFiniteRing_of_ne_unit_eq_zero hr hc, LogFiniteRing_of_ne_unit_eq_zero hr hcc]
         simp only [mul_zero]
 
+open Matrix
+
+lemma LogFiniteRing_hom_prod_eq_dot_product {S R ι : Type*} {p : ℕ} [CommRing R] [CommRing S] [Fintype R] [Fintype ι]
+    {ζ : R} (hr : IsPrimitiveRoot ζ (Fintype.card Rˣ)) (hdvd : p ∣ (Fintype.card Rˣ))
+    (φ : S →+* R) (x : ι → S) (hu : ∀ i, IsUnit (φ (x i))) (e : ι → ℕ) :
+  LogFiniteRing hr p (φ (∏ i, (x i) ^ (e i))) =
+  (fun i => LogFiniteRing hr p (φ (x i))) ⬝ᵥ (fun i => (e i : ZMod p)) := by
+  simp_rw [map_prod, map_pow]
+  rw [LogFiniteRing_prod _ hr hdvd]
+  simp_rw [LogFiniteRing_pow hr hdvd]
+  congr ; ext i ; dsimp
+  rw [mul_comm]
+  · intro i _
+    exact IsUnit.pow (e i) (hu i)
+
+
+noncomputable def MatrixLogProd {S ι τ : Type*} (p : ℕ) [Fintype ι] [Fintype τ] (F : τ → Type*)
+    [CommRing S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] (φ : Π i : τ, S →+* (F i)) (x : ι → S)
+    (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ)) : Matrix τ ι (ZMod p) :=
+  fun i j => LogFiniteRing (hr i) p ((φ i) (x j))
+
+
+lemma MatrixLogProd_def {S ι τ : Type*} (p : ℕ) [Fintype ι] [Fintype τ] (F : τ → Type*)
+    [CommRing S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] (φ : Π i : τ, S →+* (F i)) (x : ι → S)
+    (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ)) (i : τ) (j : ι) :
+    (MatrixLogProd p F φ x ζ hr) i j = LogFiniteRing (hr i) p ((φ i) (x j)) := rfl
+
+
+lemma exponent_vec_eq_zero_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [Fact $ Nat.Prime p]
+    [Fintype ι] [Fintype τ] (F : τ → Type*)
+    [CommRing S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] (φ : Π i : τ, S →+* (F i)) (x : ι → S) (e : ι → ℕ)
+    (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+    (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ))
+    (hu : ∀ i j, IsUnit ((φ i) (x j)))
+    (hrank : (MatrixLogProd p F φ x ζ hr).rank = Fintype.card ι)
+    (hp : ∃ y, ∏ i, (x i) ^ (e i) = y ^ p) : ∀ i, p ∣ e i := by
+  intro i
+  rw [← ZMod.natCast_zmod_eq_zero_iff_dvd]
+  let E : Matrix ι (Fin 1) (ZMod p) := fun i _ => (e i : ZMod p)
+  obtain ⟨y, hy ⟩ := hp
+  have hzM : (MatrixLogProd p F φ x ζ hr) * E = 0 := by
+    ext i j
+    fin_cases j
+    simp [Matrix.mul_apply', MatrixLogProd, Pi.zero_apply]
+    simp_rw [← LogFiniteRing_hom_prod_eq_dot_product (hr i) (hdvd i) (φ i) _ (hu i), hy,
+    map_pow, LogFiniteRing_p_power_eq_zero (hr i) (hdvd i) ]
+  have hle := Matrix.rank_add_rank_le_card_of_mul_eq_zero hzM
+  rw [hrank] at hle
+  simp only [add_le_iff_nonpos_right, nonpos_iff_eq_zero] at hle
+  rw [← Matrix.rank_transpose] at hle
+  have hEz : Eᵀ = 0 := by
+    by_contra hc
+    rw [LinearIndependent.rank_matrix ?_] at hle
+    contradiction
+    rw [linearIndependent_fin_succ]
+    simp only [Nat.reduceAdd, Fin.tail_def, linearIndependent_empty_type, range_empty,
+      Submodule.span_empty, Fin.isValue, Submodule.mem_bot, true_and]
+    obtain ⟨j, hj⟩ := Function.ne_iff.mp hc
+    fin_cases j
+    simp only [Fin.zero_eta, Fin.isValue, ne_eq] at hj
+    exact hj
+  exact congr_fun (congr_fun hEz 0) i
+
+
+lemma not_p_power_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [Fact $ Nat.Prime p]
+    [Fintype ι] [Fintype τ] (F : τ → Type*)
+    [CommRing S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] (φ : Π i : τ, S →+* (F i)) (x : ι → S) (e : ι → ℕ)
+    (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+    (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ))
+    (hu : ∀ i j, IsUnit ((φ i) (x j)))
+    (hrank : (MatrixLogProd p F φ x ζ hr).rank = Fintype.card ι) (he : ∃ i, ¬ p ∣ e i) :
+    ¬ ∃ y , ∏ i, (x i) ^ (e i) = y ^ p := by
+  obtain ⟨j ,hj⟩ := he
+  by_contra hc
+  exact hj (exponent_vec_eq_zero_of_full_rank_matrix F φ x e ζ hr hdvd hu hrank hc j)
+
+
+
+lemma not_principal_of_full_rank_matrix {S ι τ : Type*} {p n : ℕ} [hp : Fact $ Nat.Prime p]
+  [Fintype ι] [Fintype τ] (F : τ → Type*)
+  [CommRing S] [IsDomain S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)]
+  (u : ι → S) (hu : ∀ i, IsUnit (u i)) (hugen : ∀ (w : Sˣ), (∃ (e : ι → ℕ) , (∃ (t : Sˣ) , w = (∏ (i : ι), (u i) ^ (e i)) * t ^ p)))
+  (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+  (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ))
+  (I : Ideal S) (a : S) (hua : ∀ i, IsUnit ((φ i) a)) (hdvdp : p ∣ n) (h : I ^ n = Ideal.span {a})
+  (hrank : (MatrixLogProd p F φ (Sum.elim (fun i => u i) (fun (_ : Fin 1) => a)) ζ hr).rank = Fintype.card ι + 1) :
+    ¬ ∃ b, I = Ideal.span {b} := by
+  by_contra hb
+  obtain ⟨c, hc⟩ := hb
+  obtain ⟨m, hm⟩ := hdvdp
+  set b := c ^ m with hb
+  rw [hm, mul_comm, pow_mul, hc, Ideal.span_singleton_pow, ← hb,
+    Ideal.span_singleton_pow, Ideal.span_singleton_eq_span_singleton] at h
+  symm at h
+  obtain ⟨w, hw⟩ := h
+  obtain ⟨e, t, het⟩ := hugen w
+  rw [mul_comm, het, mul_assoc, mul_comm _ a, ← mul_assoc, ← Units.mul_left_inj ((t⁻¹) ^ p), mul_assoc] at hw
+  nth_rw 1 [inv_pow] at hw
+  rw [(show ((t : S) ^ p  = ((t ^ p : Sˣ) : S)) by rfl), Units.mul_inv, mul_one] at hw
+  erw [← mul_pow] at hw
+  let e' := Sum.elim e (fun (i : Fin 1) => 1)
+  let x := (Sum.elim (fun i => u i) (fun (i : Fin 1) => a))
+  have auxp : ∏ i, x i ^ (e' i) = (∏ i : ι, u i ^ e i) * a := by
+    simp only [Fintype.prod_sum_type, Sum.elim_inl, Finset.univ_unique, Fin.default_eq_zero,
+      Fin.isValue, Sum.elim_inr, pow_one, Finset.prod_const, Finset.card_singleton, x, e']
+  rw [← auxp] at hw
+  refine not_p_power_of_full_rank_matrix F φ x e' ζ hr hdvd ?_ ?_ ?_ ?_
+  · intro i j
+    cases j
+    · apply RingHom.isUnit_map
+      simp only [Sum.elim_inl, x]
+      exact hu _
+    · exact hua i
+  · rw [Fintype.card_sum, Fintype.card_ofSubsingleton]
+    exact hrank
+  · use Sum.inr 0
+    simp only [Fin.isValue, Sum.elim_inr, Nat.dvd_one, e']
+    refine Nat.Prime.ne_one hp.out
+  · exact ⟨b * t⁻¹, hw⟩
 
 
 
@@ -920,6 +1044,41 @@ lemma LogFiniteRing_pow {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --have aux : ∀ i, Eᵀ i = 0 := fun i => LinearIndependent.ne_zero i
+
+
+
+
+
+
+
+
+-- (hu : ∀ i j, IsUnit (φ i j))
+
+
+
+
+
+
+#exit
 
   --rw [← Int.natCast_inj, ZMod.intCast_eq_intCast_iff_dvd_sub]
 
@@ -943,9 +1102,6 @@ lemma LogFiniteRing_pow {R : Type*} {p : ℕ} [CommRing R] [Fintype R] {ζ : R}
 
 
 -- field_of_adjoin_root_irreducible
-
-
-
 
 
 
