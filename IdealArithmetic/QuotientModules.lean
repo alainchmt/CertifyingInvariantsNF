@@ -1,5 +1,5 @@
-import Mathlib.LinearAlgebra.FreeModule.IdealQuotient
-import Mathlib.RingTheory.Ideal.Norm
+--import Mathlib.LinearAlgebra.FreeModule.IdealQuotient
+import Mathlib.RingTheory.Ideal.Norm.AbsNorm
 
 /- !
 
@@ -80,10 +80,11 @@ lemma Submodule.eq_top_of_index_isUnit  (N : Submodule R M) [Module.Free R M] [M
   intro x
   have aux : (LinearEquiv.ofIsUnitDet hu) ((LinearEquiv.ofIsUnitDet hu).symm x) =
     ((LinearEquiv.ofIsUnitDet hu).symm x).1 := by
-    simp only [LinearEquiv.ofIsUnitDet_symm_apply, LinearEquiv.ofIsUnitDet_apply, coeSubtype]
+    simp only [LinearEquiv.ofIsUnitDet_symm_apply, LinearEquiv.ofIsUnitDet_apply, coe_subtype]
   rw [← LinearEquiv.apply_symm_apply (LinearEquiv.ofIsUnitDet hu) x, aux]
   simp only [LinearEquiv.ofIsUnitDet_symm_apply, SetLike.coe_mem]
 
+omit [IsDomain R] [IsPrincipalIdealRing R]
 lemma LinearMap.toMatrix_eq_of_index_equiv {N : Type*} [AddCommMonoid N]
     [Module R N] (B : Basis ι R M) (b : Basis ι R N) (f : N →ₗ[R] M )
     (e : ι ≃ ι') :
@@ -96,6 +97,8 @@ lemma LinearMap.toMatrix_eq_of_index_equiv {N : Type*} [AddCommMonoid N]
     Function.comp_apply, Basis.repr_reindex,
       Finsupp.mapDomain_equiv_apply]
   rw [← this, Matrix.det_reindexAlgEquiv]
+
+variable [IsDomain R] [IsPrincipalIdealRing R]
 
 /-- Given bases for `N` and  `M`, the determinant of the matrix representing
 `N → M` is an associate to `[M : N]` -/
@@ -148,11 +151,11 @@ lemma Submodule.indexPID_dvd_of_le [Module.Free R M]
        (Fintype.equivFin (Module.Free.ChooseBasisIndex R M))
     haveI aux : Module.Finite R N₁ := Module.Finite.of_basis (Submodule.basisOfPid B N₁).2
     haveI : Module.Finite R N₂ := Module.Finite.of_basis  (Submodule.basisOfPid B N₂).2
-    rw [← finrank_eq_rank, ← finrank_eq_rank] at heq
+    rw [← Module.finrank_eq_rank, ← Module.finrank_eq_rank] at heq
     norm_cast at heq
     have heq2': Module.rank R M = Module.rank R N₂ := by
-      rw [← finrank_eq_rank, ← finrank_eq_rank ,
-      LE.le.antisymm (by rw [heq] ; exact (Submodule.finrank_le_finrank_of_le hle)) (Submodule.finrank_le N₂)]
+      rw [← Module.finrank_eq_rank, ← Module.finrank_eq_rank ,
+      LE.le.antisymm (by rw [heq] ; exact (Submodule.finrank_mono hle)) (Submodule.finrank_le N₂)]
     let f := Submodule.inclusion hle
     let g := (Submodule.subtype N₂)
     let b₁ := Submodule.basisOfPID_of_eq_rank N₁ heqc
@@ -233,7 +236,7 @@ lemma prod_moduleSmithCoeffs_associated_index [Module.Free R M]
     (Submodule.subtype N) = Matrix.diagonal (λ i => (moduleSmithCoeffs N B b i)) := by
     ext x y
     rw [LinearMap.toMatrix_apply]
-    simp only [Submodule.coeSubtype, smith_coeffs_property, map_smul, Basis.repr_self,
+    simp only [Submodule.coe_subtype, smith_coeffs_property, map_smul, Basis.repr_self,
       Finsupp.smul_single, smul_eq_mul, mul_one, ne_eq]
     by_cases h : x = y
     case _ =>
@@ -277,7 +280,10 @@ noncomputable def moduleQuotientEquivPiSpan' {n : ℕ} (N : Submodule R M) (b : 
   let ab := moduleSmithSubmodule N b b2
   have ab_eq := smith_coeffs_property N b b2
   have mem_N_iff : ∀ x, x ∈ N ↔ ∀ i, a i ∣ b'.repr x i := by
-    intro x; rw [Basis.mem_submodule_iff' ab]; simp_rw [ab_eq]
+    intro x
+    rw [Basis.mem_submodule_iff' ab]
+    simp only [ab]
+    simp_rw [ab_eq]
     have : ∀ (c : Fin n → R) (i), b'.repr (∑ j : Fin n, c j • a j • b' j) i = a i * c i :=
       by
       intro c i

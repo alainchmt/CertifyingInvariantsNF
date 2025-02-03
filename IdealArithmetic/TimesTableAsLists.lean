@@ -24,19 +24,19 @@ this times table. We also define efficient exponentiation.
 open BigOperators
 
 
-variable {n : ℕ} {R : Type*} [Semiring R] [DecidableEq R]
+variable {n : ℕ} {R : Type*} [Semiring R]
 
 lemma list_sum_length (hn : n ≠ 0) (f : Fin n → List R) (h : ∀ i, (f i).length = m) :
     (List.sum (List.ofFn (fun i => f i))).length = m := by
   induction' n with n hn1
   · contradiction
   · unfold List.sum
-    rw [List.ofFn_succ',List.concat_eq_append, List.foldl_concat, List.add_length, h]
+    simp only [List.ofFn_succ, List.foldr_cons, List.add_length, h]
     by_cases h1 : n = 0
-    · simp only [h1, List.ofFn_zero, List.foldl_nil, max_eq_right_iff]
-      erw [List.length_nil]
-      simp only [zero_le]
-    · erw [hn1 h1 (fun i => f (Fin.castSucc i)) ?_ , max_self]
+    · simp only [h1, List.ofFn_zero, List.foldl_nil, max_eq_right_iff, List.foldr_nil, sup_eq_left]
+      exact List.getElem?_eq_none_iff.mp rfl
+    · unfold List.sum at hn1
+      erw [hn1 h1 (fun i => f (i.succ)) ?_ , max_self]
       simp only [h, implies_true]
 
 variable (T : Fin n → Fin n → Fin n → R)
@@ -59,6 +59,7 @@ lemma table_mul_list_length (a b : List R) : (table_mul_list' T a b).length = n 
       refine list_sum_length (R := R) hn _ ?_
       · intro j
         rw [List.mulPointwise_length, List.length_ofFn]
+
 
 lemma FnOfList_add_ofFn  (a b c : Fin n → R)
     (hc : List.ofFn c = (List.ofFn a) + (List.ofFn b))  :
@@ -228,6 +229,7 @@ lemma table_mul_eq_table_mul' (T' :  Fin n → Fin n → Fin n → R) (T : Fin n
   unfold table_mul_list' table_mul_list
   simp_rw [h]
 
+
 lemma table_sum_mul {S : Type*} {m : ℕ} [NonUnitalNonAssocSemiring S] [Module R S]
     [SMulCommClass R S S] [IsScalarTower R S S] (B : Basis (Fin n) R S)
     (basisMulBasis: ∀ i j k , B.repr (B i * B j) k = T i j k)
@@ -336,7 +338,7 @@ lemma table_nPow_sq_table_eq_pow {S : Type*} [Semiring S] [Module R S] [SMulComm
           ((Nat.succ m) / 2) ) (nPow_sq_table T (List.ofFn a) ((Nat.succ m) / 2) ) := by
           simp only [nPow_sq_table, hp, ↓reduceDIte]
         rw [heq',  table_mul_eq_table_mul' _ _ heq] at hc
-        rw [Nat.mod_two_ne_zero, ← Nat.succ_mod_two_eq_zero_iff] at hp
+        rw [Nat.mod_two_not_eq_zero, ← Nat.succ_mod_two_eq_zero_iff] at hp
         let d := FnOfList n (nPow_sq_table T (List.ofFn a) (Nat.succ m / 2))
           (nPow_sq_table_length T' T (List.ofFn a) (Nat.succ m / 2) (Nat.div_pos
             (nataux2 (Nat.succ m) (Nat.succ_ne_zero m) hp) (Nat.ofNat_pos))
