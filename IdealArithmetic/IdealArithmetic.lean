@@ -13,6 +13,7 @@ import Mathlib.Algebra.Module.Submodule.RestrictScalars
 import Mathlib.Tactic
 import Mathlib.GroupTheory.OrderOfElement
 import Mathlib.Data.Matrix.Rank
+import Mathlib.Algebra.Group.Subgroup.Finsupp
 
 section I
 variable (O R : Type*) [CommRing O] [CommRing R] [CommRing S]
@@ -1352,8 +1353,158 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ : Ty
   exact ⟨_ , hl⟩
 
 
+lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type*} {p : ℕ}
+  [hp : Fact $ Nat.Prime p] [Fintype ι] [Fintype τ] [Fintype κ] (F : τ → Type*) [CommRing S] [IsDomain S]
+  [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] [Module.Finite ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))]
+  [Module.Free ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))] (u : ι → S) (hu : ∀ i, IsUnit (u i))
+  (v : κ → S) (hv : ∀ i, IsUnit (v i)) (hvt : CommGroup.torsion Sˣ = Subgroup.closure (Set.range (fun j => (hv j).unit )) )
+  (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+  (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ)) (hrank : (MatrixLogProd p F φ (Sum.elim u v) ζ hr).rank = Fintype.card ι + Fintype.card κ) :
+   LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) (hu i).unit)) := by
+  by_contra hi
+  · rw [linearIndependent_int_iff_no_common_divisor (Nat.prime_iff_prime_int.1 hp.out)] at hi
+    obtain ⟨ s , g , ⟨k, hk,  hdvdp⟩ , hg⟩ := hi
+    simp_rw [← ofMul_zpow, ← ofMul_prod, ofMul_eq_zero] at hg
+    have : ∏ i ∈ s, ((QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) (hu i).unit) ^ (g i)) =
+      QuotientGroup.mk (∏ i ∈ s, (hu i).unit ^ (g i)) := by
+      exact Eq.symm (QuotientGroup.mk_prod (CommGroup.torsion Sˣ) s)
+    rw [this, QuotientGroup.eq_one_iff, hvt, Subgroup.mem_closure_range_iff_of_fintype] at hg
+    obtain ⟨a, ha⟩ := hg
+    have haux2 := nat_up_to_power_of_int_up_to_power (u := Sum.elim u v) (by simp only [Sum.forall, Sum.elim_inl, hu, implies_true, Sum.elim_inr, hv, and_self])
+      (w := 1) (p := p) (Ne.symm (NeZero.ne' p)) (Sum.elim (fun i => if i ∈ s then g i else 0) (fun j => - a j) ) (1 : Sˣ) ?_
+    swap
+    · simp only [Fintype.prod_sum_type, Sum.elim_inl, pow_ite, zpow_zero, Finset.prod_ite_mem,
+      Finset.univ_inter, Sum.elim_inr, zpow_neg, Finset.prod_inv_distrib, one_pow, mul_one]
+      rw [ha, mul_inv_cancel]
+    obtain ⟨e', hep, t, hpeq⟩ := haux2
+    apply_fun (fun x => x * (↑t⁻¹) ^ p ) at hpeq
+    rw [Units.val_one, one_mul, mul_assoc, ← mul_pow, ← Units.val_mul, mul_inv_cancel, Units.val_one, one_pow, mul_one] at hpeq
+    have hdvde : ∀ (i : _), p ∣ e' i := exponent_vec_eq_zero_of_full_rank_matrix F φ (Sum.elim u v) e' ζ hr hdvd ?_ (by simp only [hrank,
+      Fintype.card_sum]) ⟨↑t⁻¹, hpeq.symm ⟩
+    simp only [Sum.forall, Sum.elim_inl, Int.cast_ite, Int.cast_zero, Sum.elim_inr,
+      Int.cast_neg] at hdvde hep
+    rcases hdvde with ⟨hdvde1, hdvde2⟩
+    rcases hep with ⟨hep1, hep2⟩
+    specialize hdvde1 k
+    specialize hep1 k
+    rw [← ZMod.natCast_zmod_eq_zero_iff_dvd] at hdvde1
+    simp only [hk, ↓reduceIte] at hep1
+    rw [hdvde1, Eq.comm, ZMod.intCast_zmod_eq_zero_iff_dvd] at hep1
+    exact hdvdp hep1
+    · intro i j
+      apply RingHom.isUnit_map
+      cases j
+      · simp only [Sum.elim_inl, hu]
+      · simp only [Sum.elim_inr, hv]
 
+--example {α β : Type*} (f : α → Prop) (g : β → Prop) (hf : ∀ i , f i) (hg : ∀ j, g j) : ∀ i : α ⊕ β, 0 = 0 := by
+--  intro k
+--  have : Sum.elim (fun i => hf i) (fun i => hg i) k
 
+#check Sum.rec
+
+lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type*} {p : ℕ}
+  [hp : Fact $ Nat.Prime p] [Fintype ι] [Fintype τ] [Fintype κ] (F : τ → Type*) [CommRing S] [IsDomain S]
+  [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] [Module.Finite ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))]
+  [Module.Free ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))] (u : ι → S) (hu : ∀ i, IsUnit (u i))
+  (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+  (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ)) (v : κ → S) (hv : ∀ i, IsUnit (v i))
+  (hvt : CommGroup.torsion Sˣ = Subgroup.closure (Set.range (fun j => (hv j).unit )) )
+  (hrank : (MatrixLogProd p F φ (Sum.elim u v) ζ hr).rank = Fintype.card ι + Fintype.card κ)
+  (huc : Module.finrank ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ))) ≤ Fintype.card ι) (w : Sˣ) :
+    ∃ (e' : ι ⊕ κ → ℤ), (∃ (t : Sˣ) , w = (∏ (i : ι ⊕ κ), (Sum.elim (fun i => (hu i).unit) (fun i => (hv i).unit) i) ^ (e' i)) * t ^ p) := by
+  have hlin := units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion F u hu v hv hvt φ ζ hr hdvd hrank
+  let M : Submodule ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ))) :=
+    Submodule.span ℤ (Set.range (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) (hu i).unit)))
+  let BM : Basis ι ℤ M := ⟨(LinearIndependent.linearCombinationEquiv hlin).symm⟩
+  let N := ((Additive (Sˣ ⧸ (CommGroup.torsion Sˣ))))
+  have hdim : Module.finrank ℤ N = Fintype.card ι := by
+    refine eq_of_le_of_le huc ?_
+    refine le_of_eq_of_le ?_ (Submodule.finrank_le M)
+    symm
+    exact Module.finrank_eq_card_basis BM
+  have B := Module.finBasisOfFinrankEq ℤ _ hdim
+  have B' : Basis (Fin (Fintype.card ι)) ℤ M := Basis.reindex BM (Fintype.equivFin ι)
+  have hinz : Nat.card (N ⧸ M) ≠ 0 := by
+    rw [← indexPID_eq_index_int _ B B' , Int.natAbs_ne_zero,
+    ← Associated.ne_zero_iff (Associated.comm.1 (prod_moduleSmithCoeffs_associated_index _ B B')), Finset.prod_ne_zero_iff]
+    intro i hi
+    exact moduleSmithCoeffs_ne_zero _ B B' i
+  haveI : Finite (N ⧸ M) := (Nat.card_ne_zero.1 hinz).2
+  have hpmaximal : ¬ p ∣ Nat.card (N ⧸ M) := by
+    by_contra hpdvd
+    obtain ⟨x  , hx ⟩ := exists_prime_addOrderOf_dvd_card' p hpdvd
+    have xpow : p • x = 0  := by
+      rw [← hx]
+      exact addOrderOf_nsmul_eq_zero x
+    have xnezero : x ≠ 0 := by
+      rw [addOrderOf_eq_iff] at hx
+      rw [← one_nsmul x]
+      exact (hx.2 1 (Nat.Prime.one_lt hp.out) (by decide))
+      exact (Nat.Prime.pos hp.out)
+    obtain ⟨y, hy ⟩ := Quotient.exists_rep x
+    rw [← hy] at xpow xnezero
+    simp only [ne_eq] at xnezero
+    erw [Submodule.Quotient.mk_eq_zero] at xpow xnezero
+    rw [mem_span_range_iff_exists_fun] at xpow
+    obtain ⟨g, hg⟩ := xpow
+    dsimp at hg
+    have hgc := hg
+    conv at hg =>
+      left  ; right ; intro i ; rw [← ofMul_zpow]
+    rw [← ofMul_prod, ← ofMul_toMul y, ← ofMul_pow p _] at hg
+    apply_fun Additive.ofMul.symm at hg
+    erw [toMul_ofMul, toMul_ofMul] at hg
+    obtain ⟨z, hz ⟩ := QuotientGroup.mk'_surjective (CommGroup.torsion Sˣ) (Additive.toMul y)
+    rw [← hz] at hg
+    erw [← QuotientGroup.mk_prod, ← QuotientGroup.mk'_apply, Eq.comm, QuotientGroup.mk'_eq_mk' (CommGroup.torsion Sˣ)] at hg
+    obtain ⟨t, htmem, ht ⟩ := hg
+    rw [hvt, Subgroup.mem_closure_range_iff_of_fintype] at htmem
+    obtain ⟨a, ha⟩ := htmem
+    dsimp at ht
+    have hdvdgi := z_exponent_vec_eq_zero_of_full_rank_matrix F φ (Sum.elim u v)
+      (by simp only [Sum.forall, Sum.elim_inl, hu, implies_true, Sum.elim_inr, hv, and_self] ) (Sum.elim g (fun j => - a j) ) ζ hr hdvd
+      (by simp only [hrank, Fintype.card_sum]) ?_
+    swap
+    use z
+    · simp only [Fintype.prod_sum_type, Sum.elim_inl, ← ht, ha, Sum.elim_inr, zpow_neg,
+      Finset.prod_inv_distrib, mul_inv_cancel_right]
+    simp only [Sum.forall, Sum.elim_inl, Sum.elim_inr, dvd_neg] at hdvdgi
+    set J : ι → ℤ := fun i => (hdvdgi.1 i).choose
+    have htaux : ∀ i , g i = p * (J i) := fun i => (hdvdgi.1 i).choose_spec
+    simp_rw [htaux, MulAction.mul_smul, ← Finset.smul_sum, ← natCast_zsmul] at hgc
+    rw [smul_right_inj (Ne.symm (NeZero.ne' (p : ℤ)))] at hgc
+    apply xnezero
+    rw [← hgc, mem_span_range_iff_exists_fun]
+    use J
+  have auxcard' : (Nat.card (N ⧸ M)).Coprime p := by
+      rw [Nat.coprime_comm, Nat.Prime.coprime_iff_not_dvd]
+      exact hpmaximal
+      exact hp.out
+  set α : N ⧸ M :=  (QuotientAddGroup.mk ((Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) w)) )) with hwdef
+  have hauxg := nsmulCoprime_apply auxcard' ((nsmulCoprime auxcard')⁻¹ α)
+  rw [Equiv.Perm.apply_inv_self] at hauxg
+  obtain ⟨β', hβ ⟩ := QuotientAddGroup.mk'_surjective _ ((nsmulCoprime auxcard')⁻¹ α)
+  nth_rw 1 [hwdef] at hauxg
+  rw [ ← hβ, QuotientAddGroup.mk'_apply,  ← QuotientAddGroup.mk_nsmul] at hauxg
+  rw [← QuotientAddGroup.mk'_apply, ← QuotientAddGroup.mk'_apply, Eq.comm, QuotientAddGroup.mk'_eq_mk'] at hauxg
+  obtain ⟨m, hmmem, hmeq ⟩ := hauxg
+  rw [Submodule.mem_toAddSubgroup, mem_span_range_iff_exists_fun] at hmmem
+  obtain ⟨e' ,he ⟩ := hmmem
+  apply_fun Additive.toMul at hmeq
+  rw [← he] at hmeq
+  simp only [toMul_add, toMul_nsmul, toMul_sum, toMul_zsmul, toMul_ofMul] at hmeq
+  obtain ⟨β'', hβ'' ⟩ := QuotientGroup.mk'_surjective _ (Additive.toMul β')
+  erw [← hβ'', ← QuotientGroup.mk_prod, ← QuotientGroup.mk_pow , QuotientGroup.mk'_eq_mk' (CommGroup.torsion Sˣ)] at hmeq
+  obtain ⟨l, hlmem, hl⟩ := hmeq
+  rw [mul_comm, ← mul_assoc] at hl
+  rw [hvt, Subgroup.mem_closure_range_iff_of_fintype] at hlmem
+  obtain ⟨a', ha'⟩ := hlmem
+  use Sum.elim e' a'
+  use β''
+  simp only [Fintype.prod_sum_type, Sum.elim_inl, Sum.elim_inr]
+  rw [← ha', mul_assoc, mul_comm]
+  exact hl.symm
 
 
 
