@@ -1664,6 +1664,107 @@ lemma is_primitive_root_finite_field {F : Type*} [Field F] [Fintype F] {n : ℕ}
   rw [orderOf_of_IsOrderOf h, hcard]
   exact Fintype.card_units F
 
+
+
+open NumberField
+
+lemma nrRealPlaces_gt_zero_of_odd_finrank {K : Type*} [Field K] [NumberField K] (h : Odd (Module.finrank ℚ K)) :
+  0 < NumberField.InfinitePlace.nrRealPlaces K := by
+  rw [Fintype.card_pos_iff, nonempty_subtype]
+  by_contra hc
+  push_neg at hc
+  have htwo : ∀ w : InfinitePlace K , w.mult = 2  := fun w => if_neg (hc w)
+  have : Even (Module.finrank ℚ K) := by
+    simp_rw [← NumberField.InfinitePlace.sum_mult_eq, htwo]
+    simp only [Finset.sum_const, Finset.card_univ, smul_eq_mul, even_two, Even.mul_left]
+  exact (Nat.not_odd_iff_even.2 this) h
+
+lemma IsOfFinOrder_iff_eq_one_or_neg_one_of_odd_finrank {K : Type*} [Field K] [NumberField K]
+  (h : Odd (Module.finrank ℚ K)) (x : RingOfIntegers K) : IsOfFinOrder x ↔ x = 1 ∨ x = -1 := by
+  constructor
+  · intro hf
+    by_cases hc : 2 < orderOf (x : K)
+    · have aux := IsPrimitiveRoot.nrRealPlaces_eq_zero_of_two_lt hc (IsPrimitiveRoot.orderOf (x : K))
+      linarith[nrRealPlaces_gt_zero_of_odd_finrank h]
+    · push_neg at hc
+      erw [le_iff_lt_or_eq, orderOf_submonoid] at hc
+      rcases hc with h1 | h2
+      · rw [← orderOf_pos_iff] at hf
+        exact Or.intro_left _ (orderOf_eq_one_iff.1 (show orderOf x = 1 by linarith))
+      · have aux := pow_orderOf_eq_one x
+        rw [h2, sq_eq_one_iff] at aux
+        exact aux
+  · rintro (h1 | h2)
+    · rw [h1]
+      exact IsOfFinOrder.one
+    · rw [h2, isOfFinOrder_iff_pow_eq_one]
+      exact ⟨2, by simp only [Nat.ofNat_pos, even_two, Even.neg_pow, one_pow, and_self] ⟩
+
+lemma torsionOrder_eq_two_of_finrank_odd {K : Type*} [Field K] [NumberField K]
+  (h : Odd (Module.finrank ℚ K)) : NumberField.Units.torsionOrder K = 2 := by
+  unfold NumberField.Units.torsionOrder
+  refine PNat.eq ?_
+  dsimp
+  erw [Finset.card_eq_two]
+  use 1 , ⟨-1, by erw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one] ;  use 2 ; norm_num ⟩
+  constructor
+  · by_contra hc
+    rw [← Subtype.val_inj] at hc
+    simp only [OneMemClass.coe_one, units_ne_neg_self] at hc
+  · ext x
+    constructor
+    · intro hx
+      have : ↑x ∈ Units.torsion K := SetLike.coe_mem x
+      unfold Units.torsion at this
+      obtain ⟨m ,hm⟩ := isOfFinOrder_iff_pow_eq_one.1 ((CommGroup.mem_torsion _ _).1 this )
+      have : IsOfFinOrder (↑(↑x : (𝓞 K)ˣ) : (𝓞 K)) := by
+        rw [isOfFinOrder_iff_pow_eq_one]
+        use m
+        have aux : (↑(↑x : (𝓞 K)ˣ) : (𝓞 K)) ^ m = (↑((↑x : (𝓞 K)ˣ) ^ m) : (𝓞 K)) := by rfl
+        exact ⟨hm.1, by erw [aux, hm.2] ; rfl ⟩
+      rw [IsOfFinOrder_iff_eq_one_or_neg_one_of_odd_finrank h] at this
+      simp only [Finset.mem_insert, Finset.mem_singleton]
+      rw [← Subtype.val_inj, ← Subtype.val_inj, ← Units.eq_iff, ← Units.eq_iff]
+      exact this
+    · simp only [Finset.mem_insert, Finset.mem_singleton, Finset.mem_univ, implies_true]
+
+
+
+
+
+
+
+
+  /- let f : Fin 2 → Units.torsion K := fun x => if x = 0 then 1 else
+    ⟨-1, by erw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one] ;  use 2 ; norm_num ⟩
+  convert (Fintype.card_of_bijective (f := f) ?_).symm
+  unfold f
+  constructor
+  · intro x y hxy
+    fin_cases x
+    · fin_cases y
+      rfl
+      rw [← Subtype.val_inj] at hxy
+      simp only [Fin.zero_eta, Fin.isValue, ↓reduceIte, OneMemClass.coe_one, Fin.mk_one,
+        one_ne_zero, units_ne_neg_self] at hxy
+    · fin_cases y
+      rw [← Subtype.val_inj] at hxy
+      simp only [Fin.mk_one, Fin.isValue, one_ne_zero, ↓reduceIte, Fin.zero_eta,
+        OneMemClass.coe_one, neg_units_ne_self] at hxy
+      rfl
+  · -/
+
+
+
+
+
+
+
+
+
+
+
+#exit
 --------------------------------------------
 -- EXAMPLE
 --------------------------------------------
@@ -2182,7 +2283,7 @@ noncomputable def hr : ∀ (i : Fin 2) , IsPrimitiveRoot (ζ i) (Fintype.card (!
   | 1 => PrimRoot₃
 
 
-example : MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr = ![![-1, -1], ![0, 1]] := by
+lemma matrix_log_units : MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr = ![![-1, -1], ![0, 1]] := by
   ext i j
   rw [MatrixLogProd_def]
   fin_cases i
@@ -2194,11 +2295,30 @@ example : MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr = ![![-1,
     · exact log_of_zeta32
 
 
-def M : Matrix (Fin 2) (Fin 2) ℤ := ![![-1, -1], ![0, 1]]
+lemma matrix_log_units_rank : Matrix.rank (MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr) = 2 := by
+  refine le_antisymm ?_ ?_
+  · exact rank_le_width (MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr)
+  · have : Matrix.rank ((MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr) * (MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr)) = 2 := by
+      rw [matrix_log_units]
+      convert Matrix.rank_one
+      · ext i j
+        fin_cases i <;> fin_cases j <;> rfl
+      · exact strongRankCondition_of_orzechProperty (ZMod 3)
+    rw [← this]
+    apply Matrix.rank_mul_le_left
 
-lemma aux : M * M = (![![1, 0], ![0, 1]] : Matrix _ _ ℤ) := by
-  ext i j
-  fin_cases i <;> fin_cases j <;> decide
+
+
+
+
+--def M : Matrix (Fin 2) (Fin 2) ℤ := ![![-1, -1], ![0, 1]]
+
+
+
+
+--lemma aux : M * M = (![![1, 0], ![0, 1]] : Matrix _ _ ℤ) := by
+--  ext i j
+--  fin_cases i <;> fin_cases j <;> decide
 
 
 
@@ -2221,40 +2341,6 @@ lemma aux : M * M = (![![1, 0], ![0, 1]] : Matrix _ _ ℤ) := by
   --  rw [B_one_repr]
    -- simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
   --rw [this, Basis.equivFun_symm_eq_repr_symm', ← map_smul]
-
-open NumberField
-
-lemma foo {K : Type*} [Field K] [NumberField K] (h : Odd (Module.finrank ℚ K)) :
-  0 < NumberField.InfinitePlace.nrRealPlaces K := by
-  rw [Fintype.card_pos_iff, nonempty_subtype]
-  by_contra hc
-  push_neg at hc
-  have htwo : ∀ w : InfinitePlace K , w.mult = 2  := fun w => if_neg (hc w)
-  have : Even (Module.finrank ℚ K) := by
-    simp_rw [← NumberField.InfinitePlace.sum_mult_eq, htwo]
-    simp only [Finset.sum_const, Finset.card_univ, smul_eq_mul, even_two, Even.mul_left]
-  exact (Nat.not_odd_iff_even.2 this) h
-
-lemma foo2 {K : Type*} [Field K] [NumberField K] (h : Odd (Module.finrank ℚ K))
-  (x : RingOfIntegers K) : IsOfFinOrder x ↔ x = 1 ∨ x = -1 := by
-  constructor
-  · intro hf
-    by_cases hc : 2 < orderOf (x : K)
-    · have aux := IsPrimitiveRoot.nrRealPlaces_eq_zero_of_two_lt hc (IsPrimitiveRoot.orderOf (x : K))
-      linarith[foo h]
-    · push_neg at hc
-      erw [le_iff_lt_or_eq, orderOf_submonoid] at hc
-      rcases hc with h1 | h2
-      · rw [← orderOf_pos_iff] at hf
-        exact Or.intro_left _ (orderOf_eq_one_iff.1 (show orderOf x = 1 by linarith))
-      · have aux := pow_orderOf_eq_one x
-        rw [h2, sq_eq_one_iff] at aux
-        exact aux
-  · rintro (h1 | h2)
-    · rw [h1]
-      exact IsOfFinOrder.one
-    · rw [h2, isOfFinOrder_iff_pow_eq_one]
-      exact ⟨2, by simp only [Nat.ofNat_pos, even_two, Even.neg_pow, one_pow, and_self] ⟩
 
 
 
