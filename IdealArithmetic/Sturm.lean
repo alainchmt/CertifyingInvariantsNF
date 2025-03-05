@@ -30,31 +30,47 @@ A real closed field `F` is a linearly ordered field such that
 This is equivalent to `F` satisfying the intermediate value theorem for polynomial functions.  -/
 
 
-def IsRealClosed (F : Type*) [LinearOrderedField F] : Prop :=
+/- def IsRealClosed (F : Type*) [LinearOrderedField F] : Prop :=
     ∀ {a b : F} ,
     a ≤ b → ∀ {P : F[X]} {t : F},
     (t ∈ Set.Ioo (P.eval a) (P.eval b) ∨ t ∈ Set.Ioo (P.eval b) (P.eval a))
-    → ∃ s, s ∈ Set.Ioo a b ∧ P.eval s = t
+    → ∃ s, s ∈ Set.Ioo a b ∧ P.eval s = t -/
 
-lemma Real.IsRealClosedField : IsRealClosed ℝ := by
+def IsRealClosed (F : Type*) [LinearOrderedField F] : Prop :=
+    ∀ {a b t : F} , ∀ {P : F[X]},
+    a ≤ b → t ∈ Set.Ioo (P.eval a) (P.eval b)  → ∃ s, s ∈ Set.Ioo a b ∧ P.eval s = t
+
+
+/- lemma Real.IsRealClosedField : IsRealClosed ℝ := by
   rintro a b hab P t h
   let f : ℝ → ℝ := fun x => P.eval x
   rcases h with ⟨h1, h2⟩  | ⟨h1', h2'⟩
   exact (Set.mem_image _ _ _).1
     (intermediate_value_Ioo hab (f := f) (Polynomial.continuousOn P ) ⟨h1 , h2⟩)
   exact (Set.mem_image _ _ _).1
-    (intermediate_value_Ioo' hab (f := f) (Polynomial.continuousOn P ) ⟨h1' , h2'⟩)
+    (intermediate_value_Ioo' hab (f := f) (Polynomial.continuousOn P ) ⟨h1' , h2'⟩) -/
+
+lemma Real.IsRealClosedField' : IsRealClosed ℝ := by
+  rintro a b t P hab h
+  let f : ℝ → ℝ := fun x => P.eval x
+  exact (Set.mem_image _ _ _).1
+    (intermediate_value_Ioo hab (f := f) (Polynomial.continuousOn P ) h)
 
 variable {F : Type} [LinearOrderedField F]
 open Set
 
 lemma polynomial_has_root_of_le_zero_of_pos (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
     {P : F[X]} (ha : P.eval a < 0) (hb : 0 < P.eval b ) : ∃ s ∈ Ioo a b , P.eval s = 0 := by
-  exact hc hab (Or.inl ⟨ha , hb⟩)
+  exact hc hab ⟨ha, hb⟩
 
 lemma polynomial_has_root_of_pos_le_zero (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
     {P : F[X]} (ha : 0 < P.eval a) (hb : P.eval b < 0 ) : ∃ s ∈ Ioo a b , P.eval s = 0 := by
-  exact hc hab (Or.inr ⟨hb , ha⟩)
+  obtain ⟨s, hs1, hs2⟩ := @hc a b 0 (- P) hab (by simp[ha, hb])
+  simp only [eval_neg, neg_eq_zero] at hs2
+  exact ⟨s, hs1, hs2 ⟩
+
+
+  --exact hc hab (Or.inr ⟨hb , ha⟩)
 
 
 lemma neg_of_ne_zero_of_exists_neg (hc : IsRealClosed F) {a b m : F} {P : F[X]}
@@ -186,7 +202,8 @@ lemma rolle_theorem_weak (hc : IsRealClosed F) {a b : F} (hab : a < b) {P : F[X]
     · rwa [Polynomial.dvd_iff_isRoot] at hQ2
   set Q1 : F[X] := C (rootMultiplicity b Q' : F) * (X - C a) * Q +
       C (rootMultiplicity a P : F) * (X - C b) * Q + (X - C a) * (X - C b) * derivative Q with hQd
-  have hderiv : derivative P = ((X - C a) ^ (rootMultiplicity a P).pred) * ((X - C b) ^ (rootMultiplicity b Q').pred) * Q1 := by
+  have hderiv : derivative P = ((X - C a) ^ (rootMultiplicity a P).pred) *
+    ((X - C b) ^ (rootMultiplicity b Q').pred) * Q1 := by
     nth_rw 1 [hQ'1, hQd, ← mul_assoc, derivative_mul, derivative_mul,
       derivative_pow, derivative_pow, derivative_X_sub_C, derivative_X_sub_C, mul_one, mul_one]
     rw [mul_add, mul_add, add_mul _ _ Q]
