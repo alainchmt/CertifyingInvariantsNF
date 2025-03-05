@@ -1668,69 +1668,57 @@ lemma is_primitive_root_finite_field {F : Type*} [Field F] [Fintype F] {n : ℕ}
 
 open NumberField
 
-lemma nrRealPlaces_gt_zero_of_odd_finrank {K : Type*} [Field K] [NumberField K] (h : Odd (Module.finrank ℚ K)) :
-  0 < NumberField.InfinitePlace.nrRealPlaces K := by
-  rw [Fintype.card_pos_iff, nonempty_subtype]
+lemma nrRealPlaces_pos_of_odd_finrank {K : Type*} [Field K] [NumberField K]
+    (h : Odd (Module.finrank ℚ K)) : 0 < NumberField.InfinitePlace.nrRealPlaces K := by
+  refine Nat.pos_of_ne_zero ?_
   by_contra hc
-  push_neg at hc
-  have htwo : ∀ w : InfinitePlace K , w.mult = 2  := fun w => if_neg (hc w)
-  have : Even (Module.finrank ℚ K) := by
-    simp_rw [← NumberField.InfinitePlace.sum_mult_eq, htwo]
-    simp only [Finset.sum_const, Finset.card_univ, smul_eq_mul, even_two, Even.mul_left]
-  exact (Nat.not_odd_iff_even.2 this) h
+  have := NumberField.InfinitePlace.card_add_two_mul_card_eq_rank K
+  rw [hc, zero_add] at this
+  rw [← this] at h
+  exact Nat.not_odd_iff_even.2 (even_two_mul _) h
 
 lemma IsOfFinOrder_iff_eq_one_or_neg_one_of_odd_finrank {K : Type*} [Field K] [NumberField K]
-  (h : Odd (Module.finrank ℚ K)) (x : RingOfIntegers K) : IsOfFinOrder x ↔ x = 1 ∨ x = -1 := by
+    (h : Odd (Module.finrank ℚ K)) {x : 𝓞 K} : IsOfFinOrder x ↔ x = 1 ∨ x = -1 := by
   constructor
   · intro hf
     by_cases hc : 2 < orderOf (x : K)
-    · have aux := IsPrimitiveRoot.nrRealPlaces_eq_zero_of_two_lt hc (IsPrimitiveRoot.orderOf (x : K))
-      linarith[nrRealPlaces_gt_zero_of_odd_finrank h]
+    · linarith [IsPrimitiveRoot.nrRealPlaces_eq_zero_of_two_lt hc (IsPrimitiveRoot.orderOf (x : K)),
+        nrRealPlaces_pos_of_odd_finrank h]
     · push_neg at hc
       erw [le_iff_lt_or_eq, orderOf_submonoid] at hc
       rcases hc with h1 | h2
       · rw [← orderOf_pos_iff] at hf
-        exact Or.intro_left _ (orderOf_eq_one_iff.1 (show orderOf x = 1 by linarith))
+        exact Or.intro_left _ (orderOf_eq_one_iff.1 (by linarith))
       · have aux := pow_orderOf_eq_one x
         rw [h2, sq_eq_one_iff] at aux
         exact aux
-  · rintro (h1 | h2)
-    · rw [h1]
-      exact IsOfFinOrder.one
-    · rw [h2, isOfFinOrder_iff_pow_eq_one]
-      exact ⟨2, by simp only [Nat.ofNat_pos, even_two, Even.neg_pow, one_pow, and_self] ⟩
+  · rintro (rfl | rfl)
+    · exact IsOfFinOrder.one
+    · rw [isOfFinOrder_iff_pow_eq_one]
+      exact ⟨2, by simp ⟩
 
-lemma torsionOrder_eq_two_of_finrank_odd {K : Type*} [Field K] [NumberField K]
-  (h : Odd (Module.finrank ℚ K)) : NumberField.Units.torsionOrder K = 2 := by
-  unfold NumberField.Units.torsionOrder
+lemma torsionOrder_eq_two_of_odd_finrank {K : Type*} [Field K] [NumberField K]
+    (h : Odd (Module.finrank ℚ K)) : NumberField.Units.torsionOrder K = 2 := by
   refine PNat.eq ?_
-  dsimp
   erw [Finset.card_eq_two]
-  use 1 , ⟨-1, by erw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one] ;  use 2 ; norm_num ⟩
+  use 1 , ⟨-1, by erw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one] ; use 2 ; norm_num ⟩
   constructor
-  · by_contra hc
-    rw [← Subtype.val_inj] at hc
-    simp only [OneMemClass.coe_one, units_ne_neg_self] at hc
+  · intro hc
+    simp [← Subtype.val_inj] at hc
   · ext x
     constructor
     · intro hx
-      have : ↑x ∈ Units.torsion K := SetLike.coe_mem x
-      unfold Units.torsion at this
-      obtain ⟨m ,hm⟩ := isOfFinOrder_iff_pow_eq_one.1 ((CommGroup.mem_torsion _ _).1 this )
+      obtain ⟨m ,hm⟩ := isOfFinOrder_iff_pow_eq_one.1
+        ((CommGroup.mem_torsion _ _).1 (SetLike.coe_mem x) )
       have : IsOfFinOrder (↑(↑x : (𝓞 K)ˣ) : (𝓞 K)) := by
         rw [isOfFinOrder_iff_pow_eq_one]
-        use m
-        have aux : (↑(↑x : (𝓞 K)ˣ) : (𝓞 K)) ^ m = (↑((↑x : (𝓞 K)ˣ) ^ m) : (𝓞 K)) := by rfl
-        exact ⟨hm.1, by erw [aux, hm.2] ; rfl ⟩
+        show (∃ m, 0 < m ∧ (↑((↑x : (𝓞 K)ˣ) ^ m) : (𝓞 K)) = 1)
+        exact ⟨m, ⟨hm.1, by erw [hm.2] ; rfl ⟩ ⟩
       rw [IsOfFinOrder_iff_eq_one_or_neg_one_of_odd_finrank h] at this
       simp only [Finset.mem_insert, Finset.mem_singleton]
       rw [← Subtype.val_inj, ← Subtype.val_inj, ← Units.eq_iff, ← Units.eq_iff]
       exact this
-    · simp only [Finset.mem_insert, Finset.mem_singleton, Finset.mem_univ, implies_true]
-
-
-
-
+    · simp
 
 
 
