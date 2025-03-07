@@ -56,7 +56,9 @@ lemma Real.IsRealClosedField' : IsRealClosed ℝ := by
   exact (Set.mem_image _ _ _).1
     (intermediate_value_Ioo hab (f := f) (Polynomial.continuousOn P ) h)
 
-variable {F : Type} [LinearOrderedField F]
+namespace IsRealClosedField
+
+variable {F : Type*} [LinearOrderedField F]
 open Set
 
 lemma polynomial_has_root_of_le_zero_of_pos (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
@@ -69,8 +71,14 @@ lemma polynomial_has_root_of_pos_le_zero (hc : IsRealClosed F) {a b : F} (hab : 
   simp only [eval_neg, neg_eq_zero] at hs2
   exact ⟨s, hs1, hs2 ⟩
 
-
-  --exact hc hab (Or.inr ⟨hb , ha⟩)
+lemma polynomial_has_root_of_mul_neg (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
+    {P : F[X]} (habm : (P.eval a) * (P.eval b) < 0) : ∃ s ∈ Ioo a b , P.eval s = 0 := by
+  rcases lt_trichotomy (P.eval a) 0 with hl1 | hl2 | hl3
+  · have : eval b P > 0 := by nlinarith
+    exact polynomial_has_root_of_le_zero_of_pos hc hab hl1 this
+  · simp[hl2] at habm
+  · have : eval b P < 0 := by nlinarith
+    exact polynomial_has_root_of_pos_le_zero hc hab hl3 this
 
 
 lemma neg_of_ne_zero_of_exists_neg (hc : IsRealClosed F) {a b m : F} {P : F[X]}
@@ -90,22 +98,41 @@ lemma neg_of_ne_zero_of_exists_neg (hc : IsRealClosed F) {a b m : F} {P : F[X]}
       exact ⟨lt_trans hx.1 hs1.1, lt_trans hs1.2 hm.2⟩
   · exact hP x hx hz2.symm
 
+lemma nonpos_of_ne_zero_of_exists_neg (hc : IsRealClosed F) {a b m : F} {P : F[X]}
+    (hP : ∀ x ∈ Ioo a b , P.eval x ≠ 0) (hm : m ∈ Ioo a b) (hneg : P.eval m < 0) :
+    ∀ x ∈ Icc a b , P.eval x ≤ 0 := by
+  intro x hmem
+  rcases Set.eq_endpoints_or_mem_Ioo_of_mem_Icc hmem with ha | hb | hx
+  · rw [ha]
+    by_contra! hc'
+    obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_pos_le_zero hc (le_of_lt hm.1) hc' hneg
+    refine hP s ?_ hs2
+    simp only [mem_Ioo] at hs1
+    exact ⟨hs1.1, lt_trans hs1.2 hm.2⟩
+  · rw [hb]
+    by_contra! hc'
+    obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_le_zero_of_pos hc (le_of_lt hm.2) hneg hc'
+    refine hP s ?_ hs2
+    simp only [mem_Ioo] at hs1
+    exact ⟨lt_trans hm.1 hs1.1, hs1.2⟩
+  · exact le_of_lt (neg_of_ne_zero_of_exists_neg hc hP hm hneg x hx)
+
+
 lemma pos_of_ne_zero_of_exists_pos (hc : IsRealClosed F) {a b m : F} {P : F[X]}
     (hP : ∀ x ∈ Ioo a b , P.eval x ≠ 0) (hm : m ∈ Ioo a b) (hpos : P.eval m > 0) :
     ∀ x ∈ Ioo a b , P.eval x > 0 := by
-  intro x hx
-  by_contra! hc'
-  rcases le_iff_lt_or_eq.1 hc' with hz1 | hz2
-  · rcases le_or_gt m x with hm1 | hm2
-    · obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_pos_le_zero hc hm1 hpos hz1
-      refine hP s ?_ hs2
-      simp only [mem_Ioo] at hs1 hx ⊢
-      exact ⟨lt_trans hm.1 hs1.1, lt_trans hs1.2 hx.2⟩
-    · obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_le_zero_of_pos hc (le_of_lt hm2) hz1 hpos
-      refine hP s ?_ hs2
-      simp only [mem_Ioo] at hs1 hx ⊢
-      exact ⟨lt_trans hx.1 hs1.1, lt_trans hs1.2 hm.2⟩
-  · exact hP x hx hz2
+  have := neg_of_ne_zero_of_exists_neg hc (P := - P)
+    (by simp only [eval_neg, ne_eq, neg_eq_zero, and_imp] ; exact hP ) hm (by simp[hpos])
+  simp at this ⊢
+  exact this
+
+lemma nonneg_of_ne_zero_of_exists_pos (hc : IsRealClosed F) {a b m : F} {P : F[X]}
+    (hP : ∀ x ∈ Ioo a b , P.eval x ≠ 0) (hm : m ∈ Ioo a b) (hpos : P.eval m > 0) :
+    ∀ x ∈ Icc a b , P.eval x ≥ 0 := by
+  have := nonpos_of_ne_zero_of_exists_neg hc (P := - P)
+    (by simp only [eval_neg, ne_eq, neg_eq_zero, and_imp] ; exact hP ) hm (by simp[hpos])
+  simp at this ⊢
+  exact this
 
 
 lemma constant_sign_of_ne_zero (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
@@ -123,53 +150,23 @@ lemma constant_sign_of_ne_zero (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
 
 lemma constant_sign_of_ne_zero' (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
     {P : F[X]} (hP : ∀ x ∈ Ioo a b, P.eval x ≠ 0) :
-    (∀ x ∈ Icc a b , P.eval x ≥ 0) ∨ (∀ x ∈ Icc a b , P.eval x ≤ 0)  := by
+    (∀ x ∈ Icc a b , P.eval x ≥ 0) ∨ (∀ x ∈ Icc a b , P.eval x ≤ 0) := by
   rcases le_iff_lt_or_eq.1 hab with h1 | h2
   · obtain ⟨m, hm⟩ := exists_between  h1
     rcases lt_trichotomy (P.eval m) 0 with hl1 | hl2 | hl3
     · right
-      intro x hmem
-      rcases Set.eq_endpoints_or_mem_Ioo_of_mem_Icc hmem with ha | hb | hx
-      · rw [ha]
-        by_contra! hc'
-        obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_pos_le_zero hc (le_of_lt hm.1) hc' hl1
-        refine hP s ?_ hs2
-        simp only [mem_Ioo] at hs1
-        exact ⟨hs1.1, lt_trans hs1.2 hm.2⟩
-      · rw [hb]
-        by_contra! hc'
-        obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_le_zero_of_pos hc (le_of_lt hm.2) hl1 hc'
-        refine hP s ?_ hs2
-        simp only [mem_Ioo] at hs1
-        exact ⟨lt_trans hm.1 hs1.1, hs1.2⟩
-      · exact le_of_lt (neg_of_ne_zero_of_exists_neg hc hP hm hl1 x hx)
+      exact nonpos_of_ne_zero_of_exists_neg hc hP hm hl1
     · exfalso ; exact hP m hm hl2
     · left
-      intro x hmem
-      rcases Set.eq_endpoints_or_mem_Ioo_of_mem_Icc hmem with ha | hb | hx
-      · rw [ha]
-        by_contra! hc'
-        obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_le_zero_of_pos hc (le_of_lt hm.1) hc' hl3
-        refine hP s ?_ hs2
-        simp only [mem_Ioo] at hs1
-        exact ⟨hs1.1, lt_trans hs1.2 hm.2⟩
-      · rw [hb]
-        by_contra! hc'
-        obtain ⟨s, hs1, hs2⟩ := polynomial_has_root_of_pos_le_zero hc (le_of_lt hm.2) hl3 hc'
-        refine hP s ?_ hs2
-        simp only [mem_Ioo] at hs1
-        exact ⟨lt_trans hm.1 hs1.1, hs1.2⟩
-      · exact le_of_lt (pos_of_ne_zero_of_exists_pos hc hP hm hl3 x hx)
+      exact nonneg_of_ne_zero_of_exists_pos hc hP hm hl3
   · simp [h2, LinearOrder.le_total 0 (eval b P)]
-
-
 
 lemma rolle_theorem_weak (hc : IsRealClosed F) {a b : F} (hab : a < b) {P : F[X]}
     (hP : ∀ x ∈ Ioo a b, P.eval x ≠ 0) (hPa : P.eval a = 0) (hPb : P.eval b = 0) :
     ∃ c ∈ Ioo a b , (derivative P).eval c = 0 := by
   have hPnz : P ≠ 0 := by
     intro h
-    obtain ⟨m, hm⟩ := exists_between  hab
+    obtain ⟨m, hm⟩ := exists_between hab
     specialize hP m hm
     simp [h, eval_zero] at hP
   obtain ⟨Q' , hQ'1, hQ'2⟩ := Polynomial.exists_eq_pow_rootMultiplicity_mul_and_not_dvd P hPnz a
@@ -223,46 +220,113 @@ lemma rolle_theorem_weak (hc : IsRealClosed F) {a b : F} (hab : a < b) {P : F[X]
     apply hP x hmem
     rw [hQ'1] ; simp[h]
   have hzQ : ∃ c ∈ Ioo a b , Q1.eval c = 0 := by
-    rcases constant_sign_of_ne_zero' hc (le_of_lt hab) hQIoo with hqal | hqag
-    · have ha1 : Q1.eval a < 0 := by
-        rw [hQ1a]
-        simp only [neg_mul, Left.neg_neg_iff]
-        refine mul_pos (mul_pos ?_ ?_) ?_
-        · rw [Nat.cast_pos]
-          exact Nat.pos_of_ne_zero ham
-        · linarith
-        · specialize hqal a (by simp ; exact le_of_lt hab )
-          exact lt_of_le_of_ne hqal (hQr.1).symm
-      have hb1 : Q1.eval b > 0 := by
-        rw [hQ1b]
-        refine mul_pos (mul_pos ?_ ?_) ?_
-        · rw [Nat.cast_pos]
-          exact Nat.pos_of_ne_zero hbm
-        · linarith
-        · specialize hqal b (by simp ; exact le_of_lt hab )
-          exact lt_of_le_of_ne hqal (hQr.2).symm
-      exact polynomial_has_root_of_le_zero_of_pos hc (le_of_lt hab) ha1 hb1
-    · have ha1 : Q1.eval a > 0 := by
-        rw [hQ1a] ; simp
-        refine mul_neg_of_pos_of_neg (mul_pos ?_ ?_) ?_
-        · rw [Nat.cast_pos]
-          exact Nat.pos_of_ne_zero ham
-        · linarith
-        · specialize hqag a (by simp ; exact le_of_lt hab )
-          exact lt_of_le_of_ne hqag (hQr.1)
-      have hb1 : Q1.eval b < 0 := by
-        rw [hQ1b]
-        refine mul_neg_of_pos_of_neg (mul_pos ?_ ?_) ?_
-        · rw [Nat.cast_pos]
-          exact Nat.pos_of_ne_zero hbm
-        · linarith
-        · specialize hqag b (by simp ; exact le_of_lt hab )
-          exact lt_of_le_of_ne hqag (hQr.2)
-      exact polynomial_has_root_of_pos_le_zero hc (le_of_lt hab) ha1 hb1
+    apply polynomial_has_root_of_mul_neg hc (le_of_lt hab)
+    simp [hQ1a, hQ1b]
+    have : ↑(rootMultiplicity a P) * (b - a) * eval a Q * (↑(rootMultiplicity b Q') * (b - a) * eval b Q) =
+      ↑(rootMultiplicity a P) * (↑(rootMultiplicity b Q') * (b - a) * (b - a) * ((eval a Q) * (eval b Q))) := by ring
+    rw [this]
+    refine mul_pos ?_ (mul_pos ((mul_pos ((mul_pos ?_ ?_)) ?_)) ?_)
+    · rw [Nat.cast_pos]
+      exact Nat.pos_of_ne_zero ham
+    · rw [Nat.cast_pos]
+      exact Nat.pos_of_ne_zero hbm
+    · linarith
+    · linarith
+    · refine lt_of_le_of_ne ?_ ?_
+      · rcases constant_sign_of_ne_zero' hc (le_of_lt hab) hQIoo with hqal | hqag
+        · refine mul_nonneg (hqal a (by simp [le_of_lt hab])) (hqal b (by simp [le_of_lt hab]))
+        · refine mul_nonneg_of_nonpos_of_nonpos (hqag a (by simp [le_of_lt hab]))
+            (hqag b (by simp [le_of_lt hab]))
+      · simp[hQr]
   obtain ⟨c, hcI, hc⟩ := hzQ
   use c
   refine ⟨hcI, ?_ ⟩
   simp [hderiv, hc]
+
+lemma rolle_theorem_weak' (hc : IsRealClosed F) {a b : F} (hab : a < b) {P : F[X]}
+    (hPa : P.eval a = 0) (hPb : P.eval b = 0) :
+    ∃ c ∈ Ioo a b , ((derivative P).eval c = 0 ∨ P.eval c = 0) := by
+  by_contra! hcc
+  have hP : ∀ x ∈ Ioo a b , P.eval x ≠ 0 := fun x hx => (hcc x hx).2
+  obtain ⟨c, hc1, hc2⟩ := rolle_theorem_weak hc hab hP hPa hPb
+  exact (hcc c hc1).1 hc2
+
+open Finset
+
+/-- Based on Assia and Cyril paper-/
+lemma rolle_theorem_induction (hc : IsRealClosed F) (n : ℕ)
+    {a b : F} {P : F[X]} (hab : a < b) (hPa : P.eval a = 0) (hPb : P.eval b = 0)
+    (hcard : #((Multiset.toFinset P.roots).filter ( fun x => x ∈ Ioo a b)) < n) :
+    ∃ c ∈ Ioo a b, (derivative P).eval c = 0 := by
+  revert P a b
+  induction' n with n hn
+  · simp only [Set.mem_Ioo, not_lt_zero', IsEmpty.forall_iff, implies_true]
+  · intro a b P hab hPa hPb hcard
+    obtain ⟨c , hcmem, hcd⟩ := rolle_theorem_weak' hc hab hPa hPb
+    rcases hcd with hcd1 | hcd2
+    · exact ⟨c, hcmem, hcd1⟩
+    · have : P ≠ 0 → filter (fun x ↦ x ∈ Set.Ioo a c) P.roots.toFinset
+        ⊂ filter (fun x ↦ x ∈ Set.Ioo a b) P.roots.toFinset := by
+        intro hPz
+        rw [Finset.ssubset_def, Finset.not_subset]
+        constructor
+        · intro r hr
+          simp at hr ⊢
+          refine ⟨hr.1, ⟨hr.2.1, lt_trans hr.2.2 hcmem.2 ⟩ ⟩
+        · use c
+          simp [hcd2, hPz]
+          exact hcmem
+      by_cases hPz : P = 0
+      · simp [hPz, exists_between hab]
+      · obtain ⟨r, hr1, hr2⟩ := hn hcmem.1 hPa hcd2 (by linarith [Finset.card_lt_card (this hPz)])
+        refine ⟨r, ⟨hr1.1, lt_trans hr1.2 hcmem.2⟩, hr2  ⟩
+
+lemma rolle_theorem (hc : IsRealClosed F) {a b : F} {P : F[X]} (hab : a < b)
+    (hPab : P.eval a = P.eval b) : ∃ c ∈ Ioo a b, (derivative P).eval c = 0 := by
+  wlog h : P.eval a = 0
+  · have := this hc (P := P - C (P.eval a) ) hab
+    simp at this
+    simp [this, hPab]
+  · rw [h] at hPab
+    exact rolle_theorem_induction hc
+      ((#((Multiset.toFinset P.roots).filter ( fun x => x ∈ Ioo a b))) + 1)
+      hab h hPab.symm (lt_add_one _)
+
+theorem mean_value_theorem  (hc : IsRealClosed F) {a b : F} {P : F[X]} (hab : a < b) :
+    ∃ c ∈ Ioo a b , P.eval b - P.eval a = ((derivative P).eval c) * (b - a) := by
+  let Q : F[X] :=  (C (P.eval b) - C (P.eval a)) * (X - C a) - (C b - C a) * (P - C (P.eval a))
+  have Q_deriv : derivative Q = (C (P.eval b) - C (P.eval a)) - (C b - C a) * (derivative P) := by
+    simp[Q]
+  have hQa : Q.eval a = 0 := by simp[Q]
+  have hQb : Q.eval b = 0 := by simp[Q] ; ring
+  obtain ⟨c, hcmem, hc⟩ := rolle_theorem hc hab (Eq.trans hQa hQb.symm)
+  use c , hcmem
+  rw [Q_deriv] at hc
+  simp at hc
+  linarith
+
+lemma change_sign_of_unique_root_of_squarefree  {a b c : F} {P : F[X]} (hab : a < b)
+    (hmem : c ∈ Ioo a b) (hr : P.eval c = 0) (hur : ∀ x ∈ Icc a b , P.eval x = 0 → x = c)
+    (hd : ∀ x ∈ Icc a b, (derivative P).eval x ≠ 0) : (P.eval a) * (P.eval b) < 0 := by
+  by_contra! hc
+
+  sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end IsRealClosedField
+
 
 
 
@@ -319,19 +383,49 @@ def signChanges' (L : List R) : ℕ :=
   | [] => 0
   | (a :: as) => if SignType.sign a * SignType.sign (as.headD 0) < 0 then 1 + signChanges' as else signChanges' as
 
-def signChanges (L : List R) : ℕ  := signChanges' (List.filter (fun x => if x ≠ 0 then true else false) L)
+def signChanges (L : List R) : ℕ  :=
+  signChanges' (List.filter (fun x => if x ≠ 0 then true else false) L)
 
 
 lemma signChanges_def (L : List R) : signChanges L = signChanges' (List.filter (fun x => if x ≠ 0 then true else false) L) := by
   rfl
 
-#eval signChangesList [1,-2,3,-1,-3,4,5,6,-7]
-#eval signChanges' [1,0, 0, -2,3,-1,-3,4,5,6,-7]
+lemma signChanges_eq_signChanges' (L : List R) (hz : ∀ x ∈ L, x ≠ 0) : signChanges L = signChanges' L := by
+  rw [signChanges_def]
+  congr ; simp ; exact hz
+
+#eval signChangesList [1,0, 0, -2,3,-1,-3,4,5,6,-7, -1,-1,4,5,-1,0,0,0,-2,3]
+#eval signChanges [1,0, 0, -2,3,-1,-3,4,5,6,-7, -1,-1,4,5,-1,0,0,0,-2,3]
 
 open SignType
 
-def signChangesPolySeq {n : ℕ} (P : Fin n → R[X]) (a : R) : ℕ :=
-  signChangesList (List.ofFn (fun i => (P i).eval a))
+/- The sign changes of a polynomial sequence at `a` is simply the sign changes of the resulting
+list when evaluating the polys at `a` -/
+def signChangesPolySeq (P : List R[X]) (a : R) : ℕ :=
+  signChangesList (List.map (fun x => x.eval a) P)
+
+
+/-- A list of polynomials is a sturm sequence starting with `p` and `q`
+  if it has length at least two, it ends in a constant polynomial, it has strictly decreasing degree
+  and `Pᵢ₊₁ ∣ (e₁ * Pᵢ + fᵢ * Pᵢ₊₂)` with `eᵢ` and `f₁` strictly positive numbers. -/
+def IsSturmSequence (P : List R[X]) (p q : R[X]) (hlen : 2 ≤ P.length) : Prop :=
+  P[0] = p ∧ P[1] = q ∧ (∃ c : R, c ≠ 0 ∧ P.getLastD 0 = C c) ∧
+  (∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree ) ∧
+  (∀ i, ∀ h1 : 2 ≤ i , ∀ h2 : i + 2 < P.length ,
+  (∃ e f : R, ∃ Q : R[X], 0 < e ∧ 0 < f ∧ C e * P[i] = Q * P[i + 1] - C f * P[i + 2] ))
+
+
+@[simp]
+lemma signChanges_single' (a : R) : signChanges' [a] = 0 := by
+  simp[signChanges']
+
+@[simp]
+lemma signChanges_single (a : R) : signChanges [a] = 0 := by
+  by_cases ha : a ≠ 0
+  · simp[signChanges, signChanges', ha]
+  · push_neg at ha
+    simp [signChanges, signChanges', ha]
+
 
 lemma signChanges_zero_head (as : List R) : signChanges (0 :: as) = signChanges as := by
   unfold signChanges
@@ -340,6 +434,36 @@ lemma signChanges_zero_head (as : List R) : signChanges (0 :: as) = signChanges 
 lemma signChanges_zero_head' (as : List R) : signChanges' (0 :: as) = signChanges' as := by
   simp_rw [signChanges', sign_zero, zero_mul]
   rfl
+
+lemma signChanges_length_two (a b : R) (hab : a * b < 0) : signChanges [a, b] = 1 := by
+  have : a ≠ 0 ∧ b ≠ 0 := by
+    by_contra! hc
+    by_cases haz : a = 0
+    · simp [haz] at hab
+    · simp [hc haz] at hab
+  rw [signChanges_eq_signChanges']
+  simp [signChanges']
+  simp [← sign_mul, hab]
+  simp[this]
+
+lemma signChanges_cons_eq_add' (a b : R) (as : List R) :
+  signChanges' (a :: b :: as) = signChanges' [a, b] + signChanges' (b :: as) := by
+by_cases hc : sign a * sign b = -1
+· simp [signChanges', hc]
+· simp [signChanges', hc]
+
+lemma signChanges_cons_eq_add (a b : R) (as : List R) (hb : b ≠ 0) :
+  signChanges (a :: b :: as) = signChanges [a, b] + signChanges (b :: as) := by
+have aux : ∀ x y : R, ∀ L : List R,  x :: y :: L = [x, y] ++ L := by simp
+by_cases ha : a ≠ 0
+· have aux2 : (List.filter (fun x ↦ if x ≠ 0 then true else false) [a, b]) = [a, b] := by
+    simp[ha, hb]
+  unfold signChanges
+  rw [aux, List.filter_append, aux2, ← aux, signChanges_cons_eq_add']
+  congr ; simp [hb]
+· push_neg at ha
+  rw [ha]
+  simp[signChanges_zero_head, signChanges_single]
 
 
 lemma signChanges_modify_zero (a : R) (bs : List R) :
@@ -369,6 +493,437 @@ lemma signChanges_cons {a : R} {as : List R} (ha : a ≠ 0) (hh : as.headD 0 ≠
   rw [aux]
   nth_rw 1 [signChanges']
   simp_rw [aux2]
+
+lemma signChanges_map' {S : Type*} [LinearOrderedRing S] (f : R → S)
+    (hmono1 : ∀ a , 0 < a ↔ 0 < f a ) (hmono2 : ∀ a , a < 0 ↔ f a < 0 ) (L : List R) :
+    signChanges' L = signChanges' (L.map f) := by
+induction' L with a as hi
+· rfl
+· match as with
+  | [] => simp [signChanges']
+  | (b :: bs) =>
+  simp
+  by_cases ha : sign a * sign b = -1
+  · have hac := ha
+    have ha : sign (f a) * sign (f b) = -1 := by
+       rw [← sign_mul, sign_eq_neg_one_iff, mul_neg_iff] at ha ⊢
+       rw [hmono1, hmono1, hmono2, hmono2] at ha
+       exact ha
+    unfold signChanges'
+    simp [ha, hac]
+    simp[hi]
+  · have hac := ha
+    have ha : ¬ sign (f a) * sign (f b) = -1 := by
+      rw [← sign_mul, sign_eq_neg_one_iff, mul_neg_iff] at ha ⊢
+      rw [hmono1, hmono1, hmono2, hmono2] at ha
+      exact ha
+    unfold signChanges'
+    simp [ha, hac]
+    simp[hi]
+
+lemma signChanges_map {S : Type*} [LinearOrderedRing S] (f : R → S)
+  (hmono1 : ∀ a , 0 < a ↔ 0 < f a ) (hmono2 : ∀ a , a < 0 ↔ f a < 0 )
+  (L : List R) :
+  signChanges L = signChanges (L.map f) := by
+  have : ∀ x , f x = 0 ↔ x = 0 := by
+    intro x
+    constructor
+    · intro hx
+      rcases lt_trichotomy x 0 with h1 | h2 | h3
+      · have := (hmono2 x).1 h1 ; simp [hx] at this
+      · exact h2
+      · have := (hmono1 x).1 h3 ; simp [hx] at this
+    · rintro rfl
+      rcases lt_trichotomy (f 0) 0 with h1 | h2 | h3
+      · have := (hmono2 0).2 h1
+        simp at this
+      · exact h2
+      · have := (hmono1 0).2 h3
+        simp at this
+  unfold signChanges
+  rw [List.filter_map]
+  have : (List.filter ((fun x ↦ if x ≠ 0 then true else false) ∘ f) L) =
+    List.filter (fun x ↦ if x ≠ 0 then true else false) L := by
+    apply List.filter_congr
+    intro x hL
+    simp[this x]
+  rw [this]
+  apply signChanges_map' f hmono1 hmono2
+
+
+lemma signChanges_eq_map_sign_int (L : List R) :
+  signChanges L = signChanges (L.map (fun x ↦ (sign x : ℤ))) := by
+  apply signChanges_map _ ?_ ?_ _
+  · intro a
+    rw [← sign_eq_one_iff]
+    constructor
+    · intro h ; simp [h]
+    · cases sign a  <;> simp
+  · intro a
+    rw [← sign_eq_neg_one_iff]
+    constructor
+    · intro h ; simp [h]
+    · cases sign a  <;> simp
+
+lemma signChanges_eq_map_sign_int' (L : List R) :
+  signChanges' L = signChanges' (L.map (fun x ↦ (sign x : ℤ))) := by
+  apply signChanges_map' _ ?_ ?_ _
+  · intro a
+    rw [← sign_eq_one_iff]
+    constructor
+    · intro h ; simp [h]
+    · cases sign a  <;> simp
+  · intro a
+    rw [← sign_eq_neg_one_iff]
+    constructor
+    · intro h ; simp [h]
+    · cases sign a  <;> simp
+
+lemma signChanges_congr (L₁ L₂ : List R)
+  (hlen : L₁.length = L₂.length)
+  (hi : ∀ i, ∀ hi : i < L₁.length, sign (L₁[i]) = sign (L₂[i]) ) :
+  signChanges L₁ = signChanges L₂ := by
+  refine Eq.trans (b := signChanges (L₁.map (fun x ↦ (sign x : ℤ)))) ?_ ?_
+  · exact signChanges_eq_map_sign_int L₁
+  · rw [signChanges_eq_map_sign_int L₂]
+    congr 1
+    refine List.ext_get ?_ ?_
+    · simp[hlen]
+    · intro i hi1 hi2
+      simp at hi1 hi2 ⊢
+      rw [hi]
+
+lemma signChanges_congr' (L₁ L₂ : List R)
+  (hlen : L₁.length = L₂.length)
+  (hi : ∀ i, ∀ hi : i < L₁.length, sign (L₁[i]) = sign (L₂[i]) ) :
+  signChanges' L₁ = signChanges' L₂ := by
+  refine Eq.trans (b := signChanges' (L₁.map (fun x ↦ (sign x : ℤ)))) ?_ ?_
+  · exact signChanges_eq_map_sign_int' L₁
+  · rw [signChanges_eq_map_sign_int' L₂]
+    congr 1
+    refine List.ext_get ?_ ?_
+    · simp[hlen]
+    · intro i hi1 hi2
+      simp at hi1 hi2 ⊢
+      rw [hi]
+
+lemma sign_changes_add (as bs : List R) (b : R) :
+  signChanges' (as ++ (b :: bs) ) = signChanges' (as ++ [b]) + signChanges' (b :: bs) := by
+  induction' as with c cs hi
+  · simp[signChanges']
+  · match cs with
+    | [] =>
+    simp [signChanges_cons_eq_add' c b bs]
+    | (d :: ds) =>
+    by_cases hc : sign c * sign d = -1
+    · conv => left ; unfold signChanges' ; simp[hc]
+      conv =>  right ; left ; unfold signChanges' ; simp[hc]
+      rw [add_assoc, add_right_inj]
+      simp at hi
+      exact hi
+    · conv => left ; unfold signChanges' ; simp[hc]
+      conv =>  right ; left ; unfold signChanges' ; simp[hc]
+      simp at hi
+      exact hi
+
+lemma sign_changes_add_triple (a b c : R) (as : List R) :
+  signChanges' (a :: b :: c :: as) = signChanges' [a, b, c] + signChanges' (c :: as) := by
+  exact sign_changes_add [a, b] as c
+
+-- to do the induction
+-- the correct should be? If the signs are not the same, then either we are at the
+-- head or inside and the sides have opposite sign.
+
+-- Consider (a :: b :: c :: cs) and split according to if c has the same sign in the
+-- two lists. If yes, then you can apply induction hypothesis to (c :: cs). If not,
+-- then use (b :: c :: cs) since b is forced to have same sign.
+
+lemma List.getElem_cons_pred {α : Type* } (a : α) (as : List α) (i : ℕ) (h : i  < (a :: as).length)
+  (hi' : i - 1 < as.length) (hi : i ≠ 0) : (a :: as)[i] = as[i - 1] := by
+  match i with
+  | 0 => contradiction
+  | i + 1 => simp
+
+
+lemma signChanges_of_mul_neg {a b c : R}
+    (ha : a * c < 0) : signChanges [a, b, c] = 1 := by
+    rcases lt_trichotomy b 0 with hb1 | hb2 | hb3
+    swap
+    · rw [hb2, signChanges_modify_zero, signChanges_length_two _ _ ha]
+    · rw [mul_neg_iff] at ha
+      rcases ha with hapos | haneg
+      · rw [signChanges_eq_signChanges']
+        unfold signChanges'
+        simp [signChanges', hapos.1, hb1, hapos.2]
+        aesop
+      · rw [signChanges_eq_signChanges']
+        unfold signChanges'
+        simp [signChanges', haneg.1, hb1, haneg.2]
+        aesop
+    · rw [mul_neg_iff] at ha
+      rcases ha with hapos | haneg
+      · rw [signChanges_eq_signChanges']
+        unfold signChanges'
+        simp [signChanges', hapos.1, hb3, hapos.2]
+        simp ; aesop
+      · rw [signChanges_eq_signChanges']
+        unfold signChanges'
+        simp [signChanges', haneg.1, hb3, haneg.2]
+        aesop
+
+
+lemma aux_induction_three_base (a1 a2 a3 b1 b2 b3 : R)
+    (hin : sign a1 = sign b1) (hlast : sign a3 = sign b3)
+    (hi : sign a2 ≠ sign b2 → a1 * a3 < 0 ∧ sign a1 = sign b1 ∧ sign a3 = sign b3) :
+  signChanges [a1, a2, a3] = signChanges [b1, b2, b3] := by
+  by_cases heq : sign a2 ≠ sign b2
+  · have := (hi heq)
+    have aux : b1 * b3 < 0 := by
+      rw [← sign_eq_neg_one_iff, sign_mul, ← this.2.1, ← this.2.2, ← sign_mul ]
+      simp[this.1]
+    rw [signChanges_of_mul_neg this.1, signChanges_of_mul_neg aux]
+  · push_neg at heq
+    apply signChanges_congr
+    · intro i hii
+      simp at hii
+      interval_cases i
+      · exact hin
+      · exact heq
+      · exact hlast
+    · rfl
+
+lemma List.three_le_length_iff {α : Type*} {l : List α} :  3 ≤ l.length ↔ ∃ (a b c : α), ∃ (as : List α) ,
+  l = (a :: b :: c :: as) := by
+  constructor
+  · intro hlen
+    match l with
+    | [] => simp at hlen
+    | [a] => simp at hlen
+    | [a, b] => simp at hlen
+    | (a :: b :: c :: as) =>
+    use a , b, c, as
+  · rintro ⟨a, b, c, as, has⟩
+    simp [has]
+
+
+/-- If I just case match, the proof is too slow. -/
+lemma aux_induction_list_opposite_sign {n : ℕ}(L₁ L₂ : List R)
+  (hzL1 : ∀ x ∈ L₁, x ≠ 0) (hzL2 : ∀ x ∈ L₂, x ≠ 0)
+  (hlenn : L₁.length = n)
+  (hlen : L₁.length = L₂.length) (hlast : sign (L₁.getLastD 0) = sign (L₂.getLastD 0))
+  (hi : ∀ i , ∀ hi : i + 1 < L₁.length , sign (L₁[i]) ≠ sign (L₂[i]) →
+    (1 ≤ i ∧ L₁[i - 1] * L₁[i + 1] < 0 ∧ sign (L₁[i - 1]) = sign (L₂[i - 1]) ∧ sign (L₁[i + 1]) = sign (L₂[i + 1]))) :
+    signChanges L₁ = signChanges L₂ := by
+  rw [signChanges_eq_signChanges' _ hzL2 , signChanges_eq_signChanges' _ hzL1]
+  revert L₁ L₂
+  induction' n using Nat.strong_induction_on with n hn
+  · by_cases hnz : n < 1
+    · simp at hnz
+      intro L₁ L₂ hzL1 hzL2 hlenn hlen hlast hi
+      rw [hnz] at hlenn
+      rw [hlenn] at hlen
+      rw [List.length_eq_zero.1 hlenn, List.length_eq_zero.1 hlen.symm]
+    · intro L₁ L₂ hzL1 hzL2 hlenn hlen hlast hi
+      have hszero : sign (L₁[0]) = sign (L₂[0]) := by
+        rcases lt_trichotomy L₁.length 1 with hl0 | hl1 | hl2
+        · linarith
+        · rw [hl1, Eq.comm] at hlen
+          rw [List.length_eq_one] at hlen hl1
+          obtain ⟨a, ha⟩ := hl1
+          obtain ⟨b, hb⟩ := hlen
+          simp [ha, hb] at hlast ⊢
+          exact hlast
+        · by_contra hcc
+          linarith [(hi 0 (by linarith) hcc).1]
+      by_cases ht : 3 ≤ n
+      · obtain ⟨a1, a2,a3, as, has ⟩:= List.three_le_length_iff.1 (le_of_le_of_eq ht hlenn.symm)
+        obtain ⟨b1, b2,b3, bs, hbs ⟩:= List.three_le_length_iff.1 (le_of_le_of_eq ht (Eq.trans hlenn.symm hlen))
+        simp_rw [has] at hlenn hlen hlast hi hszero hzL1 ⊢
+        simp_rw [hbs] at hlenn hlen hlast hi hszero hzL2 ⊢
+        by_cases han : as = []
+        · have hbn : bs = [] := by rw [han] at hlen ; simp at hlen ; exact hlen
+          simp_rw [han, hbn] at hi hlast ⊢
+          simp at hlast
+          rw [← signChanges_eq_signChanges', ← signChanges_eq_signChanges']
+          apply aux_induction_three_base
+          · simp at hszero ; exact hszero
+          · exact hlast
+          · have := hi 1 (by simp)
+            simp at this ; exact this
+          · simp[hzL2]
+          · simp[hzL1]
+        · by_cases hseq : sign a3 = sign b3
+          · rw [sign_changes_add_triple, sign_changes_add_triple b1]
+            rw [hn (n - 2) (by omega) (a3 :: as) (b3 :: bs) ?_ ?_ ?_ ]
+            · congr 1
+              rw [← signChanges_eq_signChanges', ← signChanges_eq_signChanges']
+              apply aux_induction_three_base
+              · exact hszero
+              · exact hseq
+              · intro hneq
+                have := hi 1 (by simp) hneq
+                simp at this
+                exact this
+              simp [hzL2] ; simp [hzL1]
+            · simp at hlen ; simp [hlen]
+            · exact hlast
+            · intro i hii hns
+              have higt : 1 ≤ i := by
+                by_contra! hcc
+                simp [Nat.lt_one_iff.1 hcc, hseq] at hns
+              constructor
+              · exact higt
+              · specialize hi (i + 2) (by simp at hii ⊢ ; exact hii) hns
+                simp at hi ; simp[hii]
+                rw [List.getElem_cons_pred, List.getElem_cons_pred b2] at hi
+                exact hi ; exact Nat.not_eq_zero_of_lt higt ;  exact Nat.not_eq_zero_of_lt higt
+            · simp at hzL1
+              simp [hzL1] ; exact hzL1.2.2.2
+            · simp at hzL2 ; simp [hzL2] ; exact hzL2.2.2.2
+            · simp at hlenn ; simp ; omega
+          · have has2 : sign (a2) = sign (b2) := by
+              have := hi 2 (by simp ; exact List.length_pos.mpr han) hseq
+              simp at this
+              rw[this.2.1]
+            rw [signChanges_cons_eq_add', signChanges_cons_eq_add' b1]
+            rw [hn (n - 1) (by omega) (a2 :: a3 :: as) (b2 :: b3 :: bs) ?_ ?_ ?_ ]
+            · congr 1
+              rw [signChanges_congr']
+              · rfl
+              · intro i hii ; simp at hii
+                interval_cases i
+                exact hszero ; exact has2
+            · simp at hlen ⊢ ; exact hlen
+            · simp at hlast ⊢ ; exact hlast
+            · intro i hii hns
+              have higt : 1 ≤ i := by
+                by_contra! hcc
+                simp [Nat.lt_one_iff.1 hcc, hseq] at hns
+                exact hns has2
+              constructor
+              · exact higt
+              · specialize hi (i + 1) (by simp at hii ⊢ ; exact hii) hns
+                simp at hi ; simp[hii]
+                rw [List.getElem_cons_pred, List.getElem_cons_pred b1] at hi
+                exact hi ; exact Nat.not_eq_zero_of_lt higt ; exact Nat.not_eq_zero_of_lt higt
+            · simp at hzL1 ; simp [hzL1] ; exact hzL1.2.2.2
+            · simp at hzL2 ; simp [hzL2] ; exact hzL2.2.2.2
+            · simp at hlenn ; simp ; omega
+      · push_neg at ht hnz
+        interval_cases n
+        · obtain ⟨a, ha⟩ := List.length_eq_one.1 hlenn
+          obtain ⟨b, hb⟩ := List.length_eq_one.1 (Eq.trans hlen.symm hlenn)
+          rw [ha, hb, signChanges_single', signChanges_single']
+        · obtain ⟨a1, a2, ha⟩ := List.length_eq_two.1 hlenn
+          obtain ⟨b1, b2, hb⟩ := List.length_eq_two.1 (Eq.trans hlen.symm hlenn)
+          simp_rw [ha, hb] at hszero hlast hzL1 hzL2 ⊢
+          rw [signChanges_congr']
+          · rfl
+          · intro i hii
+            simp at hii
+            interval_cases i
+            exact hszero
+            exact hlast
+
+
+lemma signChanges_eq_of_lists_opposite_sign (L₁ L₂ : List R)
+  (hzL1 : ∀ x ∈ L₁, x ≠ 0) (hzL2 : ∀ x ∈ L₂, x ≠ 0)
+  (hlen : L₁.length = L₂.length) (hlast : sign (L₁.getLastD 0) = sign (L₂.getLastD 0))
+  (hi : ∀ i , ∀ hi : i + 1 < L₁.length , sign (L₁[i]) ≠ sign (L₂[i]) →
+    (1 ≤ i ∧ L₁[i - 1] * L₁[i + 1] < 0 ∧ sign (L₁[i - 1]) = sign (L₂[i - 1]) ∧ sign (L₁[i + 1]) = sign (L₂[i + 1]))) :
+    signChanges L₁ = signChanges L₂ := by
+  exact aux_induction_list_opposite_sign L₁ L₂ hzL1 hzL2 rfl hlen hlast hi
+
+lemma sign_ne_eq_iff_of_ne_zero {a b : SignType} (ha : a ≠ 0) (hb : b ≠ 0) :
+  a ≠ b ↔ a * b = - 1 := by
+  cases a ;
+  cases b ; simp ; simp at ha ; simp at ha
+  cases b ; simp at hb ; simp ; simp
+  cases b ; simp at hb ; simp ; simp
+
+
+variable (F : Type*) [LinearOrderedField F]
+
+open Set IsRealClosedField
+
+lemma polynomial_change_sign_aux (hc : IsRealClosed F) {a b e f r : F} (P0 P1 P2 Q : F[X])
+  (hab : a < b) (hpose : 0 < e ) (hposf : 0 < f) (heq : P0 = Q * P1 - P2)
+  (hz0 : ∀ x ∈ Icc a b , P0.eval x ≠ 0) (hz2 : ∀ x ∈ Icc a b , P0.eval x ≠ 0)
+  (hP1a : P1.eval a ≠ 0) (hP1b : P1.eval b ≠ 0) (hneq : sign (P1.eval a) ≠ sign (P1.eval b)) :
+    (P0.eval a) * (P2.eval a) < 0 ∧ sign (P0.eval a) = sign (P0.eval b) ∧
+    sign (P2.eval a) = sign (P2.eval b) := by
+  have : (P1.eval a) * (P1.eval b) < 0 := by
+    rw [← sign_eq_neg_one_iff, sign_mul, ← sign_ne_eq_iff_of_ne_zero (sign_ne_zero.mpr hP1a) (sign_ne_zero.mpr hP1b )]
+    exact hneq
+  obtain ⟨r, hrmem, hrr⟩ := polynomial_has_root_of_mul_neg (F := F) hc (le_of_lt hab) this
+  constructor
+  have aux2 : P0.eval r = - P2.eval r := by rw [heq] ; simp[hrr]
+
+
+
+
+
+
+--lemma signChanges_sturm_unique_root_case1 :
+
+
+
+
+
+
+
+
+#exit
+
+
+
+
+
+             -- convert hi using 3
+             -- rw [← Nat.sub_one_add_one (show (i ≠ 0) by sorry)]
+              --simp at hi
+              --simp[hii]
+      --· have s2 : sign a2 = sign b2 := by
+      --    by_contra hcc'
+
+
+
+  induction' L₁ with a as hin
+  /- revert L₂
+  induction' L₁ with a as hin
+  · intro L₂ hLz hlen hsign
+    simp only [List.length_nil] at hlen
+    simp [List.length_eq_zero.1 hlen.symm]
+  · intro L₂ hzL2 hlen hlast hi
+    match L₂ with
+    | [] => sorry
+    | [b] => sorry
+    | (b1 :: b2 :: []) => sorry
+    | (b1 :: b2 :: b3 :: bs) =>
+    have hca : ∃ c1 c2 c3 cs , (a :: as) = (c1 :: c2 :: c3 :: cs) := by sorry
+    obtain ⟨c1, c2,c3, cs, hc ⟩:= hca
+    simp_rw [hc] at hzL1 hlen hlast hi ⊢ -/
+
+    /- match as with
+    | [] => sorry
+    | (c :: cs) =>
+    match bs with
+    | [] => sorry
+    | (d :: ds) =>
+    simp at hi -/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 lemma SignType.sq_of_ne_zero {a : SignType} (ha : a ≠ 0) : a ^ 2 = 1 := by
@@ -529,6 +1084,21 @@ induction' L with a as haz
         unfold signChanges'
         simp_rw [aux, ← signChanges_def, aux2]
         simp[ha]
+
+-- I can assume that my list has no zeros. For each entry either the sign stays the same
+-- or for two consecutive entries (skipping one), the signs are opposite.
+lemma signChanges_eq_signChanges (L₁ L₂ : List R)
+  (hlen : L₁.length = L₂.length)
+  (hi : ∀ i,  0 ≤ i ∧ i + 2 < L₁.length - 1 → sign (L₁[i + 1]) = sign (L₂[i + 1]) ∨
+    (sign (L₁[i]) * sign (L₁[i + 2]) = -1 ∧ sign (L₂[i]) * sign (L₂[i + 2]) = -1)) :
+
+
+
+(i : ℕ)
+  (hi : 0 ≤ i ∧ i + 2 < L.length - 1) (hL : sign (L[i]) * sign (L[i + 2]) = -1 )
+
+
+
 
 
 
