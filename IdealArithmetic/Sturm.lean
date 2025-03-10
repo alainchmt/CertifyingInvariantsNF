@@ -38,7 +38,7 @@ This is equivalent to `F` satisfying the intermediate value theorem for polynomi
 
 def IsRealClosed (F : Type*) [LinearOrderedField F] : Prop :=
     ∀ {a b t : F} , ∀ {P : F[X]},
-    a ≤ b → t ∈ Set.Ioo (P.eval a) (P.eval b)  → ∃ s, s ∈ Set.Ioo a b ∧ P.eval s = t
+    a ≤ b → t ∈ Set.Ioo (P.eval a) (P.eval b) → ∃ s, s ∈ Set.Ioo a b ∧ P.eval s = t
 
 
 /- lemma Real.IsRealClosedField : IsRealClosed ℝ := by
@@ -71,6 +71,20 @@ lemma polynomial_has_root_of_pos_le_zero (hc : IsRealClosed F) {a b : F} (hab : 
   simp only [eval_neg, neg_eq_zero] at hs2
   exact ⟨s, hs1, hs2 ⟩
 
+lemma intermediate_value_theorem_swap (hc : IsRealClosed F) {a b t : F} (hab : a ≤ b)
+    {P : F[X]} (hmem : t ∈ Set.Ioo (P.eval b) (P.eval a)) : ∃ s, s ∈ Set.Ioo a b ∧ P.eval s = t := by
+  obtain ⟨s, hs1, hs2⟩ := @hc a b (-t) (- P) hab (by simp [hmem.1, hmem.2])
+  simp at hs2
+  exact ⟨s, hs1, hs2⟩
+
+lemma sign_ne_eq_iff_of_ne_zero {a b : SignType} (ha : a ≠ 0) (hb : b ≠ 0) :
+  a ≠ b ↔ a * b = - 1 := by
+  cases a ;
+  cases b ; simp ; simp at ha ; simp at ha
+  cases b ; simp at hb ; simp ; simp
+  cases b ; simp at hb ; simp ; simp
+
+
 lemma polynomial_has_root_of_mul_neg (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
     {P : F[X]} (habm : (P.eval a) * (P.eval b) < 0) : ∃ s ∈ Ioo a b , P.eval s = 0 := by
   rcases lt_trichotomy (P.eval a) 0 with hl1 | hl2 | hl3
@@ -79,6 +93,14 @@ lemma polynomial_has_root_of_mul_neg (hc : IsRealClosed F) {a b : F} (hab : a �
   · simp[hl2] at habm
   · have : eval b P < 0 := by nlinarith
     exact polynomial_has_root_of_pos_le_zero hc hab hl3 this
+
+
+lemma polynomial_has_root_of_ne_sign (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
+    {P : F[X]} (hne : SignType.sign (P.eval a) ≠ SignType.sign (P.eval b)) (hanz : P.eval a ≠ 0)
+    (hbnz : P.eval b ≠ 0) : ∃ s ∈ Ioo a b , P.eval s = 0 := by
+  rw [sign_ne_eq_iff_of_ne_zero (by simp[hanz]) (by simp[hbnz] ), ← sign_mul,
+    sign_eq_neg_one_iff] at hne
+  exact polynomial_has_root_of_mul_neg hc hab hne
 
 
 lemma neg_of_ne_zero_of_exists_neg (hc : IsRealClosed F) {a b m : F} {P : F[X]}
@@ -305,23 +327,109 @@ theorem mean_value_theorem  (hc : IsRealClosed F) {a b : F} {P : F[X]} (hab : a 
   simp at hc
   linarith
 
-lemma change_sign_of_unique_root_of_squarefree  {a b c : F} {P : F[X]} (hab : a < b)
-    (hmem : c ∈ Ioo a b) (hr : P.eval c = 0) (hur : ∀ x ∈ Icc a b , P.eval x = 0 → x = c)
+lemma change_sign_of_unique_root_of_squarefree (hc : IsRealClosed F) {a b c : F}
+    {P : F[X]} (hab : a < b) (hmem : c ∈ Ioo a b) (hr : P.eval c = 0)
+    (hur : ∀ x ∈ Icc a b , (P.eval x = 0 → x = c))
     (hd : ∀ x ∈ Icc a b, (derivative P).eval x ≠ 0) : (P.eval a) * (P.eval b) < 0 := by
-  by_contra! hc
+  by_contra! hcc
+  rcases le_iff_eq_or_lt.1 hcc with hz | hpos
+  · simp at hz
+    rcases hz with ha | hb
+    · rw [hur a (Set.left_mem_Icc.2 (le_of_lt hab)) ha, Set.left_mem_Ioo] at hmem
+      exact hmem
+    · rw [hur b (Set.right_mem_Icc.2 (le_of_lt hab)) hb, Set.right_mem_Ioo] at hmem
+      exact hmem
+  · rcases mul_pos_iff.1 hpos with hpos1 | hpos2
+    · by_cases hleq : eval a P < eval b P
+      · rw [← hr] at hpos1
+        obtain ⟨s, hsmem, hs⟩  := hc (le_of_lt hmem.2) ⟨hpos1.1, hleq⟩
+        obtain ⟨t, htmem, htmem2⟩ := rolle_theorem hc (lt_trans hmem.1 hsmem.1) hs.symm
+        refine hd t ?_ htmem2
+        exact ⟨le_of_lt htmem.1, le_of_lt (lt_trans htmem.2 hsmem.2) ⟩
+      · push_neg at hleq
+        rcases le_iff_eq_or_lt.1 hleq with hz2 | hpos'
+        · obtain ⟨t, htmem, htmem2⟩ := rolle_theorem hc hab hz2.symm
+          refine hd t ?_ htmem2
+          exact mem_Icc_of_Ioo htmem
+        · rw [← hr] at hpos1
+          obtain ⟨s, hsmem, hs⟩  := intermediate_value_theorem_swap hc (le_of_lt hmem.1) ⟨hpos1.2, hpos'⟩
+          obtain ⟨t, htmem, htmem2⟩ := rolle_theorem hc (lt_trans hsmem.2 hmem.2 ) hs
+          refine hd t ?_ htmem2
+          exact ⟨le_of_lt (lt_trans hsmem.1 htmem.1), le_of_lt (htmem.2)⟩
+    · by_cases hleq : eval a P < eval b P
+      · rw [← hr] at hpos2
+        obtain ⟨s, hsmem, hs⟩ := hc (le_of_lt hmem.1) ⟨hleq, hpos2.2⟩
+        obtain ⟨t, htmem, htmem2⟩ := rolle_theorem hc (lt_trans hsmem.2 hmem.2) hs
+        refine hd t ?_ htmem2
+        exact ⟨le_of_lt (lt_trans hsmem.1 htmem.1), le_of_lt (htmem.2)⟩
+      · push_neg at hleq
+        rcases le_iff_eq_or_lt.1 hleq with hz2 | hpos'
+        · obtain ⟨t, htmem, htmem2⟩ := rolle_theorem hc hab hz2.symm
+          refine hd t ?_ htmem2
+          exact mem_Icc_of_Ioo htmem
+        · rw [← hr] at hpos2
+          obtain ⟨s, hsmem, hs⟩  := intermediate_value_theorem_swap hc (le_of_lt hmem.2) ⟨hpos', hpos2.1⟩
+          obtain ⟨t, htmem, htmem2⟩ := rolle_theorem hc (lt_trans hmem.1 hsmem.1 ) hs.symm
+          refine hd t ?_ htmem2
+          exact ⟨le_of_lt htmem.1, le_of_lt (lt_trans htmem.2 hsmem.2) ⟩
 
-  sorry
+lemma sign_derivative_of_opposite_sign_neg (hc : IsRealClosed F) {a b : F}
+    {P : F[X]} (hab : a < b) (hsign : (P.eval a) * (P.eval b) < 0)
+    (hapos : 0 < P.eval a ) (hd : ∀ x ∈ Icc a b, (derivative P).eval x ≠ 0) :
+    ∀ x ∈ Icc a b, (derivative P).eval x < 0  := by
+  intro x hxmem
+  refine lt_of_le_of_ne ?_ ?_
+  · have : P.eval b < P.eval a := by nlinarith
+    obtain ⟨c, hcmem, hcp⟩ := mean_value_theorem hc hab (P := P)
+    refine nonpos_of_ne_zero_of_exists_neg hc (fun y hy => hd y (mem_Icc_of_Ioo hy) ) (hcmem) ?_ x hxmem
+    nlinarith
+  · exact hd x hxmem
+
+lemma sign_derivative_of_opposite_pos (hc : IsRealClosed F) {a b : F}
+    {P : F[X]} (hab : a < b) (hsign : (P.eval a) * (P.eval b) < 0)
+    (hapos : P.eval a < 0) (hd : ∀ x ∈ Icc a b, (derivative P).eval x ≠ 0) :
+    ∀ x ∈ Icc a b, 0 < (derivative P).eval x   := by
+  intro x hxmem
+  refine lt_of_le_of_ne ?_ ?_
+  · have : P.eval a < P.eval b  := by nlinarith
+    obtain ⟨c, hcmem, hcp⟩ := mean_value_theorem hc hab (P := P)
+    refine nonneg_of_ne_zero_of_exists_pos hc (fun y hy => hd y (mem_Icc_of_Ioo hy) ) (hcmem) ?_ x hxmem
+    nlinarith
+  · symm
+    exact hd x hxmem
 
 
+lemma derivative_mul_neg_of_sign_neg_left (hc : IsRealClosed F) {a b : F}
+    {P : F[X]} (hab : a < b) (hmem : c ∈ Ioo a b) (hr : P.eval c = 0)
+    (hur : ∀ x ∈ Icc a b , (P.eval x = 0 → x = c))
+    (hd : ∀ x ∈ Icc a b, (derivative P).eval x ≠ 0) :
+      (P.eval a) * (derivative P).eval a < 0 := by
+  have hnz : P.eval a ≠ 0 := by
+    intro heval
+    rw [hur a (by simp[le_of_lt hab]) heval] at hmem
+    simp at hmem
+  have aux := change_sign_of_unique_root_of_squarefree hc hab hmem hr hur hd
+  rcases lt_trichotomy (P.eval a) 0 with hn | hz | hpos
+  · nlinarith [sign_derivative_of_opposite_pos hc hab aux hn hd a (by simp[le_of_lt hab])]
+  · exfalso ; rw [hz] at aux
+    contradiction
+  · nlinarith [sign_derivative_of_opposite_sign_neg hc hab aux hpos hd a (by simp[le_of_lt hab])]
 
-
-
-
-
-
-
-
-
+lemma derivative_mul_neg_of_sign_neg_right (hc : IsRealClosed F) {a b : F}
+    {P : F[X]} (hab : a < b) (hmem : c ∈ Ioo a b) (hr : P.eval c = 0)
+    (hur : ∀ x ∈ Icc a b , (P.eval x = 0 → x = c))
+    (hd : ∀ x ∈ Icc a b, (derivative P).eval x ≠ 0) :
+      0 < (P.eval b) * (derivative P).eval b := by
+  have hnz : P.eval a ≠ 0 := by
+    intro heval
+    rw [hur a (by simp[le_of_lt hab]) heval] at hmem
+    simp at hmem
+  have aux := change_sign_of_unique_root_of_squarefree hc hab hmem hr hur hd
+  rcases lt_trichotomy (P.eval a) 0 with hn | hz | hpos
+  · nlinarith [sign_derivative_of_opposite_pos hc hab aux hn hd b (by simp[le_of_lt hab])]
+  · exfalso ; rw [hz] at aux
+    contradiction
+  · nlinarith [sign_derivative_of_opposite_sign_neg hc hab aux hpos hd b (by simp[le_of_lt hab])]
 
 
 
@@ -361,6 +469,8 @@ end IsRealClosedField
   --rw [hQ1] at hQ'1
 
 section signChanges
+
+section
 
 variable {R : Type*}  [LinearOrderedRing R]
 /-- The number of sign changes in a nonempty sequence `[a₀, a₁, …, aₙ]`. This is
@@ -402,17 +512,131 @@ open SignType
 /- The sign changes of a polynomial sequence at `a` is simply the sign changes of the resulting
 list when evaluating the polys at `a` -/
 def signChangesPolySeq (P : List R[X]) (a : R) : ℕ :=
-  signChangesList (List.map (fun x => x.eval a) P)
+  signChanges (List.map (fun x => x.eval a) P)
+
+lemma signChangesPolySeq_def (P : List R[X]) (a : R) :
+  signChangesPolySeq P a = signChanges (List.map (fun x => x.eval a) P) := rfl
+
+end
+
+section
 
 
+variable [LinearOrderedCommRing R]
 /-- A list of polynomials is a sturm sequence starting with `p` and `q`
-  if it has length at least two, it ends in a constant polynomial, it has strictly decreasing degree
+  if it has length at least two, it ends in a non-zero constant polynomial, it has strictly decreasing degree
   and `Pᵢ₊₁ ∣ (e₁ * Pᵢ + fᵢ * Pᵢ₊₂)` with `eᵢ` and `f₁` strictly positive numbers. -/
-def IsSturmSequence (P : List R[X]) (p q : R[X]) (hlen : 2 ≤ P.length) : Prop :=
-  P[0] = p ∧ P[1] = q ∧ (∃ c : R, c ≠ 0 ∧ P.getLastD 0 = C c) ∧
-  (∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree ) ∧
-  (∀ i, ∀ h1 : 2 ≤ i , ∀ h2 : i + 2 < P.length ,
-  (∃ e f : R, ∃ Q : R[X], 0 < e ∧ 0 < f ∧ C e * P[i] = Q * P[i + 1] - C f * P[i + 2] ))
+structure IsSturmSequence (P : List R[X]) (p q : R[X])  where
+  hlen : 2 ≤ P.length
+  h0 : P[0] = p
+  h1 : P[1] = q
+  hc : ∃ c : R, c ≠ 0 ∧ P.getLastD 0 = C c
+  hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree
+  hrem : ∀ i, ∀ h2 : i + 2 < P.length ,
+    (∃ e f : R, ∃ Q : R[X], 0 < e ∧ 0 < f ∧ C e * P[i] = Q * P[i + 1] - C f * P[i + 2] )
+
+
+lemma sturm_sequence_ne_nil (P : List R[X]) (p q : R[X])
+  (hs : IsSturmSequence P p q) : P ≠ [] := by
+  have := hs.hlen
+  intro h
+  simp [h] at this
+
+lemma getLastD_eq_getLast_of_ne_nil {α : Type*} {a : α} {l : List α} (h : l ≠ []) :
+  l.getLastD a = l.getLast h := by
+  match l with
+  | [] => contradiction
+  | (b :: bs) =>
+    match bs with
+    | [] => simp
+    | (c :: cs) =>
+    rw [List.getLast_eq_getLastD, List.getLastD_cons]
+
+/-- The zero polynomial is not in a sturm sequence. -/
+lemma zero_not_member {P : List R[X]} {p q : R[X]}
+    (hs : IsSturmSequence P p q) : ¬ 0 ∈ P := by
+  intro h
+  rw [List.mem_iff_getElem] at h
+  obtain ⟨i, hile, hi⟩ := h
+  by_cases hieq : i = P.length - 1
+  · simp_rw [hieq] at hi
+    have hsl := hs.hlen
+    obtain ⟨c, hcz, hzl⟩ := hs.hc
+    rw [← List.getLast_eq_getElem _ (fun  h => by simp [h] at hsl)] at hi
+    rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil P p q hs), hi, Eq.comm,
+      Polynomial.C_eq_zero] at hzl
+    exact hcz hzl
+  · have := hs.hmono i (by omega)
+    rw [hi] at this
+    simp at this
+
+
+lemma no_consecutive_zero1 (P : List R[X]) (p q : R[X])
+    (hs : IsSturmSequence P p q) (a : R) (i : ℕ)
+    (hlen : i + 1 < P.length) (hz : P[i + 1].eval a = 0) : P[i].eval a ≠ 0 := by
+  revert i
+  by_contra! hc
+  obtain ⟨i, hle, heval1, heval2⟩ := hc
+  have hin : ∀ j, ∀ hj : i + j < P.length , P[i + j].eval a = 0 := by
+    intro j hj
+    induction' j using Nat.strong_induction_on with j hjin
+    match j with
+    | 0 => exact heval2
+    | 1 => exact heval1
+    | j + 1 + 1 =>
+    have := hjin j (by omega) (by omega)
+    have :=  hjin (j + 1) (by omega) (by omega)
+    obtain ⟨e, f, Q, hepos, hfpos, hef⟩ := hs.hrem (i + j) (by omega)
+    apply_fun (fun (x : R[X]) => x.eval a) at hef
+    simp at hef
+    simp_rw [ hjin j (by omega) (by omega), add_assoc, hjin (j + 1) (by omega) (by omega)  ] at hef
+    simp[Ne.symm (ne_of_lt hfpos)] at hef
+    exact hef
+  obtain ⟨c, hcz, hzl⟩ := hs.hc
+  rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil P p q hs), List.getLast_eq_getElem] at hzl
+  have aux := hin (P.length- 1 - i) (by omega)
+  have : i + (P.length - 1 - i) = P.length - 1 := by omega
+  simp_rw [this, hzl] at aux
+  simp only [eval_C] at aux
+  exact hcz aux
+
+
+lemma sturm_sequence_cons (P : List R[X]) (p q : R[X]) (a : R[X]) (hPl : 2 ≤ P.length)
+    (hs : IsSturmSequence (a :: P) p q) : IsSturmSequence P q P[1] where
+  hlen := hPl
+  h0 := by rw [← List.getElem_cons_succ a ] ; exact hs.h1
+  h1 := rfl
+  hc := by
+    have : P ≠ [] := fun h => by rw [h] at hPl ; simp at hPl
+    obtain ⟨c, neq, hcl⟩  := hs.hc
+    rw [List.getLastD_cons, getLastD_eq_getLast_of_ne_nil this] at hcl
+    simp_rw [getLastD_eq_getLast_of_ne_nil this]
+    exact ⟨c, neq, hcl⟩
+  hmono := by
+    intro i h
+    have := hs.hmono (i + 1) (by simp ; omega)
+    simp at this
+    exact this
+  hrem := by
+    intro i h
+    obtain ⟨e, f, Q, hepos, hfpos, heq⟩  := hs.hrem (i + 1) (by simp ; omega)
+    simp at heq
+    exact ⟨e, f, Q, hepos, hfpos, heq⟩
+
+
+
+--lemma signChangesPolySeq_getLastD (P : List R[X]) (p q : R[X])
+--    (hs : IsSturmSequence P p q) (a : R) : (signChangesPolySeq P a).getLastD  ≠ 0
+
+end
+
+open SignType
+
+variable {R : Type*}  [LinearOrderedRing R]
+
+
+@[simp]
+lemma signChanges_nil : signChanges (R := R) [] = 0 := rfl
 
 
 @[simp]
@@ -834,30 +1058,443 @@ lemma signChanges_eq_of_lists_opposite_sign (L₁ L₂ : List R)
     signChanges L₁ = signChanges L₂ := by
   exact aux_induction_list_opposite_sign L₁ L₂ hzL1 hzL2 rfl hlen hlast hi
 
-lemma sign_ne_eq_iff_of_ne_zero {a b : SignType} (ha : a ≠ 0) (hb : b ≠ 0) :
-  a ≠ b ↔ a * b = - 1 := by
-  cases a ;
-  cases b ; simp ; simp at ha ; simp at ha
-  cases b ; simp at hb ; simp ; simp
-  cases b ; simp at hb ; simp ; simp
-
 
 variable (F : Type*) [LinearOrderedField F]
 
 open Set IsRealClosedField
 
-lemma polynomial_change_sign_aux (hc : IsRealClosed F) {a b e f r : F} (P0 P1 P2 Q : F[X])
-  (hab : a < b) (hpose : 0 < e ) (hposf : 0 < f) (heq : P0 = Q * P1 - P2)
-  (hz0 : ∀ x ∈ Icc a b , P0.eval x ≠ 0) (hz2 : ∀ x ∈ Icc a b , P0.eval x ≠ 0)
+lemma polynomial_change_sign_aux (hc : IsRealClosed F) {a b e f : F} (P0 P1 P2 Q : F[X])
+  (hab : a < b) (hpose : 0 < e ) (hposf : 0 < f) (heq : C e * P0 = Q * P1 - C f * P2)
+  (hz0 : ∀ x ∈ Icc a b , P0.eval x ≠ 0) (hz2 : ∀ x ∈ Icc a b , P2.eval x ≠ 0)
   (hP1a : P1.eval a ≠ 0) (hP1b : P1.eval b ≠ 0) (hneq : sign (P1.eval a) ≠ sign (P1.eval b)) :
     (P0.eval a) * (P2.eval a) < 0 ∧ sign (P0.eval a) = sign (P0.eval b) ∧
     sign (P2.eval a) = sign (P2.eval b) := by
   have : (P1.eval a) * (P1.eval b) < 0 := by
     rw [← sign_eq_neg_one_iff, sign_mul, ← sign_ne_eq_iff_of_ne_zero (sign_ne_zero.mpr hP1a) (sign_ne_zero.mpr hP1b )]
     exact hneq
-  obtain ⟨r, hrmem, hrr⟩ := polynomial_has_root_of_mul_neg (F := F) hc (le_of_lt hab) this
+  obtain ⟨r, hrmem, hrr⟩ := polynomial_has_root_of_mul_neg hc (le_of_lt hab) this
   constructor
-  have aux2 : P0.eval r = - P2.eval r := by rw [heq] ; simp[hrr]
+  · have aux2 : e * P0.eval r = - f * P2.eval r := by
+      rw [← eval_C (x := r) (a := e), ← eval_mul, heq]
+      simp[hrr]
+    have aux3 : (P0.eval r) * (P2.eval r) < 0 := by
+      rw [← mul_lt_mul_left hpose, ← mul_assoc, aux2]
+      simp
+      rw [mul_assoc, mul_pos_iff_of_pos_left hposf]
+      simp[hz2 _ (mem_Icc_of_Ioo hrmem)]
+    refine lt_of_le_of_ne ?_ ?_
+    · rw [← eval_mul]
+      apply nonpos_of_ne_zero_of_exists_neg hc (P := P0 * P2) ?_ hrmem
+      · rw [eval_mul]
+        exact aux3
+      · simp [le_of_lt hab]
+      · simp only [eval_mul, ne_eq, mul_eq_zero, not_or, and_imp]
+        intro x hxmem
+        exact ⟨hz0 x (mem_Icc_of_Ioo hxmem), hz2 x (mem_Icc_of_Ioo hxmem)⟩
+    · simp
+      exact ⟨hz0 a (by simp ; exact le_of_lt hab), hz2 a (by simp ; exact le_of_lt hab)⟩
+  · constructor
+    · by_contra! hcc
+      rw [sign_ne_eq_iff_of_ne_zero, ← sign_mul, sign_eq_neg_one_iff] at hcc
+      obtain ⟨c, hcmem, hcr⟩ := polynomial_has_root_of_mul_neg hc (le_of_lt hab) hcc
+      exact hz0 c (mem_Icc_of_Ioo hcmem) hcr
+      simp [hz0 a (by simp ; exact le_of_lt hab)]
+      simp [hz0 b (by simp ; exact le_of_lt hab)]
+    · by_contra! hcc
+      rw [sign_ne_eq_iff_of_ne_zero, ← sign_mul, sign_eq_neg_one_iff] at hcc
+      obtain ⟨c, hcmem, hcr⟩ := polynomial_has_root_of_mul_neg hc (le_of_lt hab) hcc
+      exact hz2 c (mem_Icc_of_Ioo hcmem) hcr
+      simp [hz2 a (by simp ; exact le_of_lt hab)]
+      simp [hz2 b (by simp ; exact le_of_lt hab)]
+
+
+lemma sturm_sequence_unique_root_ne_p (hc : IsRealClosed F) (a b : F) (hab : a < b)
+   (P : List F[X]) (p q : F[X]) (hs : IsSturmSequence P p q) (c : F) (hcmem : c ∈ Ioo a b)
+   (hpnr : p.eval c ≠ 0) (hr : ∀ x ∈ Icc a b,  ∀ i , ∀ h : i < P.length , P[i].eval x = 0 → x = c) :
+    signChangesPolySeq P a = signChangesPolySeq P b := by
+  have hevala : ∀ i, ∀ h : i < P.length, P[i].eval a ≠ 0 := by
+    intro i hi haeval
+    rw [← hr a (by simp [le_of_lt hab]) i hi haeval ] at hcmem
+    simp at hcmem
+  have hevalb : ∀ i, ∀ h : i < P.length, P[i].eval b ≠ 0 := by
+    intro i hi hbeval
+    rw [← hr b (by simp [le_of_lt hab]) i hi hbeval] at hcmem
+    simp at hcmem
+  have hlgt := hs.hlen
+  have hanenil : (List.map (fun x => x.eval a) P) ≠ [] := by
+    simp [sturm_sequence_ne_nil P p q hs]
+  have hbnenil : (List.map (fun x => x.eval b) P) ≠ [] := by
+    simp [sturm_sequence_ne_nil P p q hs]
+  apply signChanges_eq_of_lists_opposite_sign
+  · simp_rw [List.mem_iff_getElem]
+    simp only [List.getElem_map, List.length_map, ne_eq, forall_exists_index]
+    exact fun x i h heq  => by rw[← heq] ; exact hevala i h
+  · simp_rw [List.mem_iff_getElem]
+    simp only [List.getElem_map, List.length_map, ne_eq, forall_exists_index]
+    exact fun x i h heq  => by rw[← heq] ; exact hevalb i h
+  · obtain ⟨c, hcnz, hcl⟩ := hs.hc
+    rw [getLastD_eq_getLast_of_ne_nil hanenil, getLastD_eq_getLast_of_ne_nil hbnenil,
+      List.getLast_map, List.getLast_map]
+    rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil P p q hs)] at hcl
+    rw [hcl]
+    simp
+  · simp only [List.length_map, List.getElem_map, ne_eq]
+    intro i hi hsneq
+    have higt : 1 ≤ i := by
+      by_contra! hiz
+      simp at hiz
+      simp_rw [hiz, hs.h0] at hsneq
+      rw [← ne_eq, sign_ne_eq_iff_of_ne_zero ?_ ?_, ← sign_mul, sign_eq_neg_one_iff] at hsneq
+      obtain ⟨s, hsmem, hs'⟩ := polynomial_has_root_of_mul_neg hc (le_of_lt hab) hsneq
+      rw [← hr s (Set.mem_Icc_of_Ioo hsmem ) 0 (by omega) (by simp_rw [hs.h0] ; exact hs') ] at hpnr
+      exact hpnr hs'
+      · simp only [ne_eq, sign_eq_zero_iff]
+        convert hevala 0 (by omega)
+        exact (hs.h0).symm
+      · simp only [ne_eq, sign_eq_zero_iff]
+        convert hevalb 0 (by omega)
+        exact (hs.h0).symm
+    constructor
+    · exact higt
+    · obtain ⟨r, hrmem, hrr⟩ := polynomial_has_root_of_ne_sign hc (le_of_lt hab)
+        hsneq (hevala i (by omega)) ((hevalb i (by omega)))
+      have hreqc := hr r (mem_Icc_of_Ioo hrmem) i (by omega) hrr
+      rw [hreqc] at hrr
+      obtain ⟨e, f, Q, hepos, hfpos, hdvd⟩ := hs.hrem (i - 1) (by omega)
+      have aux : i - 1 + 2 = i + 1 := by omega
+      have := polynomial_change_sign_aux F hc _ _ _  Q hab hepos hfpos hdvd
+      simp_rw [Nat.sub_add_cancel higt, aux] at this
+      apply this
+      · intro x hxmem heval
+        have aux2 := hr x hxmem (i - 1) (by omega) heval
+        rw [aux2] at heval
+        exact no_consecutive_zero1 P p q hs c (i - 1) (by omega)
+          (by simp[Nat.sub_add_cancel higt, hrr]) heval
+      · intro x hxmem heval
+        have aux2 := hr x hxmem (i + 1) (by omega) heval
+        rw [aux2] at heval
+        exact no_consecutive_zero1 P p q hs c i (by omega) heval hrr
+      · exact hevala i (by omega)
+      · exact hevalb i (by omega)
+      · exact hsneq
+  · simp
+
+lemma signChanges_derivative  (hc : IsRealClosed F) {a b : F} (hab : a < b) (p : F[X])
+  {c : F} (hcmem : c ∈ Ioo a b) (hpr : p.eval c = 0) (hdc : (derivative p).eval c ≠ 0)
+  (hr : ∀ x ∈ Icc a b, ∀ i , ∀ h : i < [p, derivative p].length , [p, derivative p][i].eval x = 0 → x = c) :
+  signChangesPolySeq [p, derivative p] a = signChangesPolySeq [p, derivative p] b + 1 := by
+  have hpevala : p.eval a ≠ 0 := by
+    intro haeval
+    rw [hr a (by simp [le_of_lt hab]) 0 (by simp) haeval] at hcmem
+    simp at hcmem
+  have hpevalb : p.eval b ≠ 0 := by
+    intro haeval
+    rw [hr b (by simp [le_of_lt hab]) 0 (by simp) haeval] at hcmem
+    simp at hcmem
+  have hderivn : ∀ x ∈ Icc a b, (derivative p).eval x ≠ 0 := by
+    intro x hxmem  heval
+    have := hr x hxmem 1 (by simp) heval
+    rw [this] at heval
+    exact hdc heval
+  have hxru : ∀ x ∈ Icc a b, p.eval x = 0 → x = c := by
+    intro x hxmem hxeval
+    exact hr x hxmem 0 (by simp) hxeval
+  unfold signChangesPolySeq
+  simp ; rw [signChanges_cons hpevala]
+  simp ; rw [signChanges_cons hpevalb]
+  simp only [← sign_mul, derivative_mul_neg_of_sign_neg_left hc hab hcmem hpr hxru hderivn,
+    sign_neg, ↓reduceIte, List.headD_cons,
+    derivative_mul_neg_of_sign_neg_right hc hab hcmem hpr hxru hderivn, sign_pos, neg_iff,
+    self_eq_neg_iff, one_ne_zero, signChanges_single, zero_add]
+  · simp ; exact hderivn b (by simp[le_of_lt hab] )
+  · simp ; exact hderivn a (by simp[le_of_lt hab] )
+
+
+
+lemma sturm_sequence_unique_root_p (hc : IsRealClosed F) (a b : F) (hab : a < b)
+   (P : List F[X]) (p : F[X]) (hs : IsSturmSequence P p (derivative p)) {c : F} (hcmem : c ∈ Ioo a b)
+   (hpr : p.eval c = 0) (hr : ∀ x ∈ Icc a b, ∀ i , ∀ h : i < P.length , P[i].eval x = 0 → x = c) :
+  signChangesPolySeq P a = signChangesPolySeq P b + 1 := by
+  have havePl := hs.hlen
+  have hdpevala : (derivative p).eval a ≠ 0 := by
+    intro haeval
+    rw [hr a (by simp [le_of_lt hab]) 1 (by omega) (by rw[hs.h1] ; exact haeval )] at hcmem
+    simp at hcmem
+  have hdpevalb : (derivative p).eval b ≠ 0 := by
+    intro haeval
+    rw [hr b (by simp [le_of_lt hab]) 1 (by omega) (by rw[hs.h1] ; exact haeval )] at hcmem
+    simp at hcmem
+  have hPL : ∃ as , P = (p :: derivative p  :: as) := by
+    match P with
+    | [] =>
+    simp at havePl
+    | [a] =>
+    simp at havePl
+    | (a :: b :: as) =>
+      use as
+      have aux1 := hs.h0
+      have aux2 := hs.h1
+      simp at aux1 aux2 ⊢
+      exact ⟨aux1, aux2⟩
+  obtain ⟨as, has⟩ := hPL
+  by_cases hasn : as = []
+  · rw [hasn] at has
+    simp_rw [has] at *
+    apply signChanges_derivative F hc hab _ hcmem hpr _ hr
+    intro hevald
+    exact no_consecutive_zero1 [p, derivative p] _ _ hs c 0 (by simp) hevald hpr
+  · simp_rw [has] at *
+    simp [signChangesPolySeq]
+    rw [signChanges_cons_eq_add _ _ _ hdpevala, signChanges_cons_eq_add _ _ _ hdpevalb,
+      add_assoc, add_comm _ 1, ← add_assoc]
+    congr 1
+    · refine signChanges_derivative F hc hab _ hcmem hpr ?_ ?_
+      · intro hevald
+        exact no_consecutive_zero1 _ _ _ hs c 0 (by simp) hevald hpr
+      · rintro x hxmem i hile hieval
+        simp at hile
+        interval_cases i
+        · exact hr x hxmem 0 (by simp) hieval
+        · exact hr x hxmem 1 (by simp) hieval
+    · simp_rw [← List.map_cons, ← signChangesPolySeq_def ]
+      apply sturm_sequence_unique_root_ne_p F hc _ _ hab _ _ _
+        (sturm_sequence_cons (derivative p :: as) p (derivative p) _ ?_ hs) c hcmem
+      · intro hevald
+        exact no_consecutive_zero1 _ _ _ hs c 0 (by simp) hevald hpr
+      · rintro x hxmem i hile hieval
+        simp at hile
+        exact hr x hxmem (i + 1) (by simp ; omega) hieval
+      · simp ; by_contra! hc' ; simp[hasn] at hc'
+
+
+open Finset
+
+lemma roots_of_prod_mem_iff (a b : F) (P : List F[X]) (x : F) (hz : 0 ∉ P) :
+  x ∈ (((Multiset.toFinset (P.prod).roots).filter (fun x => x ∈ Icc a b))) ↔
+  ∃ i : ℕ , (∃ h : i < P.length, P[i].eval x = 0 ∧ x ∈ Icc a b)  := by
+  simp
+  have : ∀ x, (Polynomial.aeval x) (P.prod) = (List.map (fun y => y.eval x) P).prod := by
+    intro c
+    simp [← List.prod_hom]
+  rintro hle1 hle2
+  simp at this
+  simp [this, hz,  List.mem_iff_getElem]
+
+
+lemma finset_card_add_interval (a b c : F) (hcmem : c ∈ Icc a b) (S : Finset F) (hcn : c ∉ S)  :
+  #(S.filter (fun x => x ∈ Icc a b)) =
+    #(S.filter (fun x => x ∈ Icc a c)) + #(S.filter (fun x => x ∈ Icc c b)) := by
+  convert Finset.card_union_of_disjoint (α := F) ?_ using 2
+  rw [Set.mem_Icc] at hcmem
+  · ext x
+    simp
+    rcases LinearOrder.le_total x c with h1 | h2
+    · constructor
+      · intro h
+        exact Or.inl ⟨h.1, ⟨h.2.1, h1⟩ ⟩
+      · intro h
+        rcases h with h3 | h4
+        · exact ⟨h3.1, ⟨h3.2.1, le_trans h1 hcmem.2⟩ ⟩
+        · exact ⟨h4.1, ⟨le_trans hcmem.1 h4.2.1 , h4.2.2⟩⟩
+    · constructor
+      · intro h
+        exact Or.inr ⟨h.1, ⟨h2, h.2.2⟩ ⟩
+      · intro h
+        rcases h with h3 | h4
+        · exact ⟨h3.1, ⟨h3.2.1, le_trans h3.2.2 hcmem.2⟩ ⟩
+        · exact ⟨h4.1, ⟨le_trans hcmem.1 h4.2.1 , h4.2.2⟩⟩
+  · rw [Finset.disjoint_iff_ne]
+    intro u hu w hw
+    simp at hu hw
+    rcases lt_or_eq_of_le (le_trans hu.2.2  hw.2.1) with hc1 | hc2
+    · exact ne_of_lt hc1
+    · exfalso
+      have aux : c = w := by
+        rw [hc2] at hu
+        exact eq_of_le_of_le  hw.2.1 hu.2.2
+      rw [← aux] at hw
+      exact hcn hw.1
+
+
+lemma finset_sorted_list_cons_cons  {F : Type u_2} [LinearOrderedField F]
+    {u v : F} {as : List F} {S : Finset F} (heq : S.sort (fun x y => x ≤ y) = (u :: v :: as)) :
+    ∀ x ∈ S , x = u ∨ v ≤ x := by
+  have aux1 : List.Sorted (fun x y => x ≤ y) (u :: v :: as) := by
+    rw [← heq]
+    simp only [sort_sorted]
+  have aux2 := List.Sorted.of_cons aux1
+  intro x hxmem
+  rw [← Finset.mem_sort (r := fun x y => x ≤ y), heq, List.mem_cons] at hxmem
+  simp at hxmem
+  rcases hxmem with h1 | h2 | h3
+  · left
+    exact h1
+  · right
+    exact le_of_eq (id (Eq.symm h2))
+  · right
+    exact List.rel_of_sorted_cons aux2 x h3
+
+
+lemma not_mem_finset_card_eq_one_of_sorted_mem_interval {a b d u v : F} {as : List F}
+  {S : Finset F}  (heqc : (u :: v :: as) = ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)))
+  (hle1 : u < d) (hle2 : d < v) : d ∈ Icc a b := by
+  have hauxu := getElem_congr_coll (w := by simp) (i := 0) heqc
+  simp at hauxu
+  have hauxv := getElem_congr_coll (w := by simp) (i := 1) heqc
+  simp at hauxv
+  have humem : u ∈ ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)) := by
+    rw [hauxu]
+    simp only [Set.mem_Icc, List.getElem_mem]
+  have hwmem : v ∈ ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)) := by
+    rw [hauxv]
+    simp only [Set.mem_Icc, List.getElem_mem]
+  simp at humem hwmem
+  constructor
+  · refine le_of_lt (lt_of_le_of_lt humem.2.1 hle1)
+  · refine le_of_lt (lt_of_lt_of_le hle2 hwmem.2.2)
+
+lemma not_mem_finset_card_eq_one_of_sorted  {a b d u v : F} {as : List F}
+  {S : Finset F} (heqc : (u :: v :: as) = ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)))
+  (hle1 : u < d) (hle2 : d < v) (x : F) :
+    x ∈ (S.filter (fun x => x ∈ Icc a d)) ↔ x = u := by
+  have hauxu := getElem_congr_coll (w := by simp) (i := 0) heqc
+  simp at hauxu
+  have humem : u ∈ ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)) := by
+    rw [hauxu]
+    simp only [Set.mem_Icc, List.getElem_mem]
+  simp at humem
+  have hdmem : d ∈ Icc a b := not_mem_finset_card_eq_one_of_sorted_mem_interval F heqc hle1 hle2
+  constructor
+  · intro h
+    simp at h
+    obtain ⟨hxmemS, hxa, hxd⟩ := h
+    rcases finset_sorted_list_cons_cons heqc.symm x
+      (by simp ; exact ⟨hxmemS, ⟨hxa, le_trans hxd hdmem.2⟩⟩) with h1 | h2
+    · exact h1
+    · linarith
+  · intro heq
+    simp [heq]
+    exact ⟨humem.1, ⟨humem.2.1, le_of_lt hle1⟩⟩
+
+lemma not_mem_finset_card_eq_one_of_sorted_not_mem  {a b d u v : F} {as : List F}
+  {S : Finset F} (heqc : (u :: v :: as) = ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)))
+  (hle1 : u < d) (hle2 : d < v) : d ∉ S := by
+  intro hc
+  have aux1 := not_mem_finset_card_eq_one_of_sorted_mem_interval F heqc hle1 hle2
+  have aux2 := not_mem_finset_card_eq_one_of_sorted F heqc hle1 hle2 d
+  simp at aux1 aux2
+  rw [aux2.1 ⟨hc, aux1.1⟩] at hle1
+  simp at hle1
+
+
+
+lemma not_mem_finset_card_eq_one_of_sorted_single (a b u : F) (S : Finset F)
+  (heq : [u] = ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)) )
+  (x : F) : x ∈ (S.filter (fun x => x ∈ Icc a b)) ↔ x = u := by
+  rw [← Finset.mem_sort (r := fun x y => x ≤ y) , ← heq]
+  simp
+
+
+
+
+lemma finset_card_eq_one_of_sorted  (a b c : F) (S : Finset F)
+  (hcard : 1 ≤ #(S.filter (fun x => x ∈ Icc a b)))
+  (hmem : (S.filter (fun x => x ∈ Icc a b)).sort [0])
+
+
+:
+
+/-- have hxmem : x ∈ ((S.filter (fun x => x ∈ Icc a b)).sort (fun x y => x ≤ y)) := by
+      simp
+      refine ⟨hxmemS, ⟨hxa, le_trans hxd hdmem.2⟩⟩ -/
+
+
+
+
+
+
+
+lemma sturm_theorem_induction_aux (hc : IsRealClosed F) {n : ℕ} (a b : F) (hab : a < b)
+    (P : List F[X]) (p : F[X]) (hs : IsSturmSequence P p (derivative p))
+    (ha : ∀ i , ∀ h : i < P.length , P[i].eval a ≠ 0) (hb : ∀ i , ∀ h : i < P.length , P[i].eval b ≠ 0)
+    (hi : #(((Multiset.toFinset (P.prod).roots).filter (fun x => x ∈ Icc a b))) = n) :
+    #((Multiset.toFinset p.roots).filter ( fun x => x ∈ Icc a b)) = signChangesPolySeq P b - signChangesPolySeq P a := by
+  have hPl := hs.hlen
+  have auxNz : ∀ i, ∀ h : i < P.length , P[i] ≠ 0 := by
+    intro i hi h
+    have : P[i] ∈ P := by simp
+    rw [h] at this
+    exact zero_not_member hs this
+  revert a b
+  induction' n with n hn
+  · intro a b hab ha hb hnr
+    rw [Finset.card_eq_zero] at hnr
+    have aux : ∀ i , ∀ h : i < P.length , Finset.filter (fun x ↦ x ∈ Set.Icc a b) P[i].roots.toFinset = ∅ := by
+      intro i hi
+      by_contra! hc
+      rw [← Finset.nonempty_iff_ne_empty] at hc
+      obtain ⟨c, hc⟩ := Finset.Nonempty.exists_mem hc
+      have hcmem : c ∈ filter (fun x ↦ x ∈ Set.Icc a b) P.prod.roots.toFinset := by
+        rw [roots_of_prod_mem_iff]
+        use i , (by omega)
+        simp at hc
+        simp [hs.h0, hc]
+        exact zero_not_member hs
+      rw [hnr] at hcmem
+      simp at hcmem
+    have := aux 0 (by omega)
+    rw [hs.h0] at this
+    rw [this, card_empty, Eq.comm]
+    refine Nat.sub_eq_zero_of_le (le_of_eq ?_)
+    apply signChanges_congr
+    · intro i hi
+      simp at hi ⊢
+      symm ; by_contra hcc
+      obtain ⟨s, hsmem, hsp⟩ := polynomial_has_root_of_ne_sign hc (le_of_lt hab) hcc
+        (ha i (by omega)) (hb i (by omega))
+      have hsroot : s ∈ Finset.filter (fun x ↦ x ∈ Set.Icc a b) P[i].roots.toFinset := by
+        simp [hsp]
+        refine ⟨auxNz i (by omega), Set.mem_Icc_of_Ioo hsmem⟩
+      rw [aux i (by omega)] at hsroot
+      simp at hsroot
+    · simp
+  · intro a b hab ha hb hnr
+    sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --have : #(((Multiset.toFinset (P.prod).roots).filter (fun x => x ∈ Icc a b))) =
+ --       ((((Multiset.toFinset (P.prod).roots).filter (fun x => x ∈ Icc a b))).sort (fun x y => x ≤ y)).length := by simp
+
+
+-- zero_not_member
+
+
+
+
+      --simp at this
+
+
+
+    --rList.getLast_map
+
+  -- getLastD_eq_getLast_of_ne_nil
+
+
+
+
+
+
 
 
 
