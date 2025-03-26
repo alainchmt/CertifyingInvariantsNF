@@ -452,6 +452,7 @@ lemma ofList_natCast {n : ℕ} : ofList (n : List R) = n :=
   ofList_singleton _
 
 /-- `ofList` respects addition. -/
+@[simp]
 lemma ofList_addPointwise_eq_add (l₁ l₂ : List R) :
     ofList (l₁ + l₂) = ofList (l₁) + ofList (l₂) := by
   have : ∀ (l : List R) , Polynomial.ofList (l₁.addPointwise l) =
@@ -467,6 +468,7 @@ lemma ofList_addPointwise_eq_add (l₁ l₂ : List R) :
   exact this l₂
 
 /-- `ofList` respects multiplication. -/
+@[simp]
 lemma ofList_convolve_eq_mul (l₁ l₂ : List R) :
     ofList (l₁ *  l₂) = ofList (l₁) * ofList (l₂) := by
   induction' l₁ with a as ha
@@ -481,7 +483,16 @@ lemma ofList_convolve_eq_mul (l₁ l₂ : List R) :
       simp only [add_comm, mul_add, add_assoc, add_mul, X_mul, mul_assoc]
       abel
 
+@[simp]
+lemma ofList_sub [CommRing S][DecidableEq S] (l₁ l₂ : List S) :
+    ofList (l₁ - l₂) = ofList (l₁) - ofList (l₂) := by
+    erw [ofList_addPointwise_eq_add, List.neg_eq_neg_one_mul]
+    simp
+    rfl
+
+
 /-- `ofList` respects powers. -/
+@[simp]
 lemma ofList_pow_eq_pow (l : List R) (n : ℕ) : ofList (l ^ n) = (ofList l) ^ n := by
   induction' n with n hn
   · simp only [List.pow_def, npowRec, ofList_one, map_one, mul_zero, add_zero, Nat.zero_eq, pow_zero]
@@ -894,6 +905,17 @@ lemma ofList_derivative_eq_derivative (l : List R) :
       one_mul, zero_add]
     rw [ofList_addPointwise_eq_add, ← has]
     simp only [ofList_cons, map_zero, zero_add]
+
+def List.eval [Semiring R] (x : R) : List R → R
+  | [] => 0
+  | (a :: as) => a + (eval x as) * x
+
+lemma eval_of_list_eq_eval (x : R) (l : List R) : eval x (ofList l) = List.eval x l := by
+  induction' l with a as hin
+  · simp[List.eval]
+  · simp[List.eval]
+    rw [Polynomial.X_mul, Polynomial.eval_mul_X, hin]
+
 
 ----------------------------------------------------------------------
 

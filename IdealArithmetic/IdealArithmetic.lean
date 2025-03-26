@@ -15,6 +15,7 @@ import Mathlib.GroupTheory.OrderOfElement
 import Mathlib.Data.Matrix.Rank
 import Mathlib.Algebra.Group.Subgroup.Finsupp
 import Mathlib.NumberTheory.NumberField.Units.Basic
+import Mathlib.GroupTheory.OrderOfElement
 
 
 section I
@@ -789,7 +790,7 @@ lemma PrimeIdeal_isPrime {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
   · rw [hcard]
     exact ZMod.card _ -/
 
-noncomputable def modIdealEquivZMod {O : Type u_1} {p : ℕ} (hp : Nat.Prime p) [CommRing O] (I : Ideal O)
+noncomputable def modIdealEquivZMod {O : Type*} {p : ℕ} (hp : Nat.Prime p) [CommRing O] (I : Ideal O)
   (hcard : Nat.card (O ⧸ I) = p) : O ⧸ I ≃+* (ZMod p) := by
   haveI : Finite (O ⧸ I) := by
     refine Nat.finite_of_card_ne_zero ?_
@@ -799,7 +800,7 @@ noncomputable def modIdealEquivZMod {O : Type u_1} {p : ℕ} (hp : Nat.Prime p) 
   exact (ZMod.ringEquivOfPrime _ hp (Eq.trans (Fintype.card_eq_nat_card ) hcard)).symm
 
 
-noncomputable def modIdealToZMod {O : Type u_1} {p : ℕ} (hp : Nat.Prime p) [CommRing O] (I : Ideal O)
+noncomputable def modIdealToZMod {O : Type*} {p : ℕ} (hp : Nat.Prime p) [CommRing O] (I : Ideal O)
   (hcard : Nat.card (O ⧸ I) = p) : O ⧸ I →+* (ZMod p) := by
   haveI : Finite (O ⧸ I) := by
     refine Nat.finite_of_card_ne_zero ?_
@@ -807,6 +808,14 @@ noncomputable def modIdealToZMod {O : Type u_1} {p : ℕ} (hp : Nat.Prime p) [Co
     exact Nat.Prime.ne_zero hp
   haveI : Fintype (O ⧸ I) := Fintype.ofFinite _
   exact (id (ZMod.ringEquivOfPrime _ hp (Eq.trans (Fintype.card_eq_nat_card ) hcard)).symm).toRingHom
+
+lemma prime_ideal_of_norm_prime {O : Type*} {p : ℕ} (hp : Nat.Prime p) [CommRing O] (I : Ideal O)
+  (hcard : Nat.card (O ⧸ I) = p) : Ideal.IsPrime I := by
+  haveI : Fact $ Nat.Prime p := {out := hp}
+  refine Ideal.IsMaximal.isPrime ?_
+  rw [Ideal.Quotient.maximal_ideal_iff_isField_quotient]
+  refine MulEquiv.isField (A := O ⧸ I) (ZMod p) ?_ (modIdealEquivZMod hp I hcard)
+  exact Field.toIsField (ZMod p)
 
 
 /- lemma modIdealToZMod_apply {O : Type u_1} {p : ℕ} (hp : Nat.Prime p) [CommRing O] (I : Ideal O)
@@ -1397,6 +1406,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ : Ty
   exact ⟨_ , hl⟩
 
 
+/- TO DO: You don't need the full torsion group, just generators of the group mod p-powers. -/
 lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type*} {p : ℕ}
   [hp : Fact $ Nat.Prime p] [Fintype ι] [Fintype τ] [Fintype κ] (F : τ → Type*) [CommRing S] [IsDomain S]
   [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] [Module.Finite ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))]
@@ -1447,6 +1457,8 @@ lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ:
 
 #check Sum.rec
 
+/- TO DO: You don't need the full torsion group, just generators of the group mod p-powers. In case of
+cyclic group, it suffices that the unit is not map to zero through the log for at least one prime ideal. -/
 lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type*} {p : ℕ}
   [hp : Fact $ Nat.Prime p] [Fintype ι] [Fintype τ] [Fintype κ] (F : τ → Type*) [CommRing S] [IsDomain S]
   [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] [Module.Finite ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))]
@@ -1665,7 +1677,7 @@ lemma is_primitive_root_finite_field {F : Type*} [Field F] [Fintype F] {n : ℕ}
   exact Fintype.card_units F
 
 
-
+/- Now in Mathlib -/
 open NumberField
 
 lemma nrRealPlaces_pos_of_odd_finrank {K : Type*} [Field K] [NumberField K]
@@ -1719,6 +1731,324 @@ lemma torsionOrder_eq_two_of_odd_finrank {K : Type*} [Field K] [NumberField K]
       rw [← Subtype.val_inj, ← Subtype.val_inj, ← Units.eq_iff, ← Units.eq_iff]
       exact this
     · simp
+
+------------------
+
+open Finset NumberField InfinitePlace
+
+theorem nrRealPlaces_eq_nr_real_roots (K : Type*) [Field K] [NumberField K] {f : ℚ[X]} (hf : f ≠ 0)
+   (hr : IsAdjoinRoot K f) : nrRealPlaces K = #(Multiset.toFinset (map (algebraMap ℚ ℝ) f).roots):= by
+  rw [← NumberField.InfinitePlace.card_real_embeddings]
+  let i : { φ // ComplexEmbedding.IsReal φ } → ℝ :=
+    fun ⟨φ, hφ⟩ => (ComplexEmbedding.IsReal.embedding hφ) hr.root
+  unfold Fintype.card
+  apply Finset.card_nbij i
+  · simp[i, hf]
+    intro a ha
+    letI aux : Algebra K ℝ := ha.embedding.toAlgebra
+    rw [← RingHom.algebraMap_toAlgebra ((ComplexEmbedding.IsReal.embedding ha)), Polynomial.aeval_algebraMap_apply,
+    IsAdjoinRoot.aeval_root hr, map_zero]
+  · intro φ hφ τ hτ heq
+    rw [← Subtype.val_inj]
+    have aux1 := IsAdjoinRoot.eq_lift (x := i φ) (i := algebraMap ℚ ℝ) ?_ hr (ComplexEmbedding.IsReal.embedding φ.2) (by simp) rfl
+    have aux2 := IsAdjoinRoot.eq_lift (x := i τ) (i := algebraMap ℚ ℝ) ?_ hr (ComplexEmbedding.IsReal.embedding τ.2) (by simp) rfl
+    simp_rw [heq, ← aux2] at aux1
+    ext x
+    rw [← NumberField.ComplexEmbedding.IsReal.coe_embedding_apply φ.2 x,
+      ← NumberField.ComplexEmbedding.IsReal.coe_embedding_apply τ.2 x, aux1]
+    · letI aux : Algebra K ℝ := (τ.2).embedding.toAlgebra
+      have : algebraMap K ℝ = (τ.2).embedding := rfl
+      simp[i]
+      rw [IsScalarTower.algebraMap_eq ℚ K ℝ, ← Polynomial.eval₂_map, this,
+        Polynomial.eval₂_hom, Polynomial.eval_map, ← Polynomial.aeval_def, IsAdjoinRoot.aeval_root, map_zero]
+    · letI aux : Algebra K ℝ := (φ.2).embedding.toAlgebra
+      have : algebraMap K ℝ = (φ.2).embedding := rfl
+      simp[i]
+      rw [IsScalarTower.algebraMap_eq ℚ K ℝ, ← Polynomial.eval₂_map, this,
+        Polynomial.eval₂_hom, Polynomial.eval_map, ← Polynomial.aeval_def, IsAdjoinRoot.aeval_root, map_zero]
+  · intro x hx
+    simp at hx
+    let φ := (algebraMap ℝ ℂ).comp (IsAdjoinRoot.lift (algebraMap ℚ ℝ) x hr (by  rw [← Polynomial.aeval_def] ; exact hx.2))
+    have hφ: ComplexEmbedding.IsReal φ := by
+      rw [NumberField.ComplexEmbedding.isReal_iff]
+      ext x
+      rw [NumberField.ComplexEmbedding.conjugate_coe_eq]
+      simp [φ]
+    use ⟨φ, hφ⟩
+    simp[i]
+    have := NumberField.ComplexEmbedding.IsReal.coe_embedding_apply hφ hr.root
+    rw [← algebraMap.coe_inj (A := ℂ)]
+    convert this
+    simp [φ]
+
+
+lemma card_infinite_place_eq (K : Type*) [Field K] [NumberField K] :
+  Fintype.card (InfinitePlace K) = (nrRealPlaces K + Module.finrank ℚ K) / 2 := by
+  rw [← NumberField.InfinitePlace.card_add_two_mul_card_eq_rank, ← add_assoc, ← two_mul,
+    ← mul_add]
+  simp[NumberField.InfinitePlace.card_eq_nrRealPlaces_add_nrComplexPlaces]
+
+lemma card_infinite_place_adjoin_root (K : Type*) [Field K] [NumberField K] (f : ℚ[X]) (hf : f ≠ 0)
+    (hr : IsAdjoinRoot K f) :
+  Fintype.card (InfinitePlace K) =
+    (#(Multiset.toFinset (map (algebraMap ℚ ℝ) f).roots) + f.natDegree) / 2 := by
+  rw [card_infinite_place_eq, nrRealPlaces_eq_nr_real_roots K hf hr]
+  congr
+  rw [LinearEquiv.finrank_eq ((IsAdjoinRoot.aequiv hr (AdjoinRoot.isAdjoinRoot f)).toLinearEquiv),
+    Module.finrank_eq_card_basis (AdjoinRoot.powerBasisAux hf)]
+  simp
+
+
+/- Now in Mathlib -/
+open Function
+theorem Function.minimalPeriod_eq_prime_iff {α : Type*} {f : α → α} {x : α}
+    {p : ℕ} [hp : Fact p.Prime] :
+    minimalPeriod f x = p ↔ IsPeriodicPt f p x ∧ ¬IsFixedPt f x := by
+  rw [Function.isPeriodicPt_iff_minimalPeriod_dvd, Nat.dvd_prime hp.out,
+    ← minimalPeriod_eq_one_iff_isFixedPt.not, or_and_right, and_not_self_iff, false_or,
+    iff_self_and]
+  exact fun h ↦ ne_of_eq_of_ne h hp.out.ne_one
+
+
+@[to_additive]
+theorem orderOf_eq_prime_iff {G : Type*} [Monoid G] {x : G} {p : ℕ} [hp : Fact p.Prime] : orderOf x = p ↔ x ^ p = 1 ∧ x ≠ 1 := by
+  rw [orderOf, Function.minimalPeriod_eq_prime_iff, isPeriodicPt_mul_iff_pow_eq_one, IsFixedPt, mul_one]
+-----
+
+/- If torsion has cardinality `t`, then its generator is a primitive root of order `t` and thus
+a root of `Φₜ(X)`, therefore the order of this polynomial `φ(t)` divides the degree of `K`.
+If `p^m` divides `t`, then `p^(m-1) * (p - 1)` divides `n`.
+However, the converse is not true. And so this cannot be used in all situation to prove that a prime
+does not divide torsion.  -/
+
+
+/-- If an element `x` of prime order `p` is mapped through a ring homomorphism, and the characteristic of the
+codomain does not divide `p`, then the image of `x` also has order `p`.
+
+TO DO: Generalize this to power of `p`. This holds, becaus `X^p - 1` is separable in `R`, so
+if `x` has order `p^m` it is a root of `Φₚₘ(X)`, thus a `φ(x)` a root of `φ(Φₚₘ(X))`. However, it cannot be
+a root of `φ(Φₚₙ(X))` with `n < m` because of separability of `X^p - 1`. -/
+lemma orderOf_prime_map  {S R : Type*} {q p : ℕ} [CommRing S] [IsDomain S] [CommRing R] [CharP R q]
+  [hp : Fact $ Nat.Prime p] (hneq : ¬ q ∣ p)
+  (φ : S →+* R) {x : S} (ho : orderOf x = p) : orderOf (φ x) = p := by
+  rw [orderOf_eq_prime_iff] at ho ⊢
+  rcases ho with ⟨ho1, ho2⟩
+  rw [ne_eq, ← sub_eq_zero] at ho2
+  have hec := Polynomial.cyclotomic_prime_mul_X_sub_one S p
+  apply_fun (fun P => Polynomial.eval x P) at hec
+  simp[ho1, ho2] at hec
+  constructor
+  · rw [← map_pow, ho1]
+    simp
+  · intro h
+    apply_fun φ at hec
+    rw [← Polynomial.cyclotomic.eval_apply, h,
+      eval_one_cyclotomic_prime, map_zero, CharP.cast_eq_zero_iff R q p] at hec
+    exact hneq hec
+
+lemma orderOf_map_CharP  {S R : Type*} {q n : ℕ} [CommRing S] [IsDomain S]
+  [CommRing R] [IsDomain R] [CharP R q] [NeZero n] (hneq : ¬ q ∣ n)
+  (φ : S →+* R) {x : S} (ho : orderOf x = n) : orderOf (φ x) = n  := by
+  have aux := IsPrimitiveRoot.isRoot_cyclotomic
+    (Nat.pos_of_neZero _) (ho ▸ IsPrimitiveRoot.orderOf x)
+  symm
+  apply IsPrimitiveRoot.eq_orderOf
+  haveI : NeZero (↑n : R) := by
+    refine NeZero.of_not_dvd (p := q) R hneq
+  rw [← Polynomial.isRoot_cyclotomic_iff]
+  simp at aux ⊢
+  rw [Polynomial.cyclotomic.eval_apply, aux, map_zero]
+
+/--  If an element `x` of prime order `p ^ m` is mapped through a ring homomorphism,
+  and the characteristic of the codomain does not divide `p`,
+  then the image of `x` also has order `p ^ m`. Note that we assume both domain and
+  codomain are integral domains. -/
+lemma orderOf_prime_pow_map  {S R : Type*} {q p m : ℕ} [CommRing S] [IsDomain S]
+  [CommRing R] [IsDomain R] [CharP R q] [hp : Fact $ Nat.Prime p] (hneq : ¬ q ∣ p)
+  (φ : S →+* R) {x : S} (ho : orderOf x = p ^ m) : orderOf (φ x) = p ^ m  := by
+  refine orderOf_map_CharP (q := q) ?_ φ ho
+  rcases CharP.char_is_prime_or_zero R q with h1 | h2
+  · intro h
+    exact hneq (Nat.Prime.dvd_of_dvd_pow h1 h)
+  · rw [h2]
+    intro h
+    simp only [zero_dvd_iff, pow_eq_zero_iff', Nat.Prime.ne_zero hp.out, ne_eq, false_and] at h
+
+
+
+/-- The existance of such a q certificate can be proven with Chabotarev. `p` does not
+  divide torsion iff the `p`-cyclotomic polynomial does not have a root in `K`,
+  this is iff `Φₚ(X)` is irreducible in `K`. If so, then there is a `p-1` cycle in the Galois group
+  and so there are primes `Q` of `K` of positive density s.t. `Φₚ(X) mod Q` is irreducible.
+  Wlog we can assume `Q` of degree 1, and so `Φₚ(X) mod q` is irreducible for some prime number `q`,
+  and this is iff `p` does not divide `q-1`.
+  Remark : If the torsion group is cyclic, this can be generalized to powers of `p`  -/
+lemma prime_not_dvd_torsion_of_not_dvd {S : Type*} [CommRing S] [IsDomain S] {p q : ℕ} [hp : Fact $ Nat.Prime p] (hq : Nat.Prime q)
+    [Fintype (CommGroup.torsion Sˣ)](I : Ideal S) (hcard : Nat.card (S ⧸ I) = q)
+    (hpndvd : ¬ p ∣ (q - 1)) (hneq : p ≠ q) :
+     ¬ p ∣ Nat.card (CommGroup.torsion Sˣ) := by
+  haveI : Fact $ Nat.Prime q := {out := hq}
+  rw [Nat.card_eq_fintype_card]
+  intro hdvd
+  obtain ⟨x, hx⟩ := exists_prime_orderOf_dvd_card p hdvd
+  rw [← orderOf_submonoid, ← orderOf_units] at hx
+  let φ := (modIdealToZMod hq I hcard).comp (Ideal.Quotient.mk I)
+  have aux : orderOf (φ ((x : Sˣ) : S)) = p := by
+    refine orderOf_prime_map (q := q) ?_ φ hx
+    rw [Nat.prime_dvd_prime_iff_eq hq hp.out]
+    exact hneq.symm
+  let y := IsOfFinOrder.unit (x := φ ((x : Sˣ) : S))
+    (by by_contra hc ; rw [← orderOf_eq_zero_iff, aux] at hc ; exact Nat.Prime.ne_zero hp.out hc)
+  have aux2 : orderOf y = p := by
+    rw [← orderOf_units]
+    simp[y, aux]
+  apply hpndvd
+  convert aux2 ▸ orderOf_dvd_card
+  rw [(Nat.prime_iff_card_units q).1 hq]
+
+/- If we want to, this can be further generalized to any prime ideal above `q`,
+  and assuming `n` does not divide `q^m - 1`, where `q^m` is the norm of this ideal.
+  However, we know that is suffices to consider primes of degree 1. -/
+lemma not_dvd_torsion_of_not_dvd {S : Type*} [CommRing S] [IsDomain S]
+    {n q : ℕ} [hn : NeZero n] (hq : Nat.Prime q)
+    [Fintype (CommGroup.torsion Sˣ)](hC : IsCyclic (CommGroup.torsion Sˣ))
+    (I : Ideal S) (hcard : Nat.card (S ⧸ I) = q)
+    (hpndvd : ¬ n ∣ q - 1) (hneq : ¬ q ∣ n) :
+     ¬ n ∣ Nat.card (CommGroup.torsion Sˣ) := by
+  haveI : Fact $ Nat.Prime q := {out := hq}
+  obtain ⟨g, hg⟩ := isCyclic_iff_exists_orderOf_eq_natCard.1 hC
+  intro hdvd
+  rw [← hg] at hdvd
+  set x := g ^ (orderOf g / n) with hxd
+  have hx := hxd ▸ orderOf_pow_orderOf_div (Nat.not_eq_zero_of_lt (orderOf_pos g)) hdvd
+  rw [← orderOf_submonoid, ← orderOf_units] at hx
+  let φ := (modIdealToZMod hq I hcard).comp (Ideal.Quotient.mk I)
+  have aux : orderOf (φ ((x : Sˣ) : S)) = n := by
+    refine orderOf_map_CharP (q := q) hneq φ hx
+  let y := IsOfFinOrder.unit (x := φ ((x : Sˣ) : S))
+    (by by_contra hc ; rw [← orderOf_eq_zero_iff, aux] at hc ; exact (NeZero.ne n) hc )
+  have aux2 : orderOf y = n := by
+    rw [← orderOf_units]
+    simp[y, aux]
+  apply hpndvd
+  convert aux2 ▸ orderOf_dvd_card
+  rw [(Nat.prime_iff_card_units q).1 hq]
+
+lemma prime_pow_not_dvd_torsion_of_not_dvd {S : Type*} [CommRing S] [IsDomain S]
+    {p q : ℕ} [hp : Fact $ Nat.Prime p] (hq : Nat.Prime q)
+    [Fintype (CommGroup.torsion Sˣ)](hC : IsCyclic (CommGroup.torsion Sˣ))
+    (I : Ideal S) (hcard : Nat.card (S ⧸ I) = q)
+    (hpndvd : ¬ p ^ m ∣ q - 1) (hneq : p ≠ q) :
+     ¬ p ^ m ∣ Nat.card (CommGroup.torsion Sˣ) := by
+  refine not_dvd_torsion_of_not_dvd hq hC I hcard hpndvd ?_
+  intro h
+  exact hneq.symm ((Nat.prime_dvd_prime_iff_eq hq hp.out).1 (Nat.Prime.dvd_of_dvd_pow hq h))
+
+lemma dvd_of_dvd_torsion {S : Type*} [CommRing S] [IsDomain S]
+    {n q : ℕ} [hn : NeZero n] (hq : Nat.Prime q)
+    [Fintype (CommGroup.torsion Sˣ)](hC : IsCyclic (CommGroup.torsion Sˣ))
+    (I : Ideal S) (hcard : Nat.card (S ⧸ I) = q) (hneq : ¬ q ∣ n)
+    (hndd : n ∣ Nat.card (CommGroup.torsion Sˣ)) : n ∣ q - 1 := by
+  revert hndd
+  contrapose
+  intro hpndvd
+  exact not_dvd_torsion_of_not_dvd hq hC I hcard hpndvd hneq
+
+
+
+/- You don't need to ask for `n` to be coprime with every `qᵢ`. You
+  can refine this by keeping track of which prime
+  powers you incorporate/discard according to `prime_pow_not_dvd_torsion_of_not_dvd`.
+
+  In general, I want `less` primes to show up in the gcd. So is something gained if i consider
+  primes of degree greater than 1? Every prime that appears as dividing `q-1` will also show up in any other
+  prime ideal norm above `q`.
+
+  In the case of number fields, if there is a torsion element of order `m`, then
+  its minimal poly of order `φ(m)` divides the degree `d` of the number field. In particular,
+  if `p` divides `m`, then `p-1` must divide `d`. Hence, prime divisors of the size of the
+  torsion group is a subset of the primes `≤ d + 1` such that `p-1 ∣ d`. -/
+
+#eval Multiset.filter (fun i => i ≠ 0) (Multiset.map
+  (fun p => if Nat.Prime p ∧ p - 1 ∣ 12 then p else 0) (Multiset.range 13))
+
+/--
+We can certify that the size of the torsion group is `n` if:
+* We provide a set of primes containing all the possible prime divisors of the
+  torsion order.
+* We provide a set of natural numbers `P` such that `lcm P = n` and for every `p ∈ P`
+  there exists an `x` of order `p`.
+* We provide a collection of prime ideals `I₁, ..., Iₘ` of degree 1 of norm
+  `q₁, ..., qₘ` respectively, such that the `gcd` of the set
+  `{q₁-1, ..., qₘ-1}` is `n`. -/
+
+theorem eq_card_torsion_of_pow_of_gcd {S : Type*} [CommRing S] [IsDomain S]
+    {n : ℕ} (M P : Finset ℕ) [Fintype ι] (q : ι → ℕ) (hq : ∀ i, Nat.Prime (q i))
+    [Fintype (CommGroup.torsion Sˣ)](hC : IsCyclic (CommGroup.torsion Sˣ))
+    (hmemd : ∀ p , Nat.Prime p → p ∣ Nat.card (CommGroup.torsion Sˣ) → p ∈ M)
+    (I : ι → Ideal S) (hcard : ∀ i, Nat.card (S ⧸ (I i)) = q i)
+    (hneq : ∀ i, ¬ (q i) ∈ M) (hPnz : ∀ p ∈ P, p ≠ 0)
+    (hpow : ∀ p ∈ P, ∃ (x : S), orderOf x = p) (hgcd1 : Finset.lcm P id = n)
+    (hgcd2 : (Finset.gcd (Finset.univ) (fun i : ι => (q i) - 1)) = n) :
+    Nat.card (CommGroup.torsion Sˣ) = n := by
+  apply Nat.dvd_antisymm
+  · rw [← hgcd2, Finset.dvd_gcd_iff]
+    simp only [mem_univ, Nat.card_eq_fintype_card, forall_const]
+    intro i
+    refine dvd_of_dvd_torsion (hq i) hC (I i) (hcard i) ?_ ?_
+    · rw [← Nat.card_eq_fintype_card]
+      intro h
+      apply hneq i
+      exact hmemd (q i) (hq i) h
+    · rw [Nat.card_eq_fintype_card]
+  · rw [← hgcd1, Finset.lcm_dvd_iff]
+    intro b hbP
+    obtain ⟨x, hx⟩ := hpow b hbP
+    let x' := Units.ofPowEqOne x _ ((orderOf_eq_iff (Nat.pos_of_ne_zero (hPnz b hbP))).1 hx).1 ((hPnz b hbP))
+    have hmem : x' ∈ CommGroup.torsion Sˣ := by
+      rw [CommGroup.mem_torsion, ← orderOf_pos_iff, ← orderOf_units]
+      simp [x', hx, Nat.pos_of_ne_zero (hPnz b hbP)]
+    have hord2 : orderOf (⟨x', hmem⟩ : CommGroup.torsion Sˣ) = b  := by
+      simp only [Subgroup.orderOf_mk, ← orderOf_units, Units.val_ofPowEqOne, hx, x']
+    rw [← hord2]
+    exact orderOf_dvd_natCard _
+
+open NumberField Units
+
+theorem prime_sub_dvd_finrank_of_prime_dvd_card_torsion {K : Type*} [Field K]
+  [NumberField K] {p : ℕ} [hp : Fact $ Nat.Prime p]
+  (hpdvd : p ∣ torsionOrder K) : p - 1 ∣ Module.finrank ℚ K := by
+  simp [torsionOrder] at hpdvd
+  obtain ⟨x, hx⟩ := exists_prime_orderOf_dvd_card p hpdvd
+  have aux : IsPrimitiveRoot ((x : (RingOfIntegers K)ˣ) : K) p := by
+    rw [← orderOf_submonoid, ← orderOf_units, ← orderOf_submonoid] at hx
+    rw [← hx]
+    exact IsPrimitiveRoot.orderOf _
+  have := Polynomial.cyclotomic_eq_minpoly_rat aux (Nat.pos_of_neZero p)
+  convert minpoly.degree_dvd (x := ((x : (RingOfIntegers K)ˣ) : K)) ?_
+  · rw [← this, Polynomial.natDegree_cyclotomic, Nat.totient_prime hp.out]
+  · rw [← minpoly.ne_zero_iff, ← this]
+    exact cyclotomic_ne_zero p ℚ
+
+
+
+  --have := Polynomial.cyclotomic_eq_minpoly_rat
+
+
+
+
+
+
+
+
+
+
+
+
+  --have hxpow : (modIdealEquivZMod hq I hcard ((x : Sˣ) : S)) ^ p = 1 := by
+  --  sorry
+  --sorry
+
 
 
 
@@ -2403,6 +2733,7 @@ lemma I_card : Nat.card (O ⧸ I₃) = 19 := by
   · decide
 
 example (h : a = b) : a + a + a = 0 := by
+
 
 
 

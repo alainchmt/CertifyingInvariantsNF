@@ -5,6 +5,7 @@ import Mathlib.Data.Real.CompleteField
 import Mathlib.Topology.Algebra.Polynomial
 import Mathlib.Data.Sign
 import Mathlib.Data.List.Destutter
+import IdealArithmetic.PolynomialsAsLists
 
 open Polynomial
 
@@ -17,13 +18,15 @@ open Polynomial
 
 -/
 
-/- ## Real Closed Field : definition from nLab
+/- ## Real Closed Field :
 A real closed field `F` is a linearly ordered field such that
 * It satisfies the intermediate value theorem for polynomial functions.
 
-This is equivalent to:
+This is equivalent to (definition from nLab):
 *  Every nonnegative element has a square root.
-*  Every odd degree polynomial with coefficients in `F` has a root in `F`.   -/
+*  Every odd degree polynomial with coefficients in `F` has a root in `F`.
+
+-/
 
 
 def IsRealClosed (F : Type*) [LinearOrderedField F] : Prop :=
@@ -162,6 +165,7 @@ lemma constant_sign_of_ne_zero' (hc : IsRealClosed F) {a b : F} (hab : a ≤ b)
       exact nonneg_of_ne_zero_of_exists_pos hc hP hm hl3
   · simp [h2, LinearOrder.le_total 0 (eval b P)]
 
+/- Weak version of Rolle's theorem for successive roots. -/
 lemma rolle_theorem_weak (hc : IsRealClosed F) {a b : F} (hab : a < b) {P : F[X]}
     (hP : ∀ x ∈ Ioo a b, P.eval x ≠ 0) (hPa : P.eval a = 0) (hPb : P.eval b = 0) :
     ∃ c ∈ Ioo a b , (derivative P).eval c = 0 := by
@@ -422,7 +426,7 @@ section signChanges
 
 section
 
-variable {R : Type*}  [LinearOrderedRing R]
+variable {R : Type*}  [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
 /-- The number of sign changes in a nonempty sequence `[a₀, a₁, …, aₙ]`. This is
 computed as `∑ i, σ(aᵢ * aᵢ₊₁)`, where `σ x` is `1` if `x < 0` and `0` otherwise.  -/
 /- def signChanges {n : ℕ} (f : Fin (n + 1) → R) :=
@@ -457,6 +461,13 @@ lemma signChanges_eq_signChanges' (L : List R) (hz : ∀ x ∈ L, x ≠ 0) : sig
 #eval signChangesList [1,0, 0, -2,3,-1,-3,4,5,6,-7, -1,-1,4,5,-1,0,0,0,-2,3]
 #eval signChanges [1,0, 0, -2,3,-1,-3,4,5,6,-7, -1,-1,4,5,-1,0,0,0,-2,3]
 
+
+
+end
+
+section
+variable [LinearOrderedCommRing R]
+
 open SignType
 
 /- The sign changes of a polynomial sequence at `a` is simply the sign changes of the resulting
@@ -480,6 +491,7 @@ lemma signChangesNInfty_def (P : List R[X]) : signChangesNInfty P =
     signChanges (List.map (fun p => (-1) ^ (p.natDegree) * p.leadingCoeff) P) := rfl
 
 
+
 end
 
 
@@ -501,7 +513,7 @@ structure IsSturmSequence (P : List R[X]) (p q : R[X])  where
     (∃ e f : R, ∃ Q : R[X], 0 < e ∧ 0 < f ∧ C e * P[i] = Q * P[i + 1] - C f * P[i + 2] )
 
 
-lemma sturm_sequence_ne_nil (P : List R[X]) (p q : R[X])
+lemma sturm_sequence_ne_nil {P : List R[X]} {p q : R[X]}
   (hs : IsSturmSequence P p q) : P ≠ [] := by
   have := hs.hlen
   intro h
@@ -517,6 +529,7 @@ lemma getLastD_eq_getLast_of_ne_nil {α : Type*} {a : α} {l : List α} (h : l �
     | (c :: cs) =>
     rw [List.getLast_eq_getLastD, List.getLastD_cons]
 
+
 /-- The zero polynomial is not in a sturm sequence. -/
 lemma zero_not_member {P : List R[X]} {p q : R[X]}
     (hs : IsSturmSequence P p q) : ¬ 0 ∈ P := by
@@ -528,7 +541,7 @@ lemma zero_not_member {P : List R[X]} {p q : R[X]}
     have hsl := hs.hlen
     obtain ⟨c, hcz, hzl⟩ := hs.hc
     rw [← List.getLast_eq_getElem _ (fun  h => by simp [h] at hsl)] at hi
-    rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil P p q hs), hi, Eq.comm,
+    rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil hs), hi, Eq.comm,
       Polynomial.C_eq_zero] at hzl
     exact hcz hzl
   · have := hs.hmono i (by omega)
@@ -560,6 +573,40 @@ lemma q_ne_zero {P : List R[X]} {p q : R[X]}
   rw [h] at this
   exact zero_not_member hs this
 
+ lemma IsSturmSequence_map {S : Type*} [LinearOrderedCommRing S] {P : List R[X]}
+    {p q : R[X]} (h : IsSturmSequence P p q) (f : R →+* S) (hmono : StrictMono f) :
+    IsSturmSequence (List.map (Polynomial.map f) P) (map f p) (map f q) where
+  hlen := by simp[h.hlen]
+  h0 := by simp [h.h0]
+  h1 := by simp [h.h1]
+  hc := by
+    obtain ⟨c, hc1, hc2⟩ := h.hc
+    use f c
+    constructor
+    · refine (map_ne_zero_iff f (StrictMono.injective hmono)).mpr hc1
+    · rw [getLastD_eq_getLast_of_ne_nil (by simp ; exact sturm_sequence_ne_nil h)]
+      simp
+      rw[← getLastD_eq_getLast_of_ne_nil (a := 0) (sturm_sequence_ne_nil h), hc2, map_C]
+  hmono := by
+    intro i hi
+    simp at hi
+    simp only [List.getElem_map, Polynomial.natDegree_map_eq_of_injective (StrictMono.injective hmono)]
+    exact h.hmono i hi
+  hrem := by
+    intro i hi
+    simp at hi
+    obtain ⟨e, ft, Q, hepos, hfpos, heq⟩ := h.hrem i hi
+    use f e, f ft , map f Q
+    refine ⟨?_, ?_, ?_ ⟩
+    · convert StrictMono.imp hmono hepos
+      rw [map_zero]
+    · convert StrictMono.imp hmono hfpos
+      rw [map_zero]
+    · simp
+      rw[← map_C, ← Polynomial.map_mul, heq]
+      simp
+
+
 /-- A sturm sequence evaluated at any element `a` cannot have two consecutive zeros. -/
 lemma no_consecutive_zero1 (P : List R[X]) (p q : R[X])
     (hs : IsSturmSequence P p q) (a : R) (i : ℕ)
@@ -583,7 +630,7 @@ lemma no_consecutive_zero1 (P : List R[X]) (p q : R[X])
     simp[Ne.symm (ne_of_lt hfpos)] at hef
     exact hef
   obtain ⟨c, hcz, hzl⟩ := hs.hc
-  rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil P p q hs), List.getLast_eq_getElem] at hzl
+  rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil hs), List.getLast_eq_getElem] at hzl
   have aux := hin (P.length- 1 - i) (by omega)
   have : i + (P.length - 1 - i) = P.length - 1 := by omega
   simp_rw [this, hzl] at aux
@@ -622,34 +669,35 @@ end
 
 open SignType
 
-variable {R : Type*}  [LinearOrderedRing R]
 
-
-@[simp]
-lemma signChanges_nil : signChanges (R := R) [] = 0 := rfl
 
 
 @[simp]
-lemma signChanges_single' (a : R) : signChanges' [a] = 0 := by
+lemma signChanges_nil [Zero R] [Preorder R] [DecidableLT R]  [DecidableEq R]
+  : signChanges (R := R) [] = 0 := rfl
+
+
+@[simp]
+lemma signChanges_single' [Zero R] [Preorder R] [DecidableLT R]  (a : R) : signChanges' [a] = 0 := by
   simp[signChanges']
 
 @[simp]
-lemma signChanges_single (a : R) : signChanges [a] = 0 := by
+lemma signChanges_single [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R] (a : R)  : signChanges [a] = 0 := by
   by_cases ha : a ≠ 0
   · simp[signChanges, signChanges', ha]
   · push_neg at ha
     simp [signChanges, signChanges', ha]
 
 
-lemma signChanges_zero_head (as : List R) : signChanges (0 :: as) = signChanges as := by
+lemma signChanges_zero_head [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R] (as : List R)  : signChanges (0 :: as) = signChanges as := by
   unfold signChanges
   simp
 
-lemma signChanges_zero_head' (as : List R) : signChanges' (0 :: as) = signChanges' as := by
+lemma signChanges_zero_head' [Zero R] [Preorder R] [DecidableLT R] (as : List R) : signChanges' (0 :: as) = signChanges' as := by
   simp_rw [signChanges', sign_zero, zero_mul]
   rfl
 
-lemma signChanges_length_two (a b : R) (hab : a * b < 0) : signChanges [a, b] = 1 := by
+lemma signChanges_length_two  [DecidableEq R] [LinearOrderedRing R] (a b : R) (hab : a * b < 0) : signChanges [a, b] = 1 := by
   have : a ≠ 0 ∧ b ≠ 0 := by
     by_contra! hc
     by_cases haz : a = 0
@@ -660,13 +708,14 @@ lemma signChanges_length_two (a b : R) (hab : a * b < 0) : signChanges [a, b] = 
   simp [← sign_mul, hab]
   simp[this]
 
-lemma signChanges_cons_eq_add' (a b : R) (as : List R) :
+lemma signChanges_cons_eq_add' [Zero R] [Preorder R] [DecidableLT R] (a b : R) (as : List R) :
   signChanges' (a :: b :: as) = signChanges' [a, b] + signChanges' (b :: as) := by
 by_cases hc : sign a * sign b = -1
 · simp [signChanges', hc]
 · simp [signChanges', hc]
 
-lemma signChanges_cons_eq_add (a b : R) (as : List R) (hb : b ≠ 0) :
+lemma signChanges_cons_eq_add [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
+  (a b : R) (as : List R) (hb : b ≠ 0) :
   signChanges (a :: b :: as) = signChanges [a, b] + signChanges (b :: as) := by
 have aux : ∀ x y : R, ∀ L : List R,  x :: y :: L = [x, y] ++ L := by simp
 by_cases ha : a ≠ 0
@@ -680,7 +729,8 @@ by_cases ha : a ≠ 0
   simp[signChanges_zero_head, signChanges_single]
 
 
-lemma signChanges_modify_zero (a : R) (bs : List R) :
+lemma signChanges_modify_zero [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
+  (a : R) (bs : List R) :
   signChanges (a :: 0 :: bs) = signChanges (a :: bs) := by
   by_cases ha : a = 0
   · rw [ha, signChanges_zero_head]
@@ -692,7 +742,8 @@ lemma signChanges_modify_zero (a : R) (bs : List R) :
     simp_rw [signChanges, aux]
     simp[ha]
 
-lemma signChanges_cons {a : R} {as : List R} (ha : a ≠ 0) (hh : as.headD 0 ≠ 0) :
+lemma signChanges_cons [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
+  {a : R} {as : List R} (ha : a ≠ 0) (hh : as.headD 0 ≠ 0) :
   signChanges (a :: as) = if sign a * sign (as.headD 0) < 0 then 1 + signChanges as else signChanges as := by
   have aux : (List.filter (fun x => if x ≠ 0 then true else false)) (a :: as) =
       a :: (List.filter (fun x => if x ≠ 0 then true else false) as) := by
@@ -708,9 +759,13 @@ lemma signChanges_cons {a : R} {as : List R} (ha : a ≠ 0) (hh : as.headD 0 ≠
   nth_rw 1 [signChanges']
   simp_rw [aux2]
 
-lemma signChanges_map' {S : Type*} [LinearOrderedRing S] (f : R → S)
-    (hmono1 : ∀ a , 0 < a ↔ 0 < f a ) (hmono2 : ∀ a , a < 0 ↔ f a < 0 ) (L : List R) :
-    signChanges' L = signChanges' (L.map f) := by
+lemma signChanges_map' [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
+  [Zero S] [Preorder S] [DecidableLT S] [DecidableEq S] (f : R → S)
+  (hmono1 : ∀ a , 0 < a ↔ 0 < f a ) (hmono2 : ∀ a , a < 0 ↔ f a < 0 ) (L : List R) :
+  signChanges' L = signChanges' (L.map f) := by
+have aux : ∀ x, sign (f x) = sign x := by
+  intro x
+  simp_rw [sign_apply, hmono1, hmono2]
 induction' L with a as hi
 · rfl
 · match as with
@@ -720,22 +775,21 @@ induction' L with a as hi
   by_cases ha : sign a * sign b = -1
   · have hac := ha
     have ha : sign (f a) * sign (f b) = -1 := by
-       rw [← sign_mul, sign_eq_neg_one_iff, mul_neg_iff] at ha ⊢
-       rw [hmono1, hmono1, hmono2, hmono2] at ha
+       rw [aux a, aux b]
        exact ha
     unfold signChanges'
     simp [ha, hac]
     simp[hi]
   · have hac := ha
     have ha : ¬ sign (f a) * sign (f b) = -1 := by
-      rw [← sign_mul, sign_eq_neg_one_iff, mul_neg_iff] at ha ⊢
-      rw [hmono1, hmono1, hmono2, hmono2] at ha
+      rw [aux a, aux b]
       exact ha
     unfold signChanges'
     simp [ha, hac]
     simp[hi]
 
-lemma signChanges_map {S : Type*} [LinearOrderedRing S] (f : R → S)
+lemma signChanges_map [Zero R] [LinearOrder R] [DecidableLT R] [DecidableEq R]
+  [Zero S] [LinearOrder S] [DecidableLT S] [DecidableEq S] (f : R → S)
   (hmono1 : ∀ a , 0 < a ↔ 0 < f a ) (hmono2 : ∀ a , a < 0 ↔ f a < 0 )
   (L : List R) :
   signChanges L = signChanges (L.map f) := by
@@ -765,8 +819,8 @@ lemma signChanges_map {S : Type*} [LinearOrderedRing S] (f : R → S)
   apply signChanges_map' f hmono1 hmono2
 
 
-lemma signChanges_eq_map_sign_int (L : List R) :
-  signChanges L = signChanges (L.map (fun x ↦ (sign x : ℤ))) := by
+lemma signChanges_eq_map_sign_int [Zero R] [LinearOrder R] [DecidableLT R] [DecidableEq R]
+  (L : List R) : signChanges L = signChanges (L.map (fun x ↦ sign x)) := by
   apply signChanges_map _ ?_ ?_ _
   · intro a
     rw [← sign_eq_one_iff]
@@ -779,8 +833,8 @@ lemma signChanges_eq_map_sign_int (L : List R) :
     · intro h ; simp [h]
     · cases sign a  <;> simp
 
-lemma signChanges_eq_map_sign_int' (L : List R) :
-  signChanges' L = signChanges' (L.map (fun x ↦ (sign x : ℤ))) := by
+lemma signChanges_eq_map_sign_int' [Zero R] [LinearOrder R] [DecidableLT R] [DecidableEq R]
+  (L : List R) : signChanges' L = signChanges' (L.map (fun x ↦ sign x)) := by
   apply signChanges_map' _ ?_ ?_ _
   · intro a
     rw [← sign_eq_one_iff]
@@ -793,11 +847,11 @@ lemma signChanges_eq_map_sign_int' (L : List R) :
     · intro h ; simp [h]
     · cases sign a  <;> simp
 
-lemma signChanges_congr (L₁ L₂ : List R)
-  (hlen : L₁.length = L₂.length)
+lemma signChanges_congr [Zero R] [LinearOrder R] [DecidableLT R] [DecidableEq R]
+  (L₁ L₂ : List R) (hlen : L₁.length = L₂.length)
   (hi : ∀ i, ∀ hi : i < L₁.length, sign (L₁[i]) = sign (L₂[i]) ) :
   signChanges L₁ = signChanges L₂ := by
-  refine Eq.trans (b := signChanges (L₁.map (fun x ↦ (sign x : ℤ)))) ?_ ?_
+  refine Eq.trans (b := signChanges (L₁.map (fun x ↦ sign x))) ?_ ?_
   · exact signChanges_eq_map_sign_int L₁
   · rw [signChanges_eq_map_sign_int L₂]
     congr 1
@@ -807,11 +861,11 @@ lemma signChanges_congr (L₁ L₂ : List R)
       simp at hi1 hi2 ⊢
       rw [hi]
 
-lemma signChanges_congr' (L₁ L₂ : List R)
-  (hlen : L₁.length = L₂.length)
+lemma signChanges_congr' [Zero R] [LinearOrder R] [DecidableLT R] [DecidableEq R]
+  (L₁ L₂ : List R) (hlen : L₁.length = L₂.length)
   (hi : ∀ i, ∀ hi : i < L₁.length, sign (L₁[i]) = sign (L₂[i]) ) :
   signChanges' L₁ = signChanges' L₂ := by
-  refine Eq.trans (b := signChanges' (L₁.map (fun x ↦ (sign x : ℤ)))) ?_ ?_
+  refine Eq.trans (b := signChanges' (L₁.map (fun x ↦ sign x))) ?_ ?_
   · exact signChanges_eq_map_sign_int' L₁
   · rw [signChanges_eq_map_sign_int' L₂]
     congr 1
@@ -821,7 +875,57 @@ lemma signChanges_congr' (L₁ L₂ : List R)
       simp at hi1 hi2 ⊢
       rw [hi]
 
-lemma sign_changes_add (as bs : List R) (b : R) :
+
+lemma signChangesPolySeq_map {R S : Type*} [LinearOrderedCommRing R] [LinearOrderedCommRing S]
+  (f : R →+* S) (hmono : StrictMono f) (P : List R[X]) (a : R) :
+  signChangesPolySeq P a = signChangesPolySeq (List.map (map f) P) (f a) := by
+  simp [signChangesPolySeq]
+  rw [signChanges_map f]
+  apply signChanges_congr
+  · intro i hi
+    simp
+    rw [← Polynomial.eval₂_hom, Polynomial.eval_map]
+    simp
+  · rw [← map_zero f]
+    exact fun a ↦ Iff.symm (StrictMono.lt_iff_lt hmono)
+  · rw [← map_zero f]
+    exact fun a ↦ Iff.symm (StrictMono.lt_iff_lt hmono)
+
+lemma signChangesInfty_map {R S : Type*} [LinearOrderedCommRing R] [LinearOrderedCommRing S]
+  (f : R →+* S) (hmono : StrictMono f) (P : List R[X]) :
+  signChangesInfty P =  signChangesInfty (List.map (map f) P) := by
+  simp [signChangesInfty]
+  rw [signChanges_map f]
+  apply signChanges_congr
+  · intro i hi
+    simp
+    rw [Polynomial.leadingCoeff_map' (StrictMono.injective hmono)]
+  · simp
+  · rw [← map_zero f]
+    exact fun a ↦ Iff.symm (StrictMono.lt_iff_lt hmono)
+  · rw [← map_zero f]
+    exact fun a ↦ Iff.symm (StrictMono.lt_iff_lt hmono)
+
+lemma signChangesNInfty_map {R S : Type*} [LinearOrderedCommRing R] [LinearOrderedCommRing S]
+  (f : R →+* S) (hmono : StrictMono f) (P : List R[X]) :
+  signChangesNInfty P =  signChangesNInfty (List.map (map f) P) := by
+  simp [signChangesNInfty]
+  rw [signChanges_map f]
+  apply signChanges_congr
+  · intro i hi
+    simp only [List.map_map, List.getElem_map, Function.comp_apply, map_mul, map_pow, map_neg,
+      map_one]
+    rw [Polynomial.natDegree_map_eq_of_injective (StrictMono.injective hmono),
+       Polynomial.leadingCoeff_map' (StrictMono.injective hmono)]
+  · simp
+  · rw [← map_zero f]
+    exact fun a ↦ Iff.symm (StrictMono.lt_iff_lt hmono)
+  · rw [← map_zero f]
+    exact fun a ↦ Iff.symm (StrictMono.lt_iff_lt hmono)
+
+
+
+lemma sign_changes_add [Zero R] [LinearOrder R] [DecidableLT R] (as bs : List R) (b : R) :
   signChanges' (as ++ (b :: bs) ) = signChanges' (as ++ [b]) + signChanges' (b :: bs) := by
   induction' as with c cs hi
   · simp[signChanges']
@@ -840,7 +944,7 @@ lemma sign_changes_add (as bs : List R) (b : R) :
       simp at hi
       exact hi
 
-lemma sign_changes_add_triple (a b c : R) (as : List R) :
+lemma sign_changes_add_triple [Zero R] [LinearOrder R] [DecidableLT R]  (a b c : R) (as : List R) :
   signChanges' (a :: b :: c :: as) = signChanges' [a, b, c] + signChanges' (c :: as) := by
   exact sign_changes_add [a, b] as c
 
@@ -858,8 +962,9 @@ lemma List.getElem_cons_pred {α : Type* } (a : α) (as : List α) (i : ℕ) (h 
   | 0 => contradiction
   | i + 1 => simp
 
+variable [LinearOrderedRing R]
 
-lemma signChanges_of_mul_neg {a b c : R}
+lemma signChanges_of_mul_neg [DecidableEq R] {a b c : R}
     (ha : a * c < 0) : signChanges [a, b, c] = 1 := by
     rcases lt_trichotomy b 0 with hb1 | hb2 | hb3
     swap
@@ -1112,9 +1217,9 @@ lemma sturm_sequence_unique_root_ne_p (hc : IsRealClosed F) {a b : F} (hab : a <
     simp at hcmem
   have hlgt := hs.hlen
   have hanenil : (List.map (fun x => x.eval a) P) ≠ [] := by
-    simp [sturm_sequence_ne_nil P p q hs]
+    simp [sturm_sequence_ne_nil hs]
   have hbnenil : (List.map (fun x => x.eval b) P) ≠ [] := by
-    simp [sturm_sequence_ne_nil P p q hs]
+    simp [sturm_sequence_ne_nil hs]
   apply signChanges_eq_of_lists_opposite_sign
   · simp_rw [List.mem_iff_getElem]
     simp only [List.getElem_map, List.length_map, ne_eq, forall_exists_index]
@@ -1125,7 +1230,7 @@ lemma sturm_sequence_unique_root_ne_p (hc : IsRealClosed F) {a b : F} (hab : a <
   · obtain ⟨c, hcnz, hcl⟩ := hs.hc
     rw [getLastD_eq_getLast_of_ne_nil hanenil, getLastD_eq_getLast_of_ne_nil hbnenil,
       List.getLast_map, List.getLast_map]
-    rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil P p q hs)] at hcl
+    rw [getLastD_eq_getLast_of_ne_nil (sturm_sequence_ne_nil hs)] at hcl
     rw [hcl]
     simp
   · simp only [List.length_map, List.getElem_map, ne_eq]
@@ -1607,9 +1712,7 @@ theorem sturm_theorem (hc : IsRealClosed F) {a b : F} (hab : a < b)
   apply Eq.symm (sturm_theorem_induction_aux F hc hab hs ha hb rfl)
 
 
-
 -- Sturm over `(-∞ , ∞)`
-
 lemma pos_at_infinity_of_leading_coeff_pos
   (P : F[X]) (hP : P.leadingCoeff > 0) : ∃ N : F, ∀ x, (N < x → 0 < P.eval x) := by
   have hPnz : P ≠ 0 := by
@@ -1797,6 +1900,337 @@ theorem sturm_theorem_total (hc : IsRealClosed F)
       simp at hi ⊢
       exact (aux1 i hi (M + 1) (by linarith)).1
     · simp
+
+
+/-- We can compute over a subring of the real closed field. -/
+theorem sturm_theorem_map {R : Type*} [LinearOrderedCommRing R]
+   (hc : IsRealClosed F) (f : R →+* F) (hmono : StrictMono f) {a b : R} (hab : a < b)
+    {P : List R[X]} {p : R[X]} (hs : IsSturmSequence P p (derivative p))
+    (ha : ∀ i , ∀ h : i < P.length , P[i].eval a ≠ 0) (hb : ∀ i , ∀ h : i < P.length , P[i].eval b ≠ 0) :
+    #((Multiset.toFinset (map f p).roots).filter (fun x => x ∈ Icc (f a) (f b))) =
+      signChangesPolySeq P a - signChangesPolySeq P b := by
+  have := IsSturmSequence_map hs f hmono
+  rw [← Polynomial.derivative_map] at this
+  rw [sturm_theorem F hc (hmono.imp hab) this]
+  · simp_rw [signChangesPolySeq_map f hmono]
+  · intro i hi
+    simp_rw [List.getElem_map]
+    rw [Polynomial.eval_map, Polynomial.eval₂_hom]
+    refine (map_ne_zero_iff f (StrictMono.injective hmono)).mpr (ha i (List.length_map P (Polynomial.map f) ▸ hi))
+  · intro i hi
+    simp_rw [List.getElem_map]
+    rw [Polynomial.eval_map, Polynomial.eval₂_hom]
+    refine (map_ne_zero_iff f (StrictMono.injective hmono)).mpr (hb i (List.length_map P (Polynomial.map f) ▸ hi))
+
+
+theorem sturm_theorem_total_map {R : Type*} [LinearOrderedCommRing R] (hc : IsRealClosed F)
+    (f : R →+* F) (hmono : StrictMono f) {P : List R[X]} {p : R[X]} (hs : IsSturmSequence P p (derivative p)) :
+    #(Multiset.toFinset (map f p).roots) = signChangesNInfty P - signChangesInfty P := by
+  have := IsSturmSequence_map hs f hmono
+  rw [← Polynomial.derivative_map] at this
+  rw [sturm_theorem_total F hc this]
+  · rw [signChangesInfty_map f hmono, signChangesNInfty_map f hmono]
+
+
+section SturmOfList
+
+variable {R : Type*}  [LinearOrderedCommRing R]
+
+
+
+
+/-
+  hlen : 2 ≤ P.length
+  h0 : P[0] = p
+  h1 : P[1] = q
+  c : R
+  hzn : c ≠ 0
+  hlast : P.getLastD 0 = C c
+  hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree
+  e : List R
+  epos : ∀ h : i < e.length , 0 < e[i]
+  f : List R
+  fpos : ∀ h : i < f.length, 0 < f[i]
+  Q : List R[X]
+  hel : P.length ≤ e.length + 2
+  hfl : P.length ≤ f.length + 2
+  hQl : P.length ≤ Q.length + 2
+  hrem :  ∀ i, ∀ h2 : i + 2 < P.length , (C (e[i])) * P[i] = Q[i] * P[i + 1] - C (f[i]) * P[i + 2]
+
+
+
+-/
+
+structure SturmBuilderOfList (P : List (List R)) (p : List R) (q : List R) where
+  hlen : 2 ≤ P.length
+  h0 : P[0] = p
+  h1 : P[1] = q
+  hlast : (P.getLastD []).length = 1
+  hdrop : ∀ i , ∀ h : i < P.length, P[i] = (P[i]).dropTrailingZeros'
+  hmono :  ∀ i , ∀ h : i + 1 < P.length, P[i + 1].length < P[i].length
+  e : List R
+  epos : ∀ h : i < e.length , 0 < e[i]
+  f : List R
+  fpos : ∀ h : i < f.length, 0 < f[i]
+  Q : List (List R)
+  hel : P.length ≤ e.length + 2
+  hfl : P.length ≤ f.length + 2
+  hQl : P.length ≤ Q.length + 2
+  hrem : ∀ i, ∀ h2 : i + 2 < P.length ,
+    P[i].mulPointwise e[i] = Q[i] * P[i + 1] - P[i + 2].mulPointwise (f[i])
+
+lemma SturmBuilderOfList_ne_nil {P : List (List R)} {p : List R} {q : List R}
+  (h : SturmBuilderOfList P p q) : P ≠ [] := by
+  have := h.hlen
+  rintro ⟨h, rfl⟩
+  simp at this
+
+lemma SturmBuilderOfList_not_mem_nil {P : List (List R)} {p : List R} {q : List R}
+  (h : SturmBuilderOfList P p q) (i : ℕ) (hio : i < P.length) : P[i] ≠ [] := by
+  intro hi
+  by_cases hieq : i = P.length - 1
+  · simp_rw [hieq] at hi
+    rw [← List.getLast_eq_getElem _ (SturmBuilderOfList_ne_nil h), ← getLastD_eq_getLast_of_ne_nil (a := [])] at hi
+    have := hi ▸ h.hlast
+    simp at this
+  · have := h.hmono i (by omega)
+    rw [hi] at this
+    simp at this
+
+
+lemma SturmBuilderOfList_isSturm {P : List (List R)} {p : List R} {q : List R}
+  (h : SturmBuilderOfList P p q) :
+    IsSturmSequence (List.map (ofList) P) (ofList p) (ofList q) where
+  hlen := by
+    simp ; exact h.hlen
+  h0 := by
+    simp ; rw [h.h0]
+  h1 := by
+    simp ; rw [h.h1]
+  hc := by
+    have := h.hlen
+    obtain ⟨c, hc⟩ := List.length_eq_one.1 h.hlast
+    rw [getLastD_eq_getLast_of_ne_nil (SturmBuilderOfList_ne_nil h)] at hc
+    use c
+    constructor
+    · rw [List.getLast_eq_getElem] at hc
+      intro hcc
+      have := hcc ▸ hc ▸ (h.hdrop (P.length -1) (by omega))
+      simp [List.dropTrailingZeros'] at this
+    · rw [getLastD_eq_getLast_of_ne_nil, List.getLast_map, hc]
+      · simp
+      · simp[(SturmBuilderOfList_ne_nil h)]
+  hmono := by
+    intro i hi
+    simp at hi
+    rw [List.getElem_map, List.getElem_map, ← Nat.succ_lt_succ_iff, Nat.succ_eq_add_one,
+      Nat.succ_eq_add_one, natDegree_ofList _ (SturmBuilderOfList_not_mem_nil h i (by omega)),
+      natDegree_ofList _ (SturmBuilderOfList_not_mem_nil h (i + 1) (by omega)) ]
+    · exact h.hmono i hi
+    · rw [dropTrailingZeros_eq_dropTrailingZeros']
+      exact h.hdrop (i + 1) (by omega)
+    · rw [dropTrailingZeros_eq_dropTrailingZeros']
+      exact h.hdrop i (by omega)
+  hrem := by
+    intro i hi
+    simp at hi
+    have := h.hel ; have := h.hfl ; have := h.hQl
+    use h.e[i], h.f[i], ofList (h.Q[i]), (h.epos (by omega)), (h.fpos (by omega))
+    simp
+    rw [← ofList_mulPointwise_eq_C_mul, h.hrem i hi]
+    simp
+
+def signChangesInftyOfList (P : List (List R)) :=
+    signChanges (List.map (fun x => if h : x ≠ [] then x.getLast h else 0) P)
+
+def signChangesNInftyOfList (P : List (List R)) :=
+  signChanges (List.map (fun x => if h : x ≠ [] then ((-1 : R) ^ (x.length - 1)) * x.getLast h else 0) P)
+
+def signChangesSeqOfList (P : List (List R)) (a : R) :=
+  signChanges (List.map (fun x => x.eval a) P)
+
+lemma signChangesInftyOfList_eq_signChangesInfty  {P : List (List R)} {p : List R} {q : List R}
+  (h : SturmBuilderOfList P p q) :  signChangesInftyOfList P = signChangesInfty (List.map (ofList) P) := by
+  unfold signChangesInfty signChangesInftyOfList
+  congr 1
+  simp[List.mem_iff_getElem]
+  intro a i hi hia
+  have hal : ¬ a = [] := by
+    intro this
+    rw [this] at hia
+    exact SturmBuilderOfList_not_mem_nil h i hi hia
+  simp [hal]
+  rw [ofList_leadingCoeff a hal ?_ ]
+  rw [← hia, dropTrailingZeros_eq_dropTrailingZeros']
+  exact h.hdrop i hi
+
+
+lemma signChangesNInftyOfList_eq_signChangesNInfty  {P : List (List R)} {p : List R} {q : List R}
+  (h : SturmBuilderOfList P p q) :  signChangesNInftyOfList P = signChangesNInfty (List.map (ofList) P) := by
+  unfold signChangesNInfty signChangesNInftyOfList
+  congr 1
+  simp[List.mem_iff_getElem]
+  intro a i hi hia
+  have hal : ¬ a = [] := by
+    intro this
+    rw [this] at hia
+    exact SturmBuilderOfList_not_mem_nil h i hi hia
+  simp [hal]
+  rw [ofList_leadingCoeff a hal ?_ ]
+  swap
+  · rw [← hia, dropTrailingZeros_eq_dropTrailingZeros']
+    exact h.hdrop i hi
+  · congr
+    rw [← natDegree_ofList _ hal]
+    · simp
+    · rw [← hia, dropTrailingZeros_eq_dropTrailingZeros']
+      exact h.hdrop i hi
+
+lemma signChangesSeqOfList_eq_signChangesPolySeq {P : List (List R)}
+    (a : R) : signChangesSeqOfList P a = signChangesPolySeq (List.map (ofList) P) a := by
+  unfold signChangesSeqOfList signChangesPolySeq
+  congr 1
+  simp [eval_of_list_eq_eval]
+
+
+lemma sturm_theorem_map_ofList {R : Type*} [LinearOrderedCommRing R]
+  (hc : IsRealClosed F) (f : R →+* F) (hmono : StrictMono f) {a b : R} (hab : a < b)
+  {P : List (List R)} {p : List R}
+  (h : SturmBuilderOfList P p (List.derivative p).dropTrailingZeros)
+  (ha : ∀ i , ∀ h : i < P.length , P[i].eval a ≠ 0)
+  (hb : ∀ i , ∀ h : i < P.length , P[i].eval b ≠ 0) :
+  #((Multiset.toFinset (map f (ofList p)).roots).filter (fun x => x ∈ Icc (f a) (f b))) =
+      signChangesSeqOfList P a - signChangesSeqOfList P b := by
+  rw [signChangesSeqOfList_eq_signChangesPolySeq, signChangesSeqOfList_eq_signChangesPolySeq,
+    sturm_theorem_map F hc f hmono hab]
+  · rw [← ofList_derivative_eq_derivative, ← ofList_dropTrailingZeros_eq_ofList p.derivative]
+    exact SturmBuilderOfList_isSturm h
+  · simp [eval_of_list_eq_eval]
+    exact ha
+  · simp [eval_of_list_eq_eval]
+    exact hb
+
+/-
+theorem sturm_theorem_total_map {R : Type*} [LinearOrderedCommRing R] (hc : IsRealClosed F)
+    (f : R →+* F) (hmono : StrictMono f) {P : List R[X]} {p : R[X]} (hs : IsSturmSequence P p (derivative p)) :
+    #(Multiset.toFinset (map f p).roots) = signChangesNInfty P - signChangesInfty P
+-/
+
+lemma sturm_theorem_total_map_ofList {R : Type*} [LinearOrderedCommRing R] (hc : IsRealClosed F)
+    (f : R →+* F) (hmono : StrictMono f) {P : List (List R)} {p : List R}
+    (h : SturmBuilderOfList P p (List.derivative p).dropTrailingZeros) :
+  #(Multiset.toFinset (map f (ofList p)).roots) = signChangesNInftyOfList P - signChangesInftyOfList P := by
+  rw [signChangesInftyOfList_eq_signChangesInfty h, signChangesNInftyOfList_eq_signChangesNInfty h,
+    sturm_theorem_total_map F hc f hmono]
+  · rw [← ofList_derivative_eq_derivative, ← ofList_dropTrailingZeros_eq_ofList p.derivative]
+    exact SturmBuilderOfList_isSturm h
+
+
+/-- EXAMPLE 1:  `X ^ 5 - 3 * X ^ 3 + 9 * X - 8` -/
+
+@[reducible]
+def P1 : List (List ℤ):= [[-8, 9, 0, -3, 0, 1], [9, 0, -9, 0, 5], [20, -18, 0, 3],
+    [-27, 100, -63], [-4752, 3103], [1]]
+
+def SturmBuilderExample1 : SturmBuilderOfList P1 [-8, 9, 0, -3, 0, 1] [9, 0, -9, 0, 5] where
+  hlen := by decide
+  h0 := by decide
+  h1 := by decide
+  hlast := by decide
+  hdrop := by decide
+  hmono := by
+    unfold P1 ; dsimp
+    intro i hic
+    have hi : i < 5 := by omega
+    interval_cases i <;> norm_num
+  e := [25, 9, 3969, 9628609]
+  f := [10, 3, 15, 208061595]
+  epos := by decide
+  fpos := by decide
+  Q := [[0, 5], [0, 15], [-300, -189], [10924, -195489]]
+  hel := by decide
+  hfl := by decide
+  hQl := by decide
+  hrem := by
+    unfold P1 ; dsimp
+    intro i hi
+    have hi : i < 4 := by omega
+    interval_cases i <;> dsimp <;> decide
+
+
+/-- The polynomial `X ^ 5 - 3 * X ^ 3 + 9 * X - 8` has exactly `1` real root -/
+theorem real_roots1 :
+    #(Multiset.toFinset (X ^ 5 - 3 * X ^ 3 + 9 * X - 8 : ℝ[X]).roots) = 1 := by
+  have : (List.derivative [-8, 9, 0, -3, 0, 1]).dropTrailingZeros = [9, 0, -9, 0, 5]:= by decide
+  convert sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono)
+    (p := [-8, 9, 0, -3, 0, 1]) (this ▸ SturmBuilderExample1)
+  · simp ; ring
+
+
+/-- EXAMPLE 2:  `X^8 - X^7 - 3*X^6 + 3*X^5 + 3*X^4 - 6*X^3 - 2*X^2 + 3*X + 1` -/
+
+@[reducible]
+def P2 : List (List ℤ):= [[1, 3, -2, -6, 3, 3, -3, -1, 1], [3, -4, -18, 12, 15, -18, -7, 8],
+  [-67, -164, 114, 228, -111, -54, 55], [-191, -392, -193, 384, 777, 48], [971, 1944, 821, -2032, -3741],
+  [-14243, -38910, 11875, 48646], [-11255, 808, 33203], [1649, 3522], [1]]
+
+def SturmBuilderExample2 : SturmBuilderOfList P2 [1, 3, -2, -6, 3, 3, -3, -1, 1]
+  [3, -4, -18, 12, 15, -18, -7, 8] where
+  hlen := by decide
+  h0 := by decide
+  h1 := by decide
+  hlast := by decide
+  hdrop := by decide
+  hmono := by
+    unfold P2 ; dsimp
+    intro i hic
+    have hi : i < 8 := by omega
+    interval_cases i <;> norm_num
+  e := [64, 3025, 2304, 13995081, 2366433316, 1102439209, 12404484]
+  f := [1, 64, 9075, 3840, 135285783, 7099299948, 54019521241]
+  epos := by decide
+  fpos := by decide
+  Q := [[-1, 8], [47, 440], [-45327, 2640], [-2809221, -179568],
+  [-54424297, -181984686], [354979657, 1615193138], [-51905971, 116940966]]
+  hel := by decide
+  hfl := by decide
+  hQl := by decide
+  hrem := by
+    unfold P2 ; dsimp
+    intro i hi
+    have hi : i < 7 := by omega
+    interval_cases i <;> dsimp <;> decide
+
+
+/-- The polynomial `X^8 - X^7 - 3*X^6 + 3*X^5 + 3*X^4 - 6*X^3 - 2*X^2 + 3*X + 1` has exactly `4` real root -/
+theorem real_roots2 :
+    #(Multiset.toFinset (X^8 - X^7 - 3*X^6 + 3*X^5 + 3*X^4 - 6*X^3 - 2*X^2 + 3*X + 1 : ℝ[X]).roots) = 4 := by
+  have : (List.derivative [1, 3, -2, -6, 3, 3, -3, -1, 1]).dropTrailingZeros =
+    [3, -4, -18, 12, 15, -18, -7, 8]:= by decide
+  convert sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono)
+     (this ▸ SturmBuilderExample2)
+  · simp ; ring
+
+
+----------------------------
+
+
+
+
+
+
+
+
+
+
+
+      --have aux : ofList [] = 0 := by sorry
+
+
+      --rw [getLastD_eq_getLast_of_ne_nil]
+      --rw [List.getLastD_map]
+
+
 
 
 

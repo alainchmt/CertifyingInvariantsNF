@@ -609,6 +609,7 @@ instance K_field : Field K where
   qsmul_def := sorry
   qsmul := sorry
 
+
 instance K_numberField : NumberField K := sorry
 
 lemma K_finrank : Module.finrank ℚ K = 5 := sorry
