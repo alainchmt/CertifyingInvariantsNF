@@ -1017,7 +1017,7 @@ lemma ofComputablePolynomial_natCast (n : ℕ) :
   simp only [ofList_singleton, map_natCast, mul_zero, add_zero]
 
 /-- Semiring instance for `ComputablePolynomial R`. -/
-noncomputable instance ComputablePolynomial.semiring : Semiring (ComputablePolynomial R) := by
+instance ComputablePolynomial.semiring : Semiring (ComputablePolynomial R) := by
   refine Function.Injective.semiring
     (ofComputablePolynomial (R:= R)) ofComputablePolynomial_injective ?_ ?_ ?_ ?_ ?_ ?_ ?_
   · rfl
@@ -1071,7 +1071,7 @@ lemma ofComputablePolynomial_intCast (z : ℤ) :
   simp only [ofList_singleton, map_intCast, mul_zero, add_zero]
 
 /-- Ring instance for `ComputablePolynomial R`. -/
-noncomputable instance ComputablePolynomial.ring [Ring R] : Ring (ComputablePolynomial R) := by
+instance ComputablePolynomial.ring [Ring R] : Ring (ComputablePolynomial R) := by
   refine Function.Injective.ring (ofComputablePolynomial (R:= R))
     (ofComputablePolynomial_injective (R := R)) ?_?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
   · rfl

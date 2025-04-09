@@ -1406,12 +1406,13 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ : Ty
   exact ⟨_ , hl⟩
 
 
-/- TO DO: You don't need the full torsion group, just generators of the group mod p-powers. -/
+
 lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type*} {p : ℕ}
   [hp : Fact $ Nat.Prime p] [Fintype ι] [Fintype τ] [Fintype κ] (F : τ → Type*) [CommRing S] [IsDomain S]
   [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] [Module.Finite ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))]
   [Module.Free ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))] (u : ι → S) (hu : ∀ i, IsUnit (u i))
-  (v : κ → S) (hv : ∀ i, IsUnit (v i)) (hvt : CommGroup.torsion Sˣ = Subgroup.closure (Set.range (fun j => (hv j).unit )) )
+  (v : κ → S) (hv : ∀ i, IsUnit (v i))
+  (hvt : ∀ w ∈ CommGroup.torsion Sˣ, (∃ (a : κ → ℤ) , (∃ t ∈ CommGroup.torsion Sˣ , w = (∏ i, (hv i).unit ^ (a i)) * t ^ p)))
   (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
   (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ)) (hrank : (MatrixLogProd p F φ (Sum.elim u v) ζ hr).rank = Fintype.card ι + Fintype.card κ) :
    LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) (hu i).unit)) := by
@@ -1422,14 +1423,14 @@ lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ:
     have : ∏ i ∈ s, ((QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) (hu i).unit) ^ (g i)) =
       QuotientGroup.mk (∏ i ∈ s, (hu i).unit ^ (g i)) := by
       exact Eq.symm (QuotientGroup.mk_prod (CommGroup.torsion Sˣ) s)
-    rw [this, QuotientGroup.eq_one_iff, hvt, Subgroup.mem_closure_range_iff_of_fintype] at hg
-    obtain ⟨a, ha⟩ := hg
+    rw [this, QuotientGroup.eq_one_iff] at hg
+    obtain ⟨a, t, ht, ha⟩ := hvt _ hg
     have haux2 := nat_up_to_power_of_int_up_to_power (u := Sum.elim u v) (by simp only [Sum.forall, Sum.elim_inl, hu, implies_true, Sum.elim_inr, hv, and_self])
-      (w := 1) (p := p) (Ne.symm (NeZero.ne' p)) (Sum.elim (fun i => if i ∈ s then g i else 0) (fun j => - a j) ) (1 : Sˣ) ?_
+      (w := 1) (p := p) (Ne.symm (NeZero.ne' p)) (Sum.elim (fun i => if i ∈ s then g i else 0) (fun j => - a j) ) (t⁻¹ : Sˣ) ?_
     swap
     · simp only [Fintype.prod_sum_type, Sum.elim_inl, pow_ite, zpow_zero, Finset.prod_ite_mem,
       Finset.univ_inter, Sum.elim_inr, zpow_neg, Finset.prod_inv_distrib, one_pow, mul_one]
-      rw [ha, mul_inv_cancel]
+      simp only [ha, mul_inv_cancel_comm, inv_pow, mul_inv_cancel]
     obtain ⟨e', hep, t, hpeq⟩ := haux2
     apply_fun (fun x => x * (↑t⁻¹) ^ p ) at hpeq
     rw [Units.val_one, one_mul, mul_assoc, ← mul_pow, ← Units.val_mul, mul_inv_cancel, Units.val_one, one_pow, mul_one] at hpeq
@@ -1451,21 +1452,14 @@ lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ:
       · simp only [Sum.elim_inl, hu]
       · simp only [Sum.elim_inr, hv]
 
---example {α β : Type*} (f : α → Prop) (g : β → Prop) (hf : ∀ i , f i) (hg : ∀ j, g j) : ∀ i : α ⊕ β, 0 = 0 := by
---  intro k
---  have : Sum.elim (fun i => hf i) (fun i => hg i) k
 
-#check Sum.rec
-
-/- TO DO: You don't need the full torsion group, just generators of the group mod p-powers. In case of
-cyclic group, it suffices that the unit is not map to zero through the log for at least one prime ideal. -/
 lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type*} {p : ℕ}
   [hp : Fact $ Nat.Prime p] [Fintype ι] [Fintype τ] [Fintype κ] (F : τ → Type*) [CommRing S] [IsDomain S]
   [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] [Module.Finite ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))]
   [Module.Free ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))] (u : ι → S) (hu : ∀ i, IsUnit (u i))
   (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
   (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ)) (v : κ → S) (hv : ∀ i, IsUnit (v i))
-  (hvt : CommGroup.torsion Sˣ = Subgroup.closure (Set.range (fun j => (hv j).unit )) )
+  (hvt : ∀ w ∈ CommGroup.torsion Sˣ, (∃ (a : κ → ℤ) , (∃ t ∈ CommGroup.torsion Sˣ , w = (∏ i, (hv i).unit ^ (a i)) * t ^ p)))
   (hrank : (MatrixLogProd p F φ (Sum.elim u v) ζ hr).rank = Fintype.card ι + Fintype.card κ)
   (huc : Module.finrank ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ))) ≤ Fintype.card ι) (w : Sˣ) :
     ∃ (e' : ι ⊕ κ → ℤ), (∃ (t : Sˣ) , w = (∏ (i : ι ⊕ κ), (Sum.elim (fun i => (hu i).unit) (fun i => (hv i).unit) i) ^ (e' i)) * t ^ p) := by
@@ -1515,16 +1509,16 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type
     rw [← hz] at hg
     erw [← QuotientGroup.mk_prod, ← QuotientGroup.mk'_apply, Eq.comm, QuotientGroup.mk'_eq_mk' (CommGroup.torsion Sˣ)] at hg
     obtain ⟨t, htmem, ht ⟩ := hg
-    rw [hvt, Subgroup.mem_closure_range_iff_of_fintype] at htmem
-    obtain ⟨a, ha⟩ := htmem
+    obtain ⟨a, k, hk, ha⟩ := hvt _ htmem
     dsimp at ht
     have hdvdgi := z_exponent_vec_eq_zero_of_full_rank_matrix F φ (Sum.elim u v)
       (by simp only [Sum.forall, Sum.elim_inl, hu, implies_true, Sum.elim_inr, hv, and_self] ) (Sum.elim g (fun j => - a j) ) ζ hr hdvd
       (by simp only [hrank, Fintype.card_sum]) ?_
     swap
-    use z
+    use z * k
     · simp only [Fintype.prod_sum_type, Sum.elim_inl, ← ht, ha, Sum.elim_inr, zpow_neg,
       Finset.prod_inv_distrib, mul_inv_cancel_right]
+      simp [mul_pow, mul_comm, mul_assoc]
     simp only [Sum.forall, Sum.elim_inl, Sum.elim_inr, dvd_neg] at hdvdgi
     set J : ι → ℤ := fun i => (hdvdgi.1 i).choose
     have htaux : ∀ i , g i = p * (J i) := fun i => (hdvdgi.1 i).choose_spec
@@ -1554,14 +1548,31 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type
   erw [← hβ'', ← QuotientGroup.mk_prod, ← QuotientGroup.mk_pow , QuotientGroup.mk'_eq_mk' (CommGroup.torsion Sˣ)] at hmeq
   obtain ⟨l, hlmem, hl⟩ := hmeq
   rw [mul_comm, ← mul_assoc] at hl
-  rw [hvt, Subgroup.mem_closure_range_iff_of_fintype] at hlmem
-  obtain ⟨a', ha'⟩ := hlmem
+  obtain ⟨a', k, hk, ha'⟩ := hvt _ hlmem
   use Sum.elim e' a'
-  use β''
+  use k * β''
   simp only [Fintype.prod_sum_type, Sum.elim_inl, Sum.elim_inr]
-  rw [← ha', mul_assoc, mul_comm]
-  exact hl.symm
+  rw [mul_pow, mul_assoc _ _ (k ^ p * β'' ^ p), ← mul_assoc _ (k ^ p) ,
+    ← ha', ← mul_assoc _ l, ← hl, mul_comm, mul_assoc]
 
+
+lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion' {S ι τ κ: Type*} {p : ℕ}
+  [hp : Fact $ Nat.Prime p] [Fintype ι] [Fintype τ] [Fintype κ] (F : τ → Type*) [CommRing S] [IsDomain S]
+  [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] [Module.Finite ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))]
+  [Module.Free ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ)))] (u : ι → S) (hu : ∀ i, IsUnit (u i))
+  (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+  (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ)) (v : κ → S) (hv : ∀ i, IsUnit (v i))
+  (hvt : CommGroup.torsion Sˣ = Subgroup.closure (Set.range (fun j => (hv j).unit )) )
+  (hrank : (MatrixLogProd p F φ (Sum.elim u v) ζ hr).rank = Fintype.card ι + Fintype.card κ)
+  (huc : Module.finrank ℤ (Additive (Sˣ ⧸ (CommGroup.torsion Sˣ))) ≤ Fintype.card ι) (w : Sˣ) :
+    ∃ (e' : ι ⊕ κ → ℤ), (∃ (t : Sˣ) , w = (∏ (i : ι ⊕ κ), (Sum.elim (fun i => (hu i).unit) (fun i => (hv i).unit) i) ^ (e' i)) * t ^ p) := by
+ refine units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion F u hu φ ζ hr hdvd v hv ?_ hrank huc w
+ intro k hkmem
+ rw [hvt, Subgroup.mem_closure_range_iff_of_fintype] at hkmem
+ obtain ⟨a, ha⟩ := hkmem
+ use a , 1
+ simp [ha]
+ exact Subgroup.one_mem (CommGroup.torsion Sˣ)
 
 
 
@@ -1736,20 +1747,23 @@ lemma torsionOrder_eq_two_of_odd_finrank {K : Type*} [Field K] [NumberField K]
 
 open Finset NumberField InfinitePlace
 
-theorem nrRealPlaces_eq_nr_real_roots (K : Type*) [Field K] [NumberField K] {f : ℚ[X]} (hf : f ≠ 0)
-   (hr : IsAdjoinRoot K f) : nrRealPlaces K = #(Multiset.toFinset (map (algebraMap ℚ ℝ) f).roots):= by
-  rw [← NumberField.InfinitePlace.card_real_embeddings]
+
+noncomputable def equivRealEmbeddingsRealRoots (K : Type*) [Field K] [NumberField K] {f : ℚ[X]} (hf : f ≠ 0)
+   (hr : IsAdjoinRoot K f) :
+   { φ : K →+* ℂ // ComplexEmbedding.IsReal φ } ≃ { x // x ∈ (map (algebraMap ℚ ℝ) f).roots} := by
   let i : { φ // ComplexEmbedding.IsReal φ } → ℝ :=
     fun ⟨φ, hφ⟩ => (ComplexEmbedding.IsReal.embedding hφ) hr.root
-  unfold Fintype.card
-  apply Finset.card_nbij i
-  · simp[i, hf]
+  have hmem : ∀ φ, ∀ hφ : ComplexEmbedding.IsReal φ,  i ⟨φ, hφ⟩  ∈ (map (algebraMap ℚ ℝ) f).roots := by
     intro a ha
+    simp [i, hf]
     letI aux : Algebra K ℝ := ha.embedding.toAlgebra
     rw [← RingHom.algebraMap_toAlgebra ((ComplexEmbedding.IsReal.embedding ha)), Polynomial.aeval_algebraMap_apply,
     IsAdjoinRoot.aeval_root hr, map_zero]
-  · intro φ hφ τ hτ heq
-    rw [← Subtype.val_inj]
+  refine Equiv.ofBijective (fun ⟨φ, hφ⟩  => ⟨i ⟨φ, hφ⟩, hmem φ hφ⟩ ) ?_
+  constructor
+  · rintro φ τ heq
+    rw [← Subtype.val_inj] at heq ⊢
+    dsimp at heq
     have aux1 := IsAdjoinRoot.eq_lift (x := i φ) (i := algebraMap ℚ ℝ) ?_ hr (ComplexEmbedding.IsReal.embedding φ.2) (by simp) rfl
     have aux2 := IsAdjoinRoot.eq_lift (x := i τ) (i := algebraMap ℚ ℝ) ?_ hr (ComplexEmbedding.IsReal.embedding τ.2) (by simp) rfl
     simp_rw [heq, ← aux2] at aux1
@@ -1766,7 +1780,7 @@ theorem nrRealPlaces_eq_nr_real_roots (K : Type*) [Field K] [NumberField K] {f :
       simp[i]
       rw [IsScalarTower.algebraMap_eq ℚ K ℝ, ← Polynomial.eval₂_map, this,
         Polynomial.eval₂_hom, Polynomial.eval_map, ← Polynomial.aeval_def, IsAdjoinRoot.aeval_root, map_zero]
-  · intro x hx
+  · rintro ⟨x, hx⟩
     simp at hx
     let φ := (algebraMap ℝ ℂ).comp (IsAdjoinRoot.lift (algebraMap ℚ ℝ) x hr (by  rw [← Polynomial.aeval_def] ; exact hx.2))
     have hφ: ComplexEmbedding.IsReal φ := by
@@ -1776,10 +1790,17 @@ theorem nrRealPlaces_eq_nr_real_roots (K : Type*) [Field K] [NumberField K] {f :
       simp [φ]
     use ⟨φ, hφ⟩
     simp[i]
-    have := NumberField.ComplexEmbedding.IsReal.coe_embedding_apply hφ hr.root
     rw [← algebraMap.coe_inj (A := ℂ)]
-    convert this
+    convert (NumberField.ComplexEmbedding.IsReal.coe_embedding_apply hφ hr.root)
     simp [φ]
+
+
+theorem nrRealPlaces_eq_nr_real_roots (K : Type*) [Field K] [NumberField K] {f : ℚ[X]} (hf : f ≠ 0)
+   (hr : IsAdjoinRoot K f) : nrRealPlaces K = #(Multiset.toFinset (map (algebraMap ℚ ℝ) f).roots) := by
+  rw [← NumberField.InfinitePlace.card_real_embeddings]
+  symm ; apply Finset.card_eq_of_equiv_fintype
+  simp_rw [Multiset.mem_toFinset]
+  exact (equivRealEmbeddingsRealRoots K hf hr).symm
 
 
 lemma card_infinite_place_eq (K : Type*) [Field K] [NumberField K] :
@@ -2032,12 +2053,16 @@ theorem prime_sub_dvd_finrank_of_prime_dvd_card_torsion {K : Type*} [Field K]
 
 
 
+
+-- #eval (⟨[1,2,3,4,4],rfl⟩ : ComputablePolynomial ℤ) ^ 3 + (⟨[1,2,4],rfl⟩ : ComputablePolynomial ℤ)
+
+
+
+
   --have := Polynomial.cyclotomic_eq_minpoly_rat
 
-
-
-
-
+--variable {α : Type*}
+--instance : CommRing α := sorry
 
 
 
