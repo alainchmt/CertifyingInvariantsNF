@@ -2132,17 +2132,18 @@ lemma sturm_theorem_total_map_ofList {R : Type*} [LinearOrderedCommRing R] (hc :
 def P1 : List (List ℤ):= [[-8, 9, 0, -3, 0, 1], [9, 0, -9, 0, 5], [20, -18, 0, 3],
     [-27, 100, -63], [-4752, 3103], [1]]
 
-def SturmBuilderExample1 : SturmBuilderOfList P1 [-8, 9, 0, -3, 0, 1] [9, 0, -9, 0, 5] where
+def SturmBuilderExample1 : SturmBuilderOfList [[-8, 9, 0, -3, 0, 1], [9, 0, -9, 0, 5], [20, -18, 0, 3],
+    [-27, 100, -63], [-4752, 3103], [1]] [-8, 9, 0, -3, 0, 1] [9, 0, -9, 0, 5] where
   hlen := by decide
   h0 := by decide
   h1 := by decide
   hlast := by decide
   hdrop := by decide
   hmono := by
-    unfold P1 ; dsimp
+    dsimp
     intro i hic
     have hi : i < 5 := by omega
-    interval_cases i <;> norm_num
+    interval_cases i <;> (dsimp ; decide)
   e := [25, 9, 3969, 9628609]
   f := [10, 3, 15, 208061595]
   epos := by decide
@@ -2152,10 +2153,12 @@ def SturmBuilderExample1 : SturmBuilderOfList P1 [-8, 9, 0, -3, 0, 1] [9, 0, -9,
   hfl := by decide
   hQl := by decide
   hrem := by
-    unfold P1 ; dsimp
+    dsimp
     intro i hi
     have hi : i < 4 := by omega
     interval_cases i <;> dsimp <;> decide
+
+
 
 
 /-- The polynomial `X ^ 5 - 3 * X ^ 3 + 9 * X - 8` has exactly `1` real root -/

@@ -614,6 +614,24 @@ lemma ideal_norm_eq_prod (O : Type*) [CommRing O]
   symm
   exact indexPID_eq_index_int _ B BI
 
+lemma ideal_norm_eq_prod' {O : Type*} [CommRing O] [IsDomain O]
+    (B : Basis (Fin r) ℤ O) (I : Ideal O) (V : Fin r → Fin r → ℤ) (hd : ∀ i j, i < j → V i j = 0)
+    (i : Fin r) (j : Fin r) (hij : V i j ≠ 0)
+    (heq : I.carrier = Submodule.span ℤ (Set.range (fun i => B.equivFun.symm (V i)))) :
+    Nat.card (O ⧸ I) = (∏ i, V i i).natAbs := by
+  refine ideal_norm_eq_prod O B I ?_ V hd heq
+  have : B.equivFun.symm (V i) ∈ I := by
+    show B.equivFun.symm (V i) ∈ I.carrier
+    rw [heq]
+    apply Submodule.subset_span
+    simp only [Basis.equivFun_symm_apply, zsmul_eq_mul, Set.mem_range, exists_apply_eq_apply]
+  intro hc
+  have := Ideal.mem_bot.1 (hc ▸ this)
+  apply_fun B.equivFun at this
+  simp only [LinearEquiv.apply_symm_apply, Basis.equivFun_apply, map_zero, Finsupp.coe_zero] at this
+  apply_fun (fun f => f j) at this
+  exact hij this
+
 
 
 noncomputable def isAdjoinRoot_of_adjoin_root_irreducible_finite {F K : Type*} {n : ℕ}

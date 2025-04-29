@@ -1,5 +1,6 @@
 import IdealArithmetic.IdealArithmetic
 import IdealArithmetic.Sturm
+import Mathlib.NumberTheory.NumberField.Units.DirichletTheorem
 
 /- Here we specialized `LogFiniteRing` , `MatrixLogProd`
   and the releated theorems to prove nonprincipality to the case
@@ -130,6 +131,22 @@ lemma not_principal_of_full_rank_matrixLogZMod {p n : ℕ} [hp : Fact $ Nat.Prim
   · rw [← MatrixLog_eq p hcard _ hr]
     exact hrank
 
+lemma units_linear_independent_not_dvd_torsion_of_full_rank {p : ℕ} [hp : Fact $ Nat.Prime p]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  (u : ι → O) (hu : ∀ i, IsUnit (u i)) (hdvd : ∀ i, p ∣ q i - 1)
+  (hpndvdt : ¬ p ∣ Nat.card (CommGroup.torsion Oˣ))
+  (hrank : (MatrixLogZMod p hcard u hr).rank = Fintype.card ι) :
+  LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Oˣ)) (hu i).unit)) := by
+  refine units_linear_independent_of_full_rank_matrix_of_p_not_dvd_torsion (F q) u hu (φ hcard)
+    (fun i => ↑(ζ i)) (hr_aux hr) ?_ hpndvdt ?_
+  · intro i
+    unfold F
+    simp only [ZMod.card_units_eq_totient, Nat.totient_prime (hF i).out]
+    exact hdvd i
+  · rw [← MatrixLog_eq p hcard _ hr]
+    exact hrank
+
 
 lemma units_up_to_p_power_not_dvd_torsion_of_full_rank {p : ℕ} [hp : Fact $ Nat.Prime p]
   [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
@@ -167,6 +184,24 @@ lemma units_up_to_p_power_dvd_torsion_of_full_rank [Fintype κ] {p : ℕ} [hp : 
     exact hdvd i
   · rw [← MatrixLog_eq p hcard _ hr]
     exact hrank
+
+
+lemma units_linear_independent_dvd_torsion_of_full_rank [Fintype κ] {p : ℕ} [hp : Fact $ Nat.Prime p]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  (u : ι → O) (hu : ∀ i, IsUnit (u i)) (hdvd : ∀ i, p ∣ q i - 1)
+  (v : κ → O) (hv : ∀ i, IsUnit (v i))
+  (hvt : ∀ w ∈ CommGroup.torsion Oˣ, (∃ (a : κ → ℤ) , (∃ t ∈ CommGroup.torsion Oˣ , w = (∏ i, (hv i).unit ^ (a i)) * t ^ p)))
+  (hrank : (MatrixLogZMod p hcard ((Sum.elim u v)) hr).rank = Fintype.card ι + Fintype.card κ) :
+  LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Oˣ)) (hu i).unit)) := by
+  refine units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion (F q) u hu v hv hvt (φ hcard) (fun i => ↑(ζ i)) (hr_aux hr) ?_ ?_
+  · intro i
+    unfold F
+    simp only [ZMod.card_units_eq_totient, Nat.totient_prime (hF i).out]
+    exact hdvd i
+  · rw [← MatrixLog_eq p hcard _ hr]
+    exact hrank
+
 
 end
 
@@ -236,6 +271,23 @@ lemma submatrix_of_NonPrincipalCertificateNDvdT {O : Type*} [CommRing O]
     simp [MatrixLog_eq, MatrixLogZMod]
     convert C.hM1 i j.2
     repeat {simp}
+
+lemma units_linear_independent_of_NonPrincipalCertificateNDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {J : Ideal O}
+  (C : NonPrincipalCertificateNDvdT J) :
+LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Oˣ)) (C.hu i).unit)) := by
+  haveI : Fact $ Nat.Prime C.p := {out := C.hp}
+  refine units_linear_independent_not_dvd_torsion_of_full_rank (hF := fun i : Fin C.r => C.hqP i)  (fun i => C.hcard i)
+    (fun i => C.hr i) C.u C.hu (fun i => C.hdvd i) C.hpndvdt ?_
+  rw [← submatrix_of_NonPrincipalCertificateNDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    exact strongRankCondition_of_orzechProperty (ZMod C.p)
+  · refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.N)
+    rw [C.hNiv]
+    simp only [Fintype.card_fin, Matrix.rank_one]
+
 
 lemma units_of_NonPrincipalCertificateNDvdT {O : Type*} [CommRing O]
   [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
@@ -427,6 +479,36 @@ lemma submatrix_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
       repeat {simp}
 
 
+lemma units_linear_independent_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [IsCyclic (CommGroup.torsion Oˣ)] {J : Ideal O}
+  (C : NonPrincipalCertificateDvdT J) :
+  LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Oˣ)) (C.hu i).unit)) := by
+  haveI : Fact $ Nat.Prime C.p := {out := C.hp}
+  refine units_linear_independent_dvd_torsion_of_full_rank (hF := fun i : Fin (C.r + 1) => C.hqP i) (fun i => C.hcard i) (fun i => C.hr i) C.u C.hu (fun i => C.hdvd i) (fun (i : Fin 1) => C.v) ?_ ?_ ?_
+  · intro i
+    exact (isUnit_ofPowEqOne C.hmv C.hm)
+  · intro w' hwmem'
+    obtain ⟨a, t, htmem, hat⟩ := torsion_of_NonPrincipalCertificateDvdT C w' hwmem'
+    use a, t, htmem
+    rw [hat]
+    simp
+  rw [← submatrix_of_NonPrincipalCertificateDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    simp only [Fintype.card_fin, Fintype.card_unique, Fintype.card_sum]
+    exact strongRankCondition_of_orzechProperty (ZMod C.p)
+  · erw [← Matrix.submatrix_submatrix C.M (Fin.castSucc )
+      (Fin.castSucc ) (Equiv.refl _).toFun (finSumFinEquiv.toFun)]
+    erw [← Matrix.reindex_apply (Equiv.refl _).symm (finSumFinEquiv).symm]
+    rw [Matrix.rank, Matrix.mulVecLin_reindex, LinearMap.range_comp, LinearMap.range_comp,
+      LinearEquiv.range, Submodule.map_top, LinearEquiv.finrank_map_eq, ← Matrix.rank]
+    refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.N)
+    rw [C.hNiv]
+    simp only [Fintype.card_fin, Matrix.rank_one]
+
+
 lemma units_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
   [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
   [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
@@ -438,7 +520,7 @@ lemma units_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
   haveI : Fact $ Nat.Prime C.p := {out := C.hp}
   refine units_up_to_p_power_dvd_torsion_of_full_rank (hF := fun i : Fin (C.r + 1) => C.hqP i)
     (fun i => C.hcard i) (fun i => C.hr i) C.u C.hu (fun i => C.hdvd i)
-      (fun (i : Fin 1) => C.v) ?_ ?_ ?_ ?_ w
+      (fun (i : Fin 1) => C.v) _ ?_ ?_ ?_ w
   · intro w' hwmem'
     obtain ⟨a, t, htmem, hat⟩ := torsion_of_NonPrincipalCertificateDvdT C w' hwmem'
     use a, t, htmem
@@ -499,9 +581,43 @@ open Polynomial
 structure RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
   (O : Subalgebra ℤ K) where
   f : ℤ[X]
+  l : List ℤ
+  hl : ofList l = f
+  hlz : l = l.dropTrailingZeros'
+  hz : l ≠ []
   hAdj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) f)
   heq : O = integralClosure ℤ K
+  P : List (List ℤ)
+  SB : SturmBuilderOfList P l (List.derivative l).dropTrailingZeros
+  k : ℕ
+  r : ℕ
+  hr : signChangesNInftyOfList P - signChangesInftyOfList P = k
+  hreq : (k + (l.length - 1)) / 2 = r
 
+open NumberField
+
+lemma card_infinitePlace_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) : Fintype.card (InfinitePlace K) = C.r := by
+  rw [card_infinite_place_adjoin_root K _ ?_ C.hAdj, ← C.hl, Polynomial.map_map]
+  erw [sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono) C.SB]
+  rw [C.hr, Polynomial.natDegree_map_eq_of_injective]
+  convert C.hreq
+  rw [← natDegree_ofList C.l (C.hz), add_tsub_cancel_right]
+  · rw [dropTrailingZeros_eq_dropTrailingZeros']
+    exact C.hlz
+  · exact RingHom.injective_int (algebraMap ℤ ℚ)
+  · rw [Polynomial.map_ne_zero_iff (RingHom.injective_int (algebraMap ℤ ℚ)), ← C.hl ]
+    intro hc
+    exact (C.hz) (nil_of_ofList_eq_zero C.l ((dropTrailingZeros_eq_dropTrailingZeros' C.l ).symm ▸ C.hlz) hc)
+
+lemma units_finrank_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) :
+  Module.finrank ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ))) = C.r - 1  := by
+  conv =>
+    left
+    erw [C.heq, NumberField.Units.rank_modTorsion]
+  unfold NumberField.Units.rank
+  rw [card_infinitePlace_of_RankUnitsCertificate C]
 
 
 
@@ -676,7 +792,7 @@ example : Area (disjUnion (circle 3) (disjUnion (square 2) (circle 2))) = 13 * R
 
  -- | ac : Area (circle r) = Real.Pi * r ^ 2
  -- | as : Area () -/
-
+/-
 
 inductive Shape where
 | circle : ℝ → Shape
@@ -700,3 +816,4 @@ open ComputablePolynomial
 
 
 #eval ((X : ComputablePolynomial ℤ) + 3 * X ^ 2  ) * (X ^ 20 + X ^ 5 + 6)
+-/
