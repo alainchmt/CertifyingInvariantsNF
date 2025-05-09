@@ -16,6 +16,8 @@ import Mathlib.Data.Matrix.Rank
 import Mathlib.Algebra.Group.Subgroup.Finsupp
 import Mathlib.NumberTheory.NumberField.Units.Basic
 import Mathlib.GroupTheory.OrderOfElement
+import Mathlib.GroupTheory.Complement
+
 
 
 section I
@@ -1013,6 +1015,13 @@ lemma MatrixLogProd_def {S ι τ : Type*} (p : ℕ) [Fintype ι] [Fintype τ] (F
     (MatrixLogProd p F φ x ζ hr) i j = LogFiniteRing (hr i) p ((φ i) (x j)) := rfl
 
 
+/- Note : We could generalize this with expressions of the form
+ ` ∏ i, (x i) ^ (e i) * z ^ p = y ^ p` however we have to impose extra assumptions. Either,
+ * We ask for `z` or `y` to be units under every `φ`, so the logarithm splits into a sum on the LHS.
+ * We ask that the ring `S` satisfies the property that `x * y ^ p = z ^ p` implies that
+ `x` is a `p`-power. In particular, we can ask `S` to be integrally closed, for instance.
+
+See : IsIntegrallyClosed.pow_dvd_pow_iff  -/
 lemma exponent_vec_eq_zero_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [Fact $ Nat.Prime p]
     [Fintype ι] [Fintype τ] (F : τ → Type*)
     [CommRing S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)] (φ : Π i : τ, S →+* (F i)) (x : ι → S) (e : ι → ℕ)
@@ -1047,6 +1056,24 @@ lemma exponent_vec_eq_zero_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [Fact
     simp only [Fin.zero_eta, Fin.isValue, ne_eq] at hj
     exact hj
   exact congr_fun (congr_fun hEz 0) i
+
+lemma exponent_vec_eq_zero_of_full_rank_matrix' {S ι τ : Type*} {p : ℕ} [hp : Fact $ Nat.Prime p]
+    [Fintype ι] [Fintype τ] (F : τ → Type*)
+    [CommRing S] [IsDomain S] [IsIntegrallyClosed S] [∀ i, CommRing (F i)]
+    [∀ i, Fintype (F i)] (φ : Π i : τ, S →+* (F i)) (x : ι → S) (e : ι → ℕ)
+    (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+    (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ))
+    (hu : ∀ i j, IsUnit ((φ i) (x j)))
+    (hrank : (MatrixLogProd p F φ x ζ hr).rank = Fintype.card ι)
+    (z : S) (hznz : z ≠ 0)
+    (hp : ∃ y , (∏ i, (x i) ^ (e i)) * z ^ p = y ^ p) : ∀ i, p ∣ e i := by
+  obtain ⟨y, hyz⟩ := hp
+  obtain ⟨k, hk⟩:=
+    (IsIntegrallyClosed.pow_dvd_pow_iff (Nat.Prime.ne_zero hp.out)).1 (Dvd.intro_left _ hyz)
+  rw [hk, mul_pow, mul_comm (z ^ p) _] at hyz
+  simp [hznz] at hyz
+  exact exponent_vec_eq_zero_of_full_rank_matrix F φ x e ζ hr hdvd hu hrank ⟨k, hyz⟩
+
 
 
 lemma not_p_power_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [Fact $ Nat.Prime p]
@@ -1102,6 +1129,113 @@ lemma not_principal_of_full_rank_matrix {S ι τ : Type*} {p n : ℕ} [hp : Fact
     simp only [Fin.isValue, Sum.elim_inr, Nat.dvd_one, e']
     refine Nat.Prime.ne_one hp.out
   · exact ⟨b * t⁻¹, hw⟩
+
+lemma not_principal_of_full_rank_matrix' {S ι τ : Type*} {p n : ℕ} [hp : Fact $ Nat.Prime p]
+  [Fintype ι] [Fintype τ] (F : τ → Type*)
+  [CommRing S] [IsDomain S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)]
+  (u : ι → S) (hu : ∀ i, IsUnit (u i)) (hugen : ∀ (w : Sˣ), (∃ (e : ι → ℕ) , (∃ (t : Sˣ) , w = (∏ (i : ι), (u i) ^ (e i)) * t ^ p)))
+  (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+  (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ))
+  (I : Ideal S) (a : S) (hua : ∀ i, IsUnit ((φ i) a)) (hdvdp : p ∣ n) (h : I ^ n = Ideal.span {a})
+  (hrank : (MatrixLogProd p F φ (Sum.elim (fun i => u i) (fun (_ : Fin 1) => a)) ζ hr).rank = Fintype.card ι + 1) :
+    ¬ ∃ b, I ^ (n / p) = Ideal.span {b} := by
+  refine not_principal_of_full_rank_matrix (n := p) F u hu hugen φ ζ hr hdvd (I ^ (n / p)) a hua ?_ ?_ hrank
+  · rfl
+  · rw [← pow_mul, Nat.div_mul_cancel hdvdp]
+    exact h
+
+-- We assume integrally closed
+lemma not_principal_of_full_rank_matrix'' {S ι τ κ γ : Type*} {p : ℕ} [hp : Fact $ Nat.Prime p]
+    [Fintype ι] [Fintype τ] [Fintype κ] [Fintype γ] (F : τ → Type*)
+    [CommRing S] [IsDomain S] [IsIntegrallyClosed S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)]
+    (u : ι → S) (hu : ∀ i, IsUnit (u i))
+    (hugen : ∀ (w : Sˣ), (∃ (e : ι → ℕ) , (∃ (t : Sˣ) , w = (∏ (i : ι), (u i) ^ (e i)) * t ^ p)))
+    (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
+    (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ))
+    (I : κ → Ideal S) (a : κ → S) (n : κ → ℕ) (r : κ → ℕ)
+    (ψ : γ → κ) (hinj : Function.Injective ψ) (hψ : ∀ i, (p ∣ n i) → ∃ j , ψ j = i )
+    (hua : ∀ i j, IsUnit ((φ i) (a (ψ j))))
+    (hnzero : ∀ j , j ∈ (Finset.image ψ Finset.univ)ᶜ → a j ≠ 0 )
+    (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i}) (b : S)
+    (hrprod : ∏ i, (I i) ^ (r i) = Ideal.span {b}) (hdvdp : ∀ i , (n i) ∣ p * (r i))
+    (hrank : (MatrixLogProd p F φ (Sum.elim (fun i => u i) (fun i => a (ψ i))) ζ hr).rank = Fintype.card ι + Fintype.card γ) :
+    ∀ i , n i ∣ r i := by
+  intro i
+  by_cases hdvdc : p ∣ n i
+  · have hdvdcc := hψ i hdvdc
+    apply_fun (fun x => x ^ p) at hrprod
+    let q := fun i => (hdvdp i).choose
+    have hq : ∀ (i : κ), p * r i = n i * q i := fun i => (hdvdp i).choose_spec
+    simp_rw [← Finset.prod_pow, ← pow_mul, Ideal.span_singleton_pow, mul_comm, hq, pow_mul, h,
+      Ideal.span_singleton_pow, Ideal.prod_span_singleton, Ideal.span_singleton_eq_span_singleton] at hrprod
+    obtain ⟨v, hv⟩ := hrprod
+    rw [← Finset.prod_mul_prod_compl {j ∈ Finset.univ | ∃ k , ψ k = j}] at hv
+    have haux : ∀ i , i ∈ ({j ∈ Finset.univ | ∃ k , ψ k = j} : Finset κ)ᶜ → p ∣ q i := by
+      intro i hi
+      simp at hi
+      refine (Nat.Coprime.dvd_mul_left ?_ ).1 (Dvd.intro _ (hq i))
+      refine (Nat.Prime.coprime_iff_not_dvd (hp.out)).2 ?_
+      revert hi
+      contrapose!
+      exact hψ i
+    let χ := fun i => if hi : i ∈ (Finset.filter (fun j ↦ ∃ k , ψ k = j) Finset.univ)ᶜ then (haux i hi).choose else 0
+    have : ∀ i, i ∈ (Finset.filter (fun j ↦ ∃ k , ψ k = j) Finset.univ)ᶜ → q i = p * (χ i) := fun i hi => by
+      unfold χ
+      simp only [hi, ↓reduceDIte]
+      exact (haux i hi).choose_spec
+    have hauxprod : ∏ i ∈ (Finset.filter (fun j ↦ ∃ k , ψ k = j) Finset.univ)ᶜ, a i ^ q i = (∏ i ∈ (Finset.filter (fun j ↦ ∃ k , ψ k = j) Finset.univ)ᶜ, a i ^ (χ i)) ^ p := by
+      simp_rw [← Finset.prod_pow, ← pow_mul, mul_comm]
+      refine Finset.prod_congr rfl ?_
+      intro x hx
+      rw [this x hx]
+    obtain ⟨e, t , het ⟩ := hugen v
+    have hauxprod2 : (∏ i ∈ Finset.filter (fun j ↦ ∃ k, ψ k = j) Finset.univ, a i ^ q i) = ∏ i, a (ψ i) ^ q (ψ i) := by
+      symm
+      refine Finset.prod_nbij ψ ?_ ?_ ?_ ?_
+      · intro x hx
+        simp
+      · exact fun x1 a x2 a ↦ fun a ↦ hinj a
+      · intro x hx
+        simp at hx
+        obtain ⟨j, hj⟩ := hx
+        exact ⟨j, by simp only [Finset.coe_univ, Set.mem_univ, true_and] ; exact hj⟩
+      · simp
+    let e' := Sum.elim e (fun i => q (ψ i))
+    let x := (Sum.elim (fun i => u i) (fun i => a (ψ i)))
+    have auxp : ∏ i, x i ^ (e' i) = (∏ i : ι, u i ^ e i) * (∏ i : γ, a (ψ i) ^ q (ψ i)) := by
+      simp only [Fintype.prod_sum_type, Sum.elim_inl, Finset.univ_unique, Fin.default_eq_zero,
+        Fin.isValue, Sum.elim_inr, pow_one, Finset.prod_const, Finset.card_singleton, x, e']
+    rw [hauxprod, hauxprod2, mul_assoc, mul_comm _ v.val, het, mul_assoc, ← mul_pow, ← mul_assoc,
+      mul_comm _ (∏ i : ι, u i ^ e i), ← auxp] at hv
+    have he : ∀ i , p ∣ e' i := by
+      refine exponent_vec_eq_zero_of_full_rank_matrix' F φ x e' ζ hr hdvd ?_ ?_ _ ?_ ⟨b, hv⟩
+      · intro i
+        simp [x]
+        constructor
+        · intro j
+          apply RingHom.isUnit_map
+          exact hu j
+        · intro j
+          exact hua i j
+      · simp only [Fintype.card_sum, x, q]
+        exact hrank
+      · simp only [Finset.univ_filter_exists, ne_eq, mul_eq_zero, Units.ne_zero, false_or, x, q]
+        rw [← ne_eq, Finset.prod_ne_zero_iff]
+        intro i hi
+        exact pow_ne_zero _ (hnzero i hi)
+    simp[e'] at he
+    obtain ⟨m, hm⟩ := hdvdcc
+    rcases he with ⟨h1, h2⟩
+    obtain ⟨k, hk ⟩ := h2 m
+    specialize hq (ψ m)
+    rw [hk, ← mul_assoc, mul_comm _ p, mul_assoc] at hq
+    simp [Nat.Prime.ne_zero hp.out] at hq
+    rw [← hm]
+    exact ⟨k, hq⟩
+  · rw [← Nat.Prime.coprime_iff_not_dvd (hp.out), Nat.coprime_iff_gcd_eq_one, Nat.gcd_comm] at hdvdc
+    specialize hdvdp i
+    rw [← Nat.dvd_gcd_mul_iff_dvd_mul, hdvdc, one_mul] at hdvdp
+    exact hdvdp
 
 
 lemma nat_up_to_power_of_int_up_to_power {S ι : Type*} [CommRing S]
@@ -2068,1088 +2202,3 @@ theorem prime_sub_dvd_finrank_of_prime_dvd_card_torsion {K : Type*} [Field K]
   · rw [← this, Polynomial.natDegree_cyclotomic, Nat.totient_prime hp.out]
   · rw [← minpoly.ne_zero_iff, ← this]
     exact cyclotomic_ne_zero p ℚ
-
-
-
-
--- #eval (⟨[1,2,3,4,4],rfl⟩ : ComputablePolynomial ℤ) ^ 3 + (⟨[1,2,4],rfl⟩ : ComputablePolynomial ℤ)
-
-
-
-
-  --have := Polynomial.cyclotomic_eq_minpoly_rat
-
---variable {α : Type*}
---instance : CommRing α := sorry
-
-
-
-
-
-
-
-  --have hxpow : (modIdealEquivZMod hq I hcard ((x : Sˣ) : S)) ^ p = 1 := by
-  --  sorry
-  --sorry
-
-
-
-
-
-  /- let f : Fin 2 → Units.torsion K := fun x => if x = 0 then 1 else
-    ⟨-1, by erw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one] ;  use 2 ; norm_num ⟩
-  convert (Fintype.card_of_bijective (f := f) ?_).symm
-  unfold f
-  constructor
-  · intro x y hxy
-    fin_cases x
-    · fin_cases y
-      rfl
-      rw [← Subtype.val_inj] at hxy
-      simp only [Fin.zero_eta, Fin.isValue, ↓reduceIte, OneMemClass.coe_one, Fin.mk_one,
-        one_ne_zero, units_ne_neg_self] at hxy
-    · fin_cases y
-      rw [← Subtype.val_inj] at hxy
-      simp only [Fin.mk_one, Fin.isValue, one_ne_zero, ↓reduceIte, Fin.zero_eta,
-        OneMemClass.coe_one, neg_units_ne_self] at hxy
-      rfl
-  · -/
-
-
-
-
-
-
-
-
-
-
-
-#exit
---------------------------------------------
--- EXAMPLE
---------------------------------------------
-
-/- Number field K(α) with with α root of polynomial X^5 - 3*X^3 + 9*X - 8.
-Class number 3, generated by class of ideal J = (2, α). We have J^3 = (α). -/
-
-/- Ring of integers with basis 1, 1/2*α^4 + 1/2*α, 1/2*α^4 + 1/2*α^3 + 1/2*α^2, α^3, α^4 -/
-
-/- Minkowski's bound is around 25 -/
-
-def O : Type := sorry
-
-instance : CommRing O := sorry
-
-instance : IsDomain O := sorry
-
-instance : NoZeroSMulDivisors ℤ O := sorry
-
-def TT : TimesTable (Fin 5) ℤ O :=
-  { basis := sorry,
-    table := ![ ![![1, 0, 0, 0, 0],![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 0, 0, 1, 0],![0, 0, 0, 0, 1]],
-                ![![0, 1, 0, 0, 0],![4, 3, -13, 10, 5],![8, -2, -14, 10, 9],![12, -27, 8, -4, 10],![4, 15, -27, 19, 6]],
-                ![![0, 0, 1, 0, 0],![8, -2, -14, 10, 9],![16, -12, -19, 13, 18],![16, -28, -1, 2, 16],![12, 5, -28, 18, 13]],
-                ![![0, 0, 0, 1, 0],![12, -27, 8, -4, 10],![16, -28, -1, 2, 16],![0, 16, -18, 9, 4],![24, -54, 16, -8, 19]],
-                ![![0, 0, 0, 0, 1],![4, 15, -27, 19, 6],![12, 5, -28, 18, 13],![24, -54, 16, -8, 19],![0, 48, -54, 35, 3]]]
-    basis_mul_basis := sorry }
-
-def B := TT.basis
-
-lemma B_one : TT.basis 0 = 1 := sorry
-
-lemma B_one_repr : TT.basis.equivFun.symm ![1, 0, 0, 0, 0] = 1 := sorry
-
-def T : Fin 5 → Fin 5 → List ℤ :=
-  ![ ![[1, 0, 0, 0, 0],[0, 1, 0, 0, 0],[0, 0, 1, 0, 0],[0, 0, 0, 1, 0],[0, 0, 0, 0, 1]],
-  ![[0, 1, 0, 0, 0],[4, 3, -13, 10, 5],[8, -2, -14, 10, 9],[12, -27, 8, -4, 10],[4, 15, -27, 19, 6]],
-  ![[0, 0, 1, 0, 0],[8, -2, -14, 10, 9],[16, -12, -19, 13, 18],[16, -28, -1, 2, 16],[12, 5, -28, 18, 13]],
-  ![[0, 0, 0, 1, 0],[12, -27, 8, -4, 10],[16, -28, -1, 2, 16],[0, 16, -18, 9, 4],[24, -54, 16, -8, 19]],
-  ![[0, 0, 0, 0, 1],[4, 15, -27, 19, 6],[12, 5, -28, 18, 13],[24, -54, 16, -8, 19],[0, 48, -54, 35, 3]]]
-
-lemma T_eq_TT : ∀ (i j : Fin 5), T i j = List.ofFn (TT.table i j) := by
-  simp ; decide
-
-/-- We compute Log α in 𝔽₃ for prime ideals (19, α + 8), (43, α + 11), (67, α + 21) -/
-
-def R₁ : IsOrderOf (2 : ZMod 19) 18 where
-  m := 2
-  P := ![2, 3]
-  e := ![1, 2]
-  hP := by decide
-  hm := by rfl
-  hid := by decide
-  hnid := by decide
-
-def R₂ : IsOrderOf (3 : ZMod 43) 42 where
-  m := 3
-  P := ![2, 3, 7]
-  e := ![1, 1, 1]
-  hP := by decide
-  hm := by rfl
-  hid := by decide
-  hnid := by decide
-
-def R₃ : IsOrderOf (2 : ZMod 67) 66 where
-  m := 3
-  P := ![2, 3, 11]
-  e := ![1, 1, 1]
-  hP := by decide
-  hm := by rfl
-  hid := by decide
-  hnid := by decide
-
-instance hp67 : Fact $ Nat.Prime 67 := by decide
-instance hp19 : Fact $ Nat.Prime 19 := by decide
-instance hp43 : Fact $ Nat.Prime 43 := by decide
-
-
-noncomputable def α := TT.basis.equivFun.symm ![0, 2, 0, 0, -1]
-
-----------------
-def I₁ : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![67, 0, 0, 0, 0], ![21, 2, 0, 0, -1]] i)))
-
-def A₁ : IdealEqSpanCertificate O ℤ TT I₁
-  ![![67, 0, 0, 0, 0], ![21, 2, 0, 0, -1]]
-  ![![67, 0, 0, 0, 0], ![54, 1, 0, 0, 0], ![65, 0, 1, 0, 0], ![15, 0, 0, 1, 0], ![20, 0, 0, 0, 1]] where
-  T := T
-  heq := T_eq_TT
-  hieq := rfl
-  M := ![ ![ ![67,0,0,0,0], ![0,67,0,0,0], ![0,0,67,0,0], ![0,0,0,67,0], ![0,0,0,0,67]],
-  ![![21,2,0,0,-1], ![4,12,1,1,4], ![4,-9,21,2,5], ![0,0,0,21,1], ![8,-18,0,3,30]]]
-  hmulB := by simp[table_mul_list] ; decide
-  f := ![![![4213988785, 364804816, -3155968, -3140960, -213844560], ![-13484764112, 210661936, 37520, -13936, 0]],
-  ![![3488485190, 301998003, -2612619, -2600135, -177027896], ![-11163152608, 174393213, 31060, -11728, 0]],
-  ![![4085950875, 353720580, -3060077, -3045292, -207347092], ![-13075042800, 204261180, 36380, -14256, 0]],
-  ![![943430325, 81672720, -706560, -703205, -47875648], ![-3018977040, 47163120, 8400, -3104, 0]],
-  ![![1257907100, 108896960, -942080, -937600, -63834197], ![-4025302720, 62884160, 11200, -4160, 0]]]
-  g := ![![![1, 0, 0, 0, 0], ![-54, 67, 0, 0, 0], ![-65, 0, 67, 0, 0], ![-15, 0, 0, 67, 0], ![-20, 0, 0, 0, 67]],
-  ![![-1, 2, 0, 0, -1], ![-12, 12, 1, 1, 4], ![-15, -9, 21, 2, 5], ![-5, 0, 0, 21, 1], ![5, -18, 0, 3, 30]]]
-  hle1 := by simp ; decide
-  hle2 := by simp ; decide
-
-
-lemma I1_card : Nat.card (O ⧸ I₁) = 67  := by
-  refine ideal_norm_eq_prod O B I₁ ?_ _ ?_ (ideal_eq_of_IdealEqSpanCertificate O ℤ A₁)
-  · exact fun hc => by
-      erw [Ideal.span_eq_bot] at hc  ; simp_rw [Set.mem_range] at hc
-      specialize hc (TT.basis.equivFun.symm ![67, 0, 0, 0, 0])
-      have := hc ⟨0, rfl⟩
-      apply_fun TT.basis.coord 0 at this
-      rw [Basis.coord_equivFun_symm] at this
-      simp at this
-  · decide
-
-def memAux₁ : IdealMemCertificate O ℤ B I₁
-  ![![67, 0, 0, 0, 0], ![54, 1, 0, 0, 0], ![65, 0, 1, 0, 0], ![15, 0, 0, 1, 0], ![20, 0, 0, 0, 1]] ![21, 2, 0, 0, -1] where
-  hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₁
-  g := ![-1, 2, 0, 0, -1]
-  hmem := by decide
-
-lemma alpha_sub_mem₁ : α - (-21) ∈ I₁ := by
-  have : 21 = (21 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_neg_eq_add, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![21, 0, 0, 0, 0] (21) rfl]
-  unfold α
-  rw [table_add_list_eq_add _ _ _ ![21, 2, 0, 0, -1] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₁ _ ![21, 2, 0, 0, -1] memAux₁
-
-noncomputable def φ₁ := modIdealToZMod hp67.out I₁ I1_card
-
-def PrimRoot₁ := is_primitive_root_finite_field (n := 66) (rfl) (2 : ZMod 67) R₃
-
-lemma phi_apply₁ : φ₁ α = - 21 := by
-  have := Ideal.Quotient.eq.2 alpha_sub_mem₁
-  have heq : (Ideal.Quotient.mk I₁) (- 21) = ↑(- 21 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_alpha₁ : LogFiniteRing PrimRoot₁ 3 (φ₁ α) = 2 := by
-  rw [phi_apply₁]
-  convert LogFiniteRing_of_pow (R := ZMod 67) (ζ := 2) (p := 3) PrimRoot₁ ?_ 29
-  rw [Fintype.card_units]
-  decide
-
-----------
-def I₂ : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![19, 0, 0, 0, 0], ![8, 2, 0, 0, -1]] i)))
-
-def A₂ : IdealEqSpanCertificate O ℤ TT I₂
-  ![![19, 0, 0, 0, 0], ![8, 2, 0, 0, -1]]
-  ![![19, 0, 0, 0, 0], ![8, 1, 0, 0, 0], ![0, 0, 1, 0, 0], ![18, 0, 0, 1, 0], ![8, 0, 0, 0, 1]] where
-  T := T
-  heq := T_eq_TT
-  hieq := rfl
-  M := ![![![19, 0, 0, 0, 0], ![0, 19, 0, 0, 0], ![0, 0, 19, 0, 0], ![0, 0, 0, 19, 0], ![0, 0, 0, 0, 19]],
-  ![![8, 2, 0, 0, -1], ![4, -1, 1, 1, 4], ![4, -9, 8, 2, 5], ![0, 0, 0, 8, 1], ![8, -18, 0, 3, 17]]]
-  hmulB := by simp[table_mul_list] ; decide
-  f := ![![![7151125, 1825995, -19323, -18411, -978588], ![-17162700, 356193, 1368, -1140, 0]],
-    ![![3294140, 841138, -8901, -8409, -450774], ![-7905936, 164079, 630, -696, 0]],
-    ![![-31440, -8028, 85, 174, 4314], ![75456, -1566, -6, -216, 0]],
-    ![![6774750, 1729890, -18306, -17447, -927084], ![-16259400, 337446, 1296, -1068, 0]],
-    ![![3011000, 768840, -8136, -7752, -412037], ![-7226400, 149976, 576, -480, 0]]]
-  g := ![![![1, 0, 0, 0, 0], ![-8, 19, 0, 0, 0], ![0, 0, 19, 0, 0], ![-18, 0, 0, 19, 0], ![-8, 0, 0, 0, 19]],
-  ![![0, 2, 0, 0, -1], ![-2, -1, 1, 1, 4], ![0, -9, 8, 2, 5], ![-8, 0, 0, 8, 1], ![-2, -18, 0, 3, 17]]]
-  hle1 := by simp ; decide
-  hle2 := by simp ; decide
-
-lemma I2_card : Nat.card (O ⧸ I₂) = 19 := by
-  refine ideal_norm_eq_prod O B I₂ ?_ _ ?_ (ideal_eq_of_IdealEqSpanCertificate O ℤ A₂)
-  · exact fun hc => by
-      erw [Ideal.span_eq_bot] at hc  ; simp_rw [Set.mem_range] at hc
-      specialize hc (TT.basis.equivFun.symm ![19, 0, 0, 0, 0])
-      have := hc ⟨0, rfl⟩
-      apply_fun TT.basis.coord 0 at this
-      rw [Basis.coord_equivFun_symm] at this
-      simp at this
-  · decide
-
-def memAux₂ : IdealMemCertificate O ℤ B I₂
-  ![![19, 0, 0, 0, 0], ![8, 1, 0, 0, 0], ![0, 0, 1, 0, 0], ![18, 0, 0, 1, 0], ![8, 0, 0, 0, 1]] ![8, 2, 0, 0, -1] where
-    hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₂
-    g := ![0, 2, 0, 0, -1]
-    hmem := by decide
-
-lemma alpha_sub_mem₂ : α - (-8) ∈ I₂ := by
-  have : 8 = (8 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_neg_eq_add, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![8, 0, 0, 0, 0] (8) rfl]
-  unfold α
-  rw [table_add_list_eq_add _ _ _ ![8, 2, 0, 0, -1] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₂ _ ![8, 2, 0, 0, -1] memAux₂
-
-noncomputable def φ₂ := modIdealToZMod hp19.out I₂ I2_card
-
-def PrimRoot₂ := is_primitive_root_finite_field (n := 18) (rfl) (2 : ZMod 19) R₁
-
-lemma phi_apply₂ : φ₂ α = - 8 := by
-  have := Ideal.Quotient.eq.2 alpha_sub_mem₂
-  have heq : (Ideal.Quotient.mk I₂) (- 8) = ↑(- 8 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_alpha₂ : LogFiniteRing PrimRoot₂ 3 (φ₂ α) = 0 := by
-  rw [phi_apply₂]
-  convert LogFiniteRing_of_pow (R := ZMod 19) (ζ := 2) (p := 3) PrimRoot₂ ?_ 12
-  rw [Fintype.card_units]
-  decide
-
-------------------
-def I₃ : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![43, 0, 0, 0, 0], ![11, 2, 0, 0, -1]] i)))
-
-def A₃ : IdealEqSpanCertificate O ℤ TT I₃
-  ![![43, 0, 0, 0, 0], ![11, 2, 0, 0, -1]]
-  ![![43, 0, 0, 0, 0], ![38, 1, 0, 0, 0], ![14, 0, 1, 0, 0], ![41, 0, 0, 1, 0], ![22, 0, 0, 0, 1]] where
-  T := T
-  heq := T_eq_TT
-  hieq := rfl
-  M := ![![![43, 0, 0, 0, 0],![0, 43, 0, 0, 0],![0, 0, 43, 0, 0],![0, 0, 0, 43, 0],![0, 0, 0, 0, 43]],
-    ![![11, 2, 0, 0, -1],![4, 2, 1, 1, 4],![4, -9, 11, 2, 5],![0, 0, 0, 11, 1],![8, -18, 0, 3, 20]]]
-  hmulB := by simp[table_mul_list] ; decide
-  f := ![![![-33440971, -5831144, 192984, 195908, 3888488], ![133763884, -8366424, 6192, -6364, 0]],
-    ![![-30850538, -5379447, 178035, 180703, 3587272], ![123402152, -7718337, 5712, -5756, 0]],
-    ![![-10757966, -1875880, 62083, 63032, 1250928], ![43031864, -2691480, 1992, -2080, 0]],
-    ![![-31885577, -5559928, 184008, 186795, 3707628], ![127542308, -7977288, 5904, -6064, 0]],
-    ![![-17109334, -2983376, 98736, 100232, 1989459], ![68437336, -4280496, 3168, -3256, 0]]]
-  g := ![![![1, 0, 0, 0, 0], ![-38, 43, 0, 0, 0], ![-14, 0, 43, 0, 0], ![-41, 0, 0, 43, 0], ![-22, 0, 0, 0, 43]],
-    ![![-1, 2, 0, 0, -1], ![-5, 2, 1, 1, 4], ![0, -9, 11, 2, 5], ![-11, 0, 0, 11, 1], ![3, -18, 0, 3, 20]]]
-  hle1 := by simp ; decide
-  hle2 := by simp ; decide
-
-
-lemma I3_card : Nat.card (O ⧸ I₃) = 43 := by
-  refine ideal_norm_eq_prod O B I₃ ?_ _ ?_ (ideal_eq_of_IdealEqSpanCertificate O ℤ A₃)
-  · exact fun hc => by
-      erw [Ideal.span_eq_bot] at hc  ; simp_rw [Set.mem_range] at hc
-      specialize hc (TT.basis.equivFun.symm ![43, 0, 0, 0, 0])
-      have := hc ⟨0, rfl⟩
-      apply_fun TT.basis.coord 0 at this
-      rw [Basis.coord_equivFun_symm] at this
-      simp at this
-  · decide
-
-def memAux₃ : IdealMemCertificate O ℤ B I₃
-  ![![43, 0, 0, 0, 0], ![38, 1, 0, 0, 0], ![14, 0, 1, 0, 0], ![41, 0, 0, 1, 0], ![22, 0, 0, 0, 1]] ![11, 2, 0, 0, -1] where
-    hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₃
-    g := ![-1, 2, 0, 0, -1]
-    hmem := by decide
-
-lemma alpha_sub_mem₃ : α - (-11) ∈ I₃ := by
-  have : 11 = (11 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_neg_eq_add, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![11, 0, 0, 0, 0] (11) rfl]
-  unfold α
-  rw [table_add_list_eq_add _ _ _ ![11, 2, 0, 0, -1] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₃ _ ![11, 2, 0, 0, -1] memAux₃
-
-noncomputable def φ₃ := modIdealToZMod hp43.out I₃ I3_card
-
-def PrimRoot₃ := is_primitive_root_finite_field (n := 42) (rfl) (3 : ZMod 43) R₂
-
-lemma phi_apply₃ : φ₃ α = - 11 := by
-  have := Ideal.Quotient.eq.2 alpha_sub_mem₃
-  have heq : (Ideal.Quotient.mk I₃) (- 11) = ↑(- 11 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_alpha₃ : LogFiniteRing PrimRoot₃ 3 (φ₃ α) = 0 := by
-  rw [phi_apply₃]
-  convert LogFiniteRing_of_pow (R := ZMod 43) (ζ := 3) (p := 3) PrimRoot₃ ?_ 9
-  rw [Fintype.card_units]
-  decide
-
-------------
-
-/- Generators for the free part of torsion are -/
-
-noncomputable def ζ₁ := TT.basis.equivFun.symm ![3, -2, -1, 1, 2]
-noncomputable def ζ₁_inv := TT.basis.equivFun.symm ![3, -4, -3, 2, 4]
-
-lemma zeta_one_mul_inv : ζ₁ * ζ₁_inv = 1 := by
-  rw [← B_one_repr]
-  refine table_mul_list_eq_mul TT.table TT.basis _ _ _ TT.basis_mul_basis ?_
-  rw [← table_mul_eq_table_mul' _ _ T_eq_TT]
-  decide
-
-noncomputable def ζ₂ := TT.basis.equivFun.symm ![1, -2, 0, 0, 1]
-noncomputable def ζ₂_inv := TT.basis.equivFun.symm ![-7, 4, 4, -3, -5]
-
-lemma zeta_two_mul_inv : ζ₂ * ζ₂_inv = 1 := by
-  rw [← B_one_repr]
-  refine table_mul_list_eq_mul TT.table TT.basis _ _ _ TT.basis_mul_basis ?_
-  rw [← table_mul_eq_table_mul' _ _ T_eq_TT]
-  decide
-
-
-------------------------
-def memAux_zeta11 : IdealMemCertificate O ℤ B I₁
-  ![![67, 0, 0, 0, 0], ![54, 1, 0, 0, 0], ![65, 0, 1, 0, 0], ![15, 0, 0, 1, 0], ![20, 0, 0, 0, 1]] ![-51, -2, -1, 1, 2] where
-  hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₁
-  g := ![1, -2, -1, 1, 2]
-  hmem := by decide
-
-lemma zeta1_sub_mem₁ : ζ₁ - (54) ∈ I₁ := by
-  have : -54 = (-54 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_eq_add_neg, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![-54, 0, 0, 0, 0] (-54) rfl]
-  unfold ζ₁
-  rw [table_add_list_eq_add _ _ _ ![-51, -2, -1, 1, 2] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₁ _ _ memAux_zeta11
-
-lemma phi_apply_zeta11 : φ₁ ζ₁ = 54 := by
-  have := Ideal.Quotient.eq.2 zeta1_sub_mem₁
-  have heq : (Ideal.Quotient.mk I₁) (54) = ↑(54 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_zeta11 : LogFiniteRing PrimRoot₁ 3 (φ₁ ζ₁) = 1 := by
-  rw [phi_apply_zeta11]
-  convert LogFiniteRing_of_pow (R := ZMod 67) (ζ := 2) (p := 3) PrimRoot₁ ?_ 52
-  rw [Fintype.card_units]
-  decide
-------------------------------
-
-def memAux_zeta21 : IdealMemCertificate O ℤ B I₁
-  ![![67, 0, 0, 0, 0], ![54, 1, 0, 0, 0], ![65, 0, 1, 0, 0], ![15, 0, 0, 1, 0], ![20, 0, 0, 0, 1]] ![-21, -2, 0, 0, 1] where
-  hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₁
-  g := ![1, -2, 0, 0, 1]
-  hmem := by decide
-
-lemma zeta2_sub_mem₁ : ζ₂ - (22) ∈ I₁ := by
-  have : -22 = (-22 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_eq_add_neg, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![-22, 0, 0, 0, 0] (-22) rfl]
-  unfold ζ₂
-  rw [table_add_list_eq_add _ _ _ ![-21, -2, 0, 0, 1] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₁ _ _ memAux_zeta21
-
-lemma phi_apply_zeta21 : φ₁ ζ₂ = 22 := by
-  have := Ideal.Quotient.eq.2 zeta2_sub_mem₁
-  have heq : (Ideal.Quotient.mk I₁) (22) = ↑(22 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_zeta21 : LogFiniteRing PrimRoot₁ 3 (φ₁ ζ₂) = 0 := by
-  rw [phi_apply_zeta21]
-  convert LogFiniteRing_of_pow (R := ZMod 67) (ζ := 2) (p := 3) PrimRoot₁ ?_ 60
-  rw [Fintype.card_units]
-  decide
-
-------------------------------
-
-def memAux_zeta12 : IdealMemCertificate O ℤ B I₂
-  ![![19, 0, 0, 0, 0], ![8, 1, 0, 0, 0], ![0, 0, 1, 0, 0], ![18, 0, 0, 1, 0], ![8, 0, 0, 0, 1]] ![-1, -2, -1, 1, 2] where
-    hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₂
-    g := ![-1, -2, -1, 1, 2]
-    hmem := by decide
-
-lemma zeta1_sub_mem₂ : ζ₁ - (4) ∈ I₂ := by
-  have : -4 = (-4 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_eq_add_neg, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![-4, 0, 0, 0, 0] (-4) rfl]
-  unfold ζ₁
-  rw [table_add_list_eq_add _ _ _ ![-1, -2, -1, 1, 2] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₂ _ _ memAux_zeta12
-
-lemma phi_apply_zeta12 : φ₂ ζ₁ = 4 := by
-  have := Ideal.Quotient.eq.2 zeta1_sub_mem₂
-  have heq : (Ideal.Quotient.mk I₂) (4) = ↑(4 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_zeta12 : LogFiniteRing PrimRoot₂ 3 (φ₂ ζ₁) = -1 := by
-  rw [phi_apply_zeta12]
-  convert LogFiniteRing_of_pow (R := ZMod 19) (ζ := 2) (p := 3) PrimRoot₂ ?_ 2
-  rw [Fintype.card_units]
-  decide
-
-----
-
-def memAux_zeta22 : IdealMemCertificate O ℤ B I₂
-  ![![19, 0, 0, 0, 0], ![8, 1, 0, 0, 0], ![0, 0, 1, 0, 0], ![18, 0, 0, 1, 0], ![8, 0, 0, 0, 1]] ![-8, -2, 0, 0, 1] where
-    hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₂
-    g := ![0, -2, 0, 0, 1]
-    hmem := by decide
-
-lemma zeta2_sub_mem₂ : ζ₂ - (9) ∈ I₂ := by
-  have : -9 = (-9 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_eq_add_neg, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![-9, 0, 0, 0, 0] (-9) rfl]
-  unfold ζ₂
-  rw [table_add_list_eq_add _ _ _ ![-8, -2, 0, 0, 1] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₂ _ _ memAux_zeta22
-
-lemma phi_apply_zeta22 : φ₂ ζ₂ = 9 := by
-  have := Ideal.Quotient.eq.2 zeta2_sub_mem₂
-  have heq : (Ideal.Quotient.mk I₂) (9) = ↑(9 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_zeta22 : LogFiniteRing PrimRoot₂ 3 (φ₂ ζ₂) = -1 := by
-  rw [phi_apply_zeta22]
-  convert LogFiniteRing_of_pow (R := ZMod 19) (ζ := 2) (p := 3) PrimRoot₂ ?_ 8
-  rw [Fintype.card_units]
-  decide
-
--------------
-def memAux_zeta31 : IdealMemCertificate O ℤ B I₃
-  ![![43, 0, 0, 0, 0], ![38, 1, 0, 0, 0], ![14, 0, 1, 0, 0], ![41, 0, 0, 1, 0], ![22, 0, 0, 0, 1]] ![-5, -2, -1, 1, 2] where
-    hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₃
-    g := ![0, -2, -1, 1, 2]
-    hmem := by decide
-
-lemma zeta1_sub_mem₃ : ζ₁ - (8) ∈ I₃ := by
-  have : -8 = (-8 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_eq_add_neg, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![-8, 0, 0, 0, 0] (-8) rfl]
-  unfold ζ₁
-  rw [table_add_list_eq_add _ _ _ ![-5, -2, -1, 1, 2] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₃ _ _ (memAux_zeta31)
-
-lemma phi_apply_zeta31 : φ₃ ζ₁ = 8 := by
-  have := Ideal.Quotient.eq.2 zeta1_sub_mem₃
-  have heq : (Ideal.Quotient.mk I₃) (8) = ↑(8 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_zeta31 : LogFiniteRing PrimRoot₃ 3 (φ₃ ζ₁) = 0 := by
-  rw [phi_apply_zeta31]
-  convert LogFiniteRing_of_pow (R := ZMod 43) (ζ := 3) (p := 3) PrimRoot₃ ?_ 39
-  rw [Fintype.card_units]
-  decide
-
----------
-
-def memAux_zeta32 : IdealMemCertificate O ℤ B I₃
-  ![![43, 0, 0, 0, 0], ![38, 1, 0, 0, 0], ![14, 0, 1, 0, 0], ![41, 0, 0, 1, 0], ![22, 0, 0, 0, 1]] ![-11, -2, 0, 0, 1] where
-    hieq := ideal_eq_of_IdealEqSpanCertificate _ _ A₃
-    g := ![1, -2, 0, 0, 1]
-    hmem := by decide
-
-lemma zeta2_sub_mem₃ : ζ₂ - (12) ∈ I₃ := by
-  have : -12 = (-12 : ℤ) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-    rw [B_one_repr]
-    simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  rw [sub_eq_add_neg, this, table_mulPointwise_eq_smul TT.basis ![1, 0, 0, 0, 0] ![-12, 0, 0, 0, 0] (-12) rfl]
-  unfold ζ₂
-  rw [table_add_list_eq_add _ _ _ ![-11, -2, 0, 0, 1] rfl]
-  refine mem_of_certificate O ℤ TT.basis I₃ _ _ (memAux_zeta32)
-
-lemma phi_apply_zeta32 : φ₃ ζ₂ = 12 := by
-  have := Ideal.Quotient.eq.2 zeta2_sub_mem₃
-  have heq : (Ideal.Quotient.mk I₃) (12) = ↑(12 : ℤ) := by
-    simp only [map_neg, Int.reduceNeg, Int.cast_neg, Int.cast_ofNat, neg_inj]
-    rfl
-  rw [this, heq, map_intCast]
-  rfl
-
-lemma log_of_zeta32 : LogFiniteRing PrimRoot₃ 3 (φ₃ ζ₂) = 1 := by
-  rw [phi_apply_zeta32]
-  convert LogFiniteRing_of_pow (R := ZMod 43) (ζ := 3) (p := 3) PrimRoot₃ ?_ 13
-  rw [Fintype.card_units]
-  decide
-
-
-instance : (i : Fin (Nat.succ 0).succ) → CommRing (![ZMod 19, ZMod 43] i) :=
-  fun i =>
-  match i with
-  | 0 => by dsimp ; infer_instance
-  | 1 => by dsimp ; infer_instance
-
-instance : (i : Fin (Nat.succ 0).succ) → Fintype (![ZMod 19, ZMod 43] i) :=
-  fun i =>
-  match i with
-  | 0 => by dsimp ; infer_instance
-  | 1 => by dsimp ; infer_instance
-
-noncomputable def φ : ∀ (i : Fin 2) , O →+* ![ZMod 19, ZMod 43] i :=
-  fun i =>
-  match i with
-  | 0 => (φ₂.comp (Ideal.Quotient.mk I₂))
-  | 1 => (φ₃.comp (Ideal.Quotient.mk I₃))
-
-noncomputable def ζ : ∀ (i : Fin 2) , ![ZMod 19, ZMod 43] i :=
-  fun i =>
-  match i with
-  | 0 => 2
-  | 1 => 3
-
-noncomputable def hr : ∀ (i : Fin 2) , IsPrimitiveRoot (ζ i) (Fintype.card (![ZMod 19, ZMod 43] i)ˣ) :=
-  fun i =>
-  match i with
-  | 0 => PrimRoot₂
-  | 1 => PrimRoot₃
-
-
-lemma matrix_log_units : MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr = ![![-1, -1], ![0, 1]] := by
-  ext i j
-  rw [MatrixLogProd_def]
-  fin_cases i
-  · fin_cases j
-    · exact log_of_zeta12
-    · exact log_of_zeta22
-  · fin_cases j
-    · exact log_of_zeta31
-    · exact log_of_zeta32
-
-
-lemma matrix_log_units_rank : Matrix.rank (MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr) = 2 := by
-  refine le_antisymm ?_ ?_
-  · exact rank_le_width (MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr)
-  · have : Matrix.rank ((MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr) * (MatrixLogProd 3 ![ZMod 19, ZMod 43] φ ![ζ₁, ζ₂] ζ hr)) = 2 := by
-      rw [matrix_log_units]
-      convert Matrix.rank_one
-      · ext i j
-        fin_cases i <;> fin_cases j <;> rfl
-      · exact strongRankCondition_of_orzechProperty (ZMod 3)
-    rw [← this]
-    apply Matrix.rank_mul_le_left
-
-
-
-
-
---def M : Matrix (Fin 2) (Fin 2) ℤ := ![![-1, -1], ![0, 1]]
-
-
-
-
---lemma aux : M * M = (![![1, 0], ![0, 1]] : Matrix _ _ ℤ) := by
---  ext i j
---  fin_cases i <;> fin_cases j <;> decide
-
-
-
-
---![φ₂.comp (Ideal.Quotient.mk I₂), φ₃.comp (Ideal.Quotient.mk I₃)] ![ζ₁, ζ₂] (by sorry) (by sorry)
-
-
-
--- (MatrixLogProd p F φ u ζ hr).rank
-
-
--- LogFiniteRing_of_pow
-
-
-  --have : α  - (-21) = TT.basis.equivFun.symm ![21, 2, 0, 0, -1] := by
-  --  unfold α
-   -- simp
-
-  --(-22) • TT.basis.equivFun.symm ![1, 0, 0, 0, 0] := by
-  --  rw [B_one_repr]
-   -- simp only [Int.reduceNeg, neg_smul, zsmul_eq_mul, Int.cast_ofNat, mul_one]
-  --rw [this, Basis.equivFun_symm_eq_repr_symm', ← map_smul]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  --Nat.card (NumberField.Units.torsion K) = 2 := by
-  --rw [← NumberField.Units.rootsOfUnity_eq_torsion]
-  --apply le_antisymm
- -- swap
-  --· apply Nat.le_of_dvd Nat.card_pos
-  --  rw [Nat.card_eq_fintype_card]
-  --  convert orderOf_dvd_card  (x := rootsOfUnity.mkOfPowEq (-1) (n := 2) (by simp))
-
-
-
-
-
-
-
-  --rw [NumberField.InfinitePlace.sum_mult_eq] at
-
-
---  Nat.card (NumberField.Units.torsion K) = 2 := by
-
-
-
-
-#exit
-
-
-def I₃ : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![19, 0, 0, 0, 0], ![8, 2, 0, 0, -1]] i)))
-
-def A₃ : IdealEqSpanCertificate O ℤ TT I₃
-  ![![19, 0, 0, 0, 0], ![8, 2, 0, 0, -1]]
-  ![![19, 0, 0, 0, 0], ![8, 1, 0, 0, 0], ![0, 0, 1, 0, 0], ![18, 0, 0, 1, 0], ![8, 0, 0, 0, 1]] where
-  T := T
-  heq := T_eq_TT
-  hieq := rfl
-  M := ![![![19, 0, 0, 0, 0], ![0, 19, 0, 0, 0], ![0, 0, 19, 0, 0], ![0, 0, 0, 19, 0], ![0, 0, 0, 0, 19]],
-  ![![8, 2, 0, 0, -1], ![4, -1, 1, 1, 4], ![4, -9, 8, 2, 5], ![0, 0, 0, 8, 1], ![8, -18, 0, 3, 17]]]
-  hmulB := by simp[table_mul_list] ; decide
-  f := ![![![7151125, 1825995, -19323, -18411, -978588], ![-17162700, 356193, 1368, -1140, 0]],
-    ![![3294140, 841138, -8901, -8409, -450774], ![-7905936, 164079, 630, -696, 0]],
-    ![![-31440, -8028, 85, 174, 4314], ![75456, -1566, -6, -216, 0]],
-    ![![6774750, 1729890, -18306, -17447, -927084], ![-16259400, 337446, 1296, -1068, 0]],
-    ![![3011000, 768840, -8136, -7752, -412037], ![-7226400, 149976, 576, -480, 0]]]
-  g := ![![![1, 0, 0, 0, 0], ![-8, 19, 0, 0, 0], ![0, 0, 19, 0, 0], ![-18, 0, 0, 19, 0], ![-8, 0, 0, 0, 19]],
-  ![![0, 2, 0, 0, -1], ![-2, -1, 1, 1, 4], ![0, -9, 8, 2, 5], ![-8, 0, 0, 8, 1], ![-2, -18, 0, 3, 17]]]
-  hle1 := by simp ; decide
-  hle2 := by simp ; decide
-
-
-lemma I_card : Nat.card (O ⧸ I₃) = 19 := by
-  refine ideal_norm_eq_prod O B I₃ ?_ _ ?_ (ideal_eq_of_IdealEqSpanCertificate O ℤ A₃)
-  · exact fun hc => by
-      erw [Ideal.span_eq_bot] at hc  ; simp_rw [Set.mem_range] at hc
-      specialize hc (TT.basis.equivFun.symm ![19, 0, 0, 0, 0])
-      have := hc ⟨0, rfl⟩
-      apply_fun TT.basis.coord 0 at this
-      rw [Basis.coord_equivFun_symm] at this
-      simp at this
-  · decide
-
-example (h : a = b) : a + a + a = 0 := by
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---#print axioms nat_up_to_p_power_iff_int_up_to_p_power
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    --have aux : ∀ i, Eᵀ i = 0 := fun i => LinearIndependent.ne_zero i
-
-
-
-
-
-
-
-
--- (hu : ∀ i j, IsUnit (φ i j))
-
-
-
-
-
-
-#exit
-
-  --rw [← Int.natCast_inj, ZMod.intCast_eq_intCast_iff_dvd_sub]
-
-
-
-
-
-
--- (hdvd : p ∣ Fintype.card Rˣ)
-
-
-/- def LogFiniteRing {F : Type*} {p : ℕ} [Field F] [Fintype F]
-  (hdvd : p ∣ Fintype.card F ) (ζ : F)
-  (hr : IsPrimitiveRoot ζ (Fintype.card F - 1)) : F → ZMod p := by
-  intro x
-  by_cases hc : x = 0
-  · exact 0 -/
-
-
-
-
-
--- field_of_adjoin_root_irreducible
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      --refine not_subsingleton_iff_nontrivial.mp ?_
-      --by_contra hc
-      --have := Module.finrank_zero_of_subsingleton
-      --exact Module.nontrivial_of_finrank_eq_succ
-
-
-
-
---end I
-
-
-def O : Type := sorry
-
-instance : CommRing O := sorry
-
-instance : IsDomain O := sorry
-
-instance : NoZeroSMulDivisors ℤ O := sorry
-
-def TT : TimesTable (Fin 5) ℤ O :=
-  { basis := sorry,
-    table := ![ ![![1, 0, 0, 0, 0],![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 0, 0, 1, 0],![0, 0, 0, 0, 1]],
-  ![![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 0, 0, 1, 0],![0, 0, 1, 0, 2],![2, -5, 0, 2, 0]],
-  ![![0, 0, 1, 0, 0],![0, 0, 0, 1, 0],![0, 0, 1, 0, 2],![4, -10, 0, 5, 0],![0, 2, -3, 0, 4]],
-  ![![0, 0, 0, 1, 0],![0, 0, 1, 0, 2],![4, -10, 0, 5, 0],![0, 4, -5, 0, 10],![8, -20, 2, 5, 0]],
-  ![![0, 0, 0, 0, 1],![2, -5, 0, 2, 0],![0, 2, -3, 0, 4],![8, -20, 2, 5, 0],![0, 3, -6, 1, 3]]]
-    basis_mul_basis := sorry }
-
-def B := TT.basis
-
-lemma B_one : TT.basis 0 = 1 := sorry
-
-lemma B_one_repr : TT.basis.equivFun.symm ![1, 0, 0, 0, 0] = 1 := sorry
-
-def T : Fin 5 → Fin 5 → List ℤ :=
-  ![ ![[1, 0, 0, 0, 0],[0, 1, 0, 0, 0],[0, 0, 1, 0, 0],[0, 0, 0, 1, 0],[0, 0, 0, 0, 1]],
-  ![[0, 1, 0, 0, 0],[0, 0, 1, 0, 0],[0, 0, 0, 1, 0],[0, 0, 1, 0, 2],[2, -5, 0, 2, 0]],
-  ![[0, 0, 1, 0, 0],[0, 0, 0, 1, 0],[0, 0, 1, 0, 2],[4, -10, 0, 5, 0],[0, 2, -3, 0, 4]],
-  ![[0, 0, 0, 1, 0],[0, 0, 1, 0, 2],[4, -10, 0, 5, 0],[0, 4, -5, 0, 10],[8, -20, 2, 5, 0]],
-  ![[0, 0, 0, 0, 1],[2, -5, 0, 2, 0],[0, 2, -3, 0, 4],[8, -20, 2, 5, 0],[0, 3, -6, 1, 3]]]
-
-lemma T_eq_TT : ∀ (i j : Fin 5), T i j = List.ofFn (TT.table i j) := by simp ; decide
-
-def I : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![11, 0, 0, 0, 0], ![3, 3, 1, 0, 0]] i)))
-
-
-def A' : IdealEqSpanCertificate O ℤ TT I
-  ![![11, 0, 0, 0, 0], ![3, 3, 1, 0, 0]]
-  ![![11, 0, 0, 0, 0], ![0, 11, 0, 0, 0], ![3, 3, 1, 0, 0], ![2, 5, 0, 1, 0], ![2, 3, 0, 0, 1]] where
-  T := T
-  heq := T_eq_TT
-  hieq := rfl
-  M := ![![![11, 0, 0, 0, 0], ![0, 11, 0, 0, 0], ![0, 0, 11, 0, 0], ![0, 0, 0, 11, 0], ![0, 0, 0, 0, 11]],
-  ![![3, 3, 1, 0, 0], ![0, 3, 3, 1, 0], ![0, 0, 4, 3, 2], ![4, -10, 3, 8, 6], ![6, -13, -3, 6, 7]]]
-  hmulB := by simp[table_mul_list] ; decide
-  f := ![![![-11, 0, 44, 31, 18], ![44, -44, -99, 0, 0]], ![![0, -11, 0, 5, 6], ![0, 44, -33, 0, 0]],
-    ![![-3, -3, 11, 9, 6], ![12, 0, -33, 0, 0]], ![![-2, -5, 8, 8, 6], ![8, 12, -33, 0, 0]], ![![-2, -3, 8, 7, 5], ![8, 4, -27, 0, 0]]]
-  g := ![![![1, 0, 0, 0, 0], ![0, 1, 0, 0, 0], ![-3, -3, 11, 0, 0], ![-2, -5, 0, 11, 0],
-   ![-2, -3, 0, 0, 11]], ![![0, 0, 1, 0, 0], ![-1, -1, 3, 1, 0], ![-2, -3, 4, 3, 2], ![-3, -7, 3, 8, 6], ![-1, -5, -3, 6, 7]]]
-  hle1 := by simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Int.reduceNeg, List.ofFn_succ,
-    Fin.isValue, Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
-    Matrix.cons_val_succ, List.ofFn_zero, zero_add, Fin.cast_eq_self, Matrix.vecCons_const] ; decide
-  hle2 := by simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Int.reduceNeg, Matrix.cons_val',
-    Matrix.empty_val', Matrix.cons_val_fin_one, List.ofFn_succ, Fin.isValue, Matrix.cons_val_zero,
-    Matrix.vecCons_const, Matrix.cons_val_succ, List.ofFn_zero, zero_add, Fin.cast_eq_self] ; decide
-
-lemma I_mem : ↑11 ∈ I := by
-  unfold I
-  refine Submodule.subset_span ?_
-  use 0
-  simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Fin.isValue, Matrix.cons_val_zero,
-    Basis.equivFun_symm_apply, zsmul_eq_mul]
-  rw [Finset.sum_eq_single_of_mem 0 , B_one]
-  · simp only [Fin.isValue, Matrix.cons_val_zero, Int.cast_ofNat, mul_one]
-  · exact Finset.mem_univ 0
-  · intro b hb hbz
-    fin_cases b
-    · contradiction
-    all_goals {simp}
-
-
-lemma I_card : Nat.card (O ⧸ I) = 11 ^ 2 := by
-  refine ideal_norm_eq_prod O B I ?_ ![![11, 0, 0, 0, 0], ![0, 11, 0, 0, 0], ![3, 3, 1, 0, 0], ![2, 5, 0, 1, 0], ![2, 3, 0, 0, 1]] ?_ ?_
-  · by_contra hc
-    have := I_mem
-    rw [hc] at this
-    simp only [Ideal.mem_bot] at this
-    have aux : 11 = (11 : ℤ) • (1 : O) := by simp only [zsmul_eq_mul, Int.cast_ofNat, mul_one]
-    rw [aux, smul_eq_zero] at this
-    simp only [OfNat.ofNat_ne_zero, one_ne_zero, or_self] at this
-  · decide
-  · exact ideal_eq_of_IdealEqSpanCertificate O ℤ A'
-
-instance : Fact $ Nat.Prime 11 := by decide
-
-def I_prime : PrimeIdeal O 11 where
-  r := 5
-  n := 2
-  hpos := by decide
-  TT := TT
-  T := T
-  heq := T_eq_TT
-  I := I
-  hcard := I_card
-  P := [3, 3, 1]
-  f := ofList [3, 3, 1]
-  hfeq := by simp;
-  hirr := by sorry
-  hneq := by decide
-  hlen := by decide
-  c := ![3, 3, 1, 0, 0]
-  a := ![0, 1, 0, 0, 0]
-  hcmem := by
-    refine Submodule.subset_span ?_
-    use 1
-    rfl
-  hpmem := I_mem
-  z := ![1, 0, 0, 0 ,0]
-  hBz := B_one_repr
-  hpol := by rfl
-
-
-
-#exit
-
-
-def A : IdealEqSpanCertificate O ℤ TT I
-  ![![11, 0, 0, 0, 0], ![3, 3, 1, 0, 0]]
-  ![![11, 0, 0, 0, 0], ![0, 11, 0, 0, 0], ![7, 8, -2, 0, 1], ![3, 3, 1, 0, 0], ![12, 5, -1, 1, 1]] where
-  T := T
-  heq := T_eq_TT
-  hieq := rfl
-  M := ![![![11, 0, 0, 0, 0], ![0, 11, 0, 0, 0], ![0, 0, 11, 0, 0], ![0, 0, 0, 11, 0], ![0, 0, 0, 0, 11]],
-  ![![3, 3, 1, 0, 0], ![0, 3, 3, 1, 0], ![0, 0, 4, 3, 2], ![4, -10, 3, 8, 6], ![6, -13, -3, 6, 7]]]
-  hmulB := by simp[table_mul_list] ; decide
-  f := ![![![-11, 0, 44, 31, 18], ![44, -44, -99, 0, 0]], ![![0, -11, 0, 5, 6],
-    ![0, 44, -33, 0, 0]], ![![-7, -8, 30, 25, 17], ![28, 4, -93, 0, 0]],
-    ![![-3, -3, 11, 9, 6], ![12, 0, -33, 0, 0]], ![![-12, -5, 49, 37, 23], ![48, -28, -126, 0, 0]]]
-  g := ![![![1, 0, 0, 0, 0], ![0, 1, 0, 0, 0], ![-3, -3, 0, 11, 0],
-    ![-2, 6, -11, -11, 11], ![-13, -14, 11, 22, 0]], ![![0, 0, 0, 1, 0], ![-1, 0, -1, 2, 1],
-    ![-4, -2, -1, 5, 3], ![-9, -5, -2, 7, 8], ![-8, -6, 1, 5, 6]]]
-  hle1 := by simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Int.reduceNeg, List.ofFn_succ,
-    Fin.isValue, Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
-    Matrix.cons_val_succ, List.ofFn_zero, zero_add, Fin.cast_eq_self, Matrix.vecCons_const] ; decide
-  hle2 := by simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Int.reduceNeg, Matrix.cons_val',
-    Matrix.empty_val', Matrix.cons_val_fin_one, List.ofFn_succ, Fin.isValue, Matrix.cons_val_zero,
-    Matrix.vecCons_const, Matrix.cons_val_succ, List.ofFn_zero, zero_add, Fin.cast_eq_self] ; decide
-
-
-
-example : I.carrier = Submodule.span ℤ
-  (Set.range (fun i ↦ B.equivFun.symm (![![11, 0, 0, 0, 0], ![0, 11, 0, 0, 0], ![7, 8, -2, 0, 1], ![3, 3, 1, 0, 0], ![12, 5, -1, 1, 1]] i))) := by
-exact ideal_eq_of_IdealEqSpanCertificate O ℤ A
-
-
-def I₁ : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![11, 0, 0, 0, 0], ![3, 3, 1, 0, 0]] i)))
-def I₂ : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![11, 0, 0, 0, 0], ![7, 4, 1, 0, 0]] i)))
-def I₃ : Ideal O := Ideal.span (Set.range (fun i ↦ TT.basis.equivFun.symm (![![11, 0, 0, 0, 0], ![4, 1, 0, 0, 0]] i)))
-
-
-
-def Mul1 : IdealMulEqCertificate O ℤ TT I₁ I₂
-  ![![11, 0, 0, 0, 0], ![3, 3, 1, 0, 0]] ![![11, 0, 0, 0, 0], ![7, 4, 1, 0, 0]]
-  ![![-39, 11, 17, -2, -10 ]] where
-  T := T
-  heq := T_eq_TT
-  hI1 := rfl
-  hI2 := rfl
-  M := ![![![121,0,0,0,0], ![77,44,11,0,0]], ![![33,33,11,0,0], ![21,33,23,7,2]]]
-  hmul := by simp[table_mul_list] ; decide
-  f := ![![![![-484103393775 , 5659316100861 , 3324040951585  , 849109181313 , 953625794],
-  ![  761656006206 , -9330518028830 , -806914134  ,  0  , -806914134]],  ![![ 200359 , 3970 , 0 , 0 , 0], ![39,0,0,0,0]]]]
-  g := ![![![![-11 , 11 , 11  , 0  , 0]] , ![![-7,3,11,5,2]]] , ![![![-3 , 0 , 6  , 4  , 2]] , ![![1,-8,5,8,6]]]]
-  hle1 := by simp[table_mul_list] ; decide
-  hle2 := by simp[table_mul_list] ; decide
-
-
-
-def Mul2 : IdealMulEqCertificate O ℤ TT (I₁ * I₂) I₃
-  ![![-39, 11, 17, -2, -10 ]] ![![11, 0, 0, 0, 0], ![4, 1, 0, 0, 0]]
-  ![![11, 0, 0, 0 ,0 ]] where
-  T := T
-  heq := T_eq_TT
-  hI1 := ideal_eq_mul_of_IdealMulEqCertificate O ℤ TT I₁ I₂ _ _ _ Mul1
-  hI2 := rfl
-  M := ![![![-429 , 121 , 187 , -22 , -110] , ![-176 , 55 , 77, -11 , -44]]]
-  hmul := by simp[table_mul_list] ; decide
-  f := ![![![![-81699 , -20253   , 43   , 0   , 0] , ![224672 , -472 , 0 , 0 , 0]]]]
-  g := ![![![![-39, 11, 17, -2, -10]] , ![![-16, 5, 7, -1, -4]]]]
-  hle1 := by simp[table_mul_list] ; decide
-  hle2 := by simp[table_mul_list] ; decide
-
-
-lemma Mul11 :  Ideal.span {TT.basis.equivFun.symm ![11, 0, 0, 0, 0]} = I₁ * I₂ * I₃ := by
-  rw [ideal_eq_mul_of_IdealMulEqCertificate O ℤ TT _ _ _ _ _ Mul2]
-  simp
-
-
-
-
-
-
---FnOfList
-
-/-
-have zero_add': ∀ (l : List ℤ) , 0 + l = l := by simp only [zero_add, implies_true]
-  have add_zero': ∀ (l : List ℤ) , l + 0 = l := by simp only [add_zero, implies_true]
-  simp only [LinearEquiv.toFun_eq_coe, Basis.equivFun_symm_eq_repr_symm' B]
-  apply_fun B.repr
-  simp only [Basis.repr_symm_apply, map_add, map_sum, map_smul, Basis.repr_total, smul_smul]
-  simp_rw [List.mulPointwise_ofFn] at h
-  cases m
-  · cases n
-    · simp only [Nat.add_zero, Finset.univ_eq_empty, Finset.sum_empty, add_zero]
-      dsimp at c
-      exact Subsingleton.eq_zero (Finsupp.equivFunOnFinite.symm c)
-    · rw [← (List.sum_ofFn' (Nat.succ_ne_zero _) (fun l => (a2 l * ↑p) • b2 l))] at h
-      simp only [List.ofFn_zero, List.sum_nil, zero_add', List.ofFn_inj] at h
-      ext k
-      rw [h]
-      simp only [zsmul_eq_mul, Int.cast_mul, Pi.intCast_def, Int.cast_id, Int.cast_natCast, Pi.natCast_def,
-      Finset.sum_apply, Pi.mul_apply, Finset.univ_eq_empty, Finset.sum_empty, Finsupp.coe_zero,
-      Pi.zero_apply, Finsupp.finset_sum_apply, Finsupp.coe_smul, Pi.smul_apply,
-      Finsupp.equivFunOnFinite_symm_apply_toFun, smul_eq_mul, zero_add]
-  · cases n
-    · rw [← (List.sum_ofFn' (Nat.succ_ne_zero _) (fun l => (a1 l) • b1 l))] at h
-      simp only [List.ofFn_zero, List.sum_nil, add_zero', List.ofFn_inj] at h
-      ext k
-      rw [h]
-      simp only [zsmul_eq_mul, Pi.intCast_def, Int.cast_id, Int.cast_mul, Int.cast_natCast, Pi.natCast_def,
-      Finsupp.equivFunOnFinite_symm_apply_toFun, Pi.add_apply, Finset.sum_apply, Pi.mul_apply,
-      Finsupp.coe_add, Finsupp.coe_finset_sum, Finsupp.coe_smul, Nat.succ_eq_add_one,
-      Finset.univ_eq_empty, Finset.sum_empty, add_zero]
-    · rw [← (List.sum_ofFn' (Nat.succ_ne_zero _) (fun l => (a2 l * ↑p) • b2 l))] at h
-      rw [← (List.sum_ofFn' (Nat.succ_ne_zero _) (fun l => (a1 l) • b1 l))] at h
-      simp only [List.add_ofFn, List.ofFn_inj] at h
-      ext k
-      rw [h]
-      simp only [zsmul_eq_mul, Pi.intCast_def, Int.cast_id, Int.cast_mul, Int.cast_natCast, Pi.natCast_def,
-      Finsupp.equivFunOnFinite_symm_apply_toFun, Pi.add_apply, Finset.sum_apply, Pi.mul_apply,
-      Finsupp.coe_add, Finsupp.coe_finset_sum, Finsupp.coe_smul]
-  exact LinearEquiv.injective B.repr
-
-
-
--/
-
-
-
-
--- List.sum (List.ofFn (λ l => List.mulPointwise ((w2 l) * p) (List.ofFn (b2 l)))))
-
-
-
-
-
-
-
-
-
-    --let f := (Submodule.span R (Set.range w)).subtype
-
-
-
-
-
-
-
-
-
- -- ∀ (j : τ), ∃ (b : ι → O), w j = ∑ (i : ι), (b i) * (v i) := by

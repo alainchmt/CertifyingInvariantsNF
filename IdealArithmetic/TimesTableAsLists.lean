@@ -250,6 +250,7 @@ lemma table_sum_mul {S : Type*} {m : ℕ} [NonUnitalNonAssocSemiring S] [Module 
 
 
 /-- Exponentiation by squaring given a times table `T`. -/
+@[reducible]
 def nPow_sq_table (T : Fin n → Fin n → List R) (a : List R) (m : ℕ) : List R :=
   match m with
   | 0 => 1
@@ -276,12 +277,20 @@ lemma nPow_sq_table_length (T' : Fin n → Fin n → Fin n → R) (T : Fin n →
       · have heq' : nPow_sq_table T a (Nat.succ m) =
           table_mul_list T a
             (table_mul_list T (nPow_sq_table T a (m / 2) ) (nPow_sq_table T a (m / 2) )) := by
-            simp only [nPow_sq_table, hp, reduceDIte]
+            conv =>
+              left
+              unfold nPow_sq_table ; dsimp
+              simp only [hp, ↓reduceDIte]
+            dsimp
         rw [heq', table_mul_eq_table_mul' T' T heq, table_mul_list_length]
       · have heq' : nPow_sq_table T a (Nat.succ m) =
           table_mul_list T (nPow_sq_table T a ((Nat.succ m) / 2) )
             (nPow_sq_table T a ((Nat.succ m) / 2) ) := by
-            simp only [nPow_sq_table, hp, ↓reduceDIte]
+            conv =>
+              left
+              unfold nPow_sq_table ; dsimp
+              simp only [hp, ↓reduceDIte]
+            dsimp
         rw [heq', table_mul_eq_table_mul' T' T heq, table_mul_list_length]
 
 /-- Exponentiation of lists with coordinates
@@ -315,7 +324,11 @@ lemma table_nPow_sq_table_eq_pow {S : Type*} [Semiring S] [Module R S] [SMulComm
       · have heq' : nPow_sq_table T (List.ofFn a) (Nat.succ m) =
         table_mul_list T (List.ofFn a) (table_mul_list T (nPow_sq_table T (List.ofFn a) (m / 2) )
           (nPow_sq_table T (List.ofFn a) (m / 2) )) := by
-          simp only [nPow_sq_table, hp, ↓reduceDIte]
+          conv =>
+              left
+              unfold nPow_sq_table ; dsimp
+              simp only [hp, ↓reduceDIte]
+          dsimp
         rw [heq', table_mul_eq_table_mul' _ _ heq, table_mul_eq_table_mul' _ _ heq, ] at hc
         let d := FnOfList n (nPow_sq_table T (List.ofFn a) (m / 2))
           (nPow_sq_table_length T' T (List.ofFn a) (m / 2)
@@ -336,7 +349,11 @@ lemma table_nPow_sq_table_eq_pow {S : Type*} [Semiring S] [Module R S] [SMulComm
       · have heq' : nPow_sq_table T (List.ofFn a) (Nat.succ m) =
         table_mul_list T (nPow_sq_table T (List.ofFn a)
           ((Nat.succ m) / 2) ) (nPow_sq_table T (List.ofFn a) ((Nat.succ m) / 2) ) := by
-          simp only [nPow_sq_table, hp, ↓reduceDIte]
+          conv =>
+              left
+              unfold nPow_sq_table ; dsimp
+              simp only [hp, ↓reduceDIte]
+          dsimp
         rw [heq',  table_mul_eq_table_mul' _ _ heq] at hc
         rw [Nat.mod_two_not_eq_zero, ← Nat.succ_mod_two_eq_zero_iff] at hp
         let d := FnOfList n (nPow_sq_table T (List.ofFn a) (Nat.succ m / 2))
