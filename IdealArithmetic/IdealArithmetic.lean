@@ -35,14 +35,14 @@ lemma submodule_span_le_span_iff [Module R O] [Module S O] {ι τ : Type _} [Fin
     have hvin : v i ∈ (Submodule.span S (Set.range v)).carrier := by
       exact Submodule.subset_span (R := S) (by simp only [Set.mem_range, exists_apply_eq_apply] )
     have hvw := h hvin
-    erw [mem_span_range_iff_exists_fun] at hvw
+    erw [Submodule.mem_span_range_iff_exists_fun] at hvw
     obtain ⟨a, ha⟩ :=  hvw
     use a
     exact ha.symm
   · intro h
     have : ∀ i , v i ∈ (Submodule.span R (Set.range w)) := by
       intro i
-      rw [mem_span_range_iff_exists_fun]
+      rw [Submodule.mem_span_range_iff_exists_fun]
       obtain ⟨a, ha⟩ := h i
       use a
       exact ha.symm
@@ -53,11 +53,9 @@ lemma submodule_span_le_span_iff [Module R O] [Module S O] {ι τ : Type _} [Fin
           intro a b ha hb
           exact (Submodule.add_mem_iff_right (Submodule.span R (Set.range w)) ha).mpr hb
         zero_mem' := by
-          dsimp
           rw [hI]
           exact zero_mem (Submodule.span R (Set.range w))
         smul_mem' := by
-          dsimp
           exact hsmul }
     have hleaux : Set.range v ⊆ P := by
       rintro a ⟨i, hi⟩
@@ -75,19 +73,19 @@ lemma ideal_eq_R_span [Algebra R O] {ι τ : Type _} [Fintype ι] [Fintype τ]
   ext x
   constructor
   · intro hx
-    erw [mem_span_range_iff_exists_fun] at hx
+    erw [Submodule.mem_span_range_iff_exists_fun] at hx
     obtain ⟨c, hc⟩ := hx
     have hmem : ∀ i , c i ∈ Submodule.span R (Set.range B) := by
       intro i
       rw [← hspan]
       simp only [Submodule.mem_top]
-    simp_rw [mem_span_range_iff_exists_fun] at hmem
+    simp_rw [Submodule.mem_span_range_iff_exists_fun] at hmem
     let f : ι → (τ → R) := fun i => ((hmem i).choose)
     have hceq : ∀ i , ∑ j : τ , (f i j) • (B j) = c i := by
       intro i
       exact (hmem i).choose_spec
     simp_rw [← hceq] at hc
-    erw [mem_span_range_iff_exists_fun, ← hc]
+    erw [Submodule.mem_span_range_iff_exists_fun, ← hc]
     use (fun ⟨i, j⟩ => f i j)
     dsimp
     let F : ι → (τ → O) := fun i => (fun j => (f i j) • ((v i) * (B j)))
@@ -96,7 +94,7 @@ lemma ideal_eq_R_span [Algebra R O] {ι τ : Type _} [Fintype ι] [Fintype τ]
     congr ; ext i ; congr ; ext j
     rw [Algebra.smul_mul_assoc, mul_comm]
   · intro hx
-    erw [mem_span_range_iff_exists_fun] at hx
+    erw [Submodule.mem_span_range_iff_exists_fun] at hx
     obtain ⟨c, hc⟩ := hx
     rw [← hc]
     refine Submodule.sum_mem _ ?_
@@ -239,7 +237,7 @@ lemma mem_of_certificate [Algebra R O] {r m : ℕ} (B  : Basis (Fin r) R O)
     (I : Ideal O) (v : Fin m → Fin r → R)  (a : Fin r → R) (A : IdealMemCertificate O R B I v a) :
     B.equivFun.symm a ∈ I := by
   show B.equivFun.symm a ∈ I.carrier
-  erw [A.hieq, mem_span_range_iff_exists_fun]
+  erw [A.hieq, Submodule.mem_span_range_iff_exists_fun]
   use A.g
   symm
   refine table_sum_smul B v a (A.g) (A.hmem)
@@ -263,9 +261,9 @@ lemma linear_independent_of_top_le_span_of_card_eq_rank
       · simp only [Submodule.zero_mem, P]
       · intro x y
         have aux : y ∈ Submodule.span R (Set.range b) := hmem trivial
-        rw [mem_span_range_iff_exists_fun] at aux
+        rw [Submodule.mem_span_range_iff_exists_fun] at aux
         obtain ⟨c, hc⟩ := aux
-        simp only [mem_span_range_iff_exists_fun, ← hc, TensorProduct.tmul_sum,
+        simp only [Submodule.mem_span_range_iff_exists_fun, ← hc, TensorProduct.tmul_sum,
           TensorProduct.tmul_smul, P]
         use (fun i => (c i) • x)
         congr ; ext i
@@ -278,7 +276,7 @@ lemma linear_independent_of_top_le_span_of_card_eq_rank
     (Module.finrank_eq_card_basis B'))
   rw [linearIndependent_iff'] at this ⊢
   intro s g hg i his
-  rw [← NoZeroSMulDivisors.algebraMap_eq_zero_iff R Q]
+  rw [← FaithfulSMul.algebraMap_eq_zero_iff R Q]
   specialize this s (fun i => (algebraMap R Q) (g i))
   refine this ?_ i his
   simp_rw [TensorProduct.smul_tmul', smul_eq_mul, mul_one, Algebra.algebraMap_eq_smul_one,
@@ -395,7 +393,7 @@ simp_rw [table_mul_eq_table_mul' TT.table A.T A.heq] at aux
 have hmulaux := fun i j => table_mul_list_eq_mul TT.table TT.basis _ _ _ TT.basis_mul_basis (aux i j).symm
 simp_rw [A.hI1, A.hI2, ideal_mul_eq_span, hmulaux]
 unfold Ideal.span
-rw [← Submodule.carrier_inj]
+rw [← SetLike.coe_set_eq]
 refine subset_antisymm ?_ ?_
 · erw [submodule_span_le_span_iff O O _ _ ((Submodule.span O (Set.range fun i ↦ TT.basis.equivFun.symm (w i))).carrier) ]
   · rintro ⟨i,j⟩
@@ -576,7 +574,7 @@ lemma ideal_index_associated_det (O R : Type*) [CommRing O]
   let BI := BasisOfEqSpan O R B I hI (fun i => B.equivFun.symm (V i)) heq
   have eqV : LinearMap.toMatrix BI B (Submodule.subtype (I.restrictScalars R)) = V.transpose := by
     ext i j
-    erw [Matrix.transpose_apply, LinearMap.toMatrix_apply, Submodule.subtype_apply (I.restrictScalars R)]
+    erw [Matrix.transpose_apply, LinearMap.toMatrix_apply]
     have aux : B.repr ↑(BI j) = V j := by
       apply_fun B.equivFun.symm
       rw [Basis.equivFun_symm_eq_repr_symm, LinearEquiv.symm_apply_apply,
@@ -652,7 +650,7 @@ noncomputable def isAdjoinRoot_of_adjoin_root_irreducible_finite {F K : Type*} {
   exact hr
   refine Nat.pow_right_injective (Nat.succ_le_of_lt (Fintype.one_lt_card) )
 
-def ZModP_algebra_of_mem {O : Type*} [CommRing O] (I : Ideal O)
+noncomputable def ZModP_algebra_of_mem {O : Type*} [CommRing O] (I : Ideal O)
   (p : ℕ) (hI : ↑p ∈ I) : Algebra (ZMod p) (O ⧸ I) := by
   refine ZMod.algebra' (O ⧸ I) (ringChar (O ⧸ I)) ?_
   erw [← ringChar.spec, Ideal.Quotient.eq_zero_iff_mem]
@@ -700,7 +698,7 @@ lemma PrimeIdeal_polynomial_degree  {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [
     (I : PrimeIdeal O p) : I.f.natDegree = I.n := by
     have hPlen : I.P.length = (ofList (List.map (algebraMap ℤ (ZMod p)) I.P)).natDegree + 1 := by
       rw [natDegree_ofList]
-      exact Eq.symm (List.length_map I.P ⇑(algebraMap ℤ (ZMod p)))
+      exact Eq.symm (List.length_map ⇑(algebraMap ℤ (ZMod p)))
       have := I.hneq
       by_contra hc
       erw [hc, List.getLastD_nil] at this
@@ -1349,7 +1347,7 @@ swap
       exact Finset.mem_of_mem_filter x hx
     · set m := S.inf' hS (fun i => multiplicity p (g i)) with hmm
       have hmp : m ≠ 0 := by
-        suffices 1 ≤ m by exact Nat.not_eq_zero_of_lt this
+        suffices 1 ≤ m by exact Nat.ne_zero_of_lt this
         unfold m
         simp only [Finset.univ_nonempty, Finset.le_inf'_iff, Finset.mem_univ, forall_const]
         intro j
@@ -1502,7 +1500,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ : Ty
     rw [← hy] at xpow xnezero
     simp only [ne_eq] at xnezero
     erw [Submodule.Quotient.mk_eq_zero] at xpow xnezero
-    rw [mem_span_range_iff_exists_fun] at xpow
+    rw [Submodule.mem_span_range_iff_exists_fun] at xpow
     obtain ⟨g, hg⟩ := xpow
     dsimp at hg
     have hgc := hg
@@ -1527,7 +1525,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ : Ty
     simp_rw [htaux, MulAction.mul_smul, ← Finset.smul_sum, ← natCast_zsmul] at hgc
     rw [smul_right_inj (Ne.symm (NeZero.ne' (p : ℤ)))] at hgc
     apply xnezero
-    rw [← hgc, mem_span_range_iff_exists_fun]
+    rw [← hgc, Submodule.mem_span_range_iff_exists_fun]
     use J
   have auxcard' : (Nat.card (N ⧸ M)).Coprime p := by
       rw [Nat.coprime_comm, Nat.Prime.coprime_iff_not_dvd]
@@ -1542,7 +1540,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ : Ty
   rw [ ← hβ, QuotientAddGroup.mk'_apply,  ← QuotientAddGroup.mk_nsmul] at hauxg
   rw [← QuotientAddGroup.mk'_apply, ← QuotientAddGroup.mk'_apply, Eq.comm, QuotientAddGroup.mk'_eq_mk'] at hauxg
   obtain ⟨m, hmmem, hmeq ⟩ := hauxg
-  rw [Submodule.mem_toAddSubgroup, mem_span_range_iff_exists_fun] at hmmem
+  rw [Submodule.mem_toAddSubgroup, Submodule.mem_span_range_iff_exists_fun] at hmmem
   obtain ⟨e' ,he ⟩ := hmmem
   use e'
   apply_fun Additive.toMul at hmeq
@@ -1648,7 +1646,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type
     rw [← hy] at xpow xnezero
     simp only [ne_eq] at xnezero
     erw [Submodule.Quotient.mk_eq_zero] at xpow xnezero
-    rw [mem_span_range_iff_exists_fun] at xpow
+    rw [Submodule.mem_span_range_iff_exists_fun] at xpow
     obtain ⟨g, hg⟩ := xpow
     dsimp at hg
     have hgc := hg
@@ -1677,7 +1675,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type
     simp_rw [htaux, MulAction.mul_smul, ← Finset.smul_sum, ← natCast_zsmul] at hgc
     rw [smul_right_inj (Ne.symm (NeZero.ne' (p : ℤ)))] at hgc
     apply xnezero
-    rw [← hgc, mem_span_range_iff_exists_fun]
+    rw [← hgc, Submodule.mem_span_range_iff_exists_fun]
     use J
   have auxcard' : (Nat.card (N ⧸ M)).Coprime p := by
       rw [Nat.coprime_comm, Nat.Prime.coprime_iff_not_dvd]
@@ -1691,7 +1689,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type
   rw [ ← hβ, QuotientAddGroup.mk'_apply,  ← QuotientAddGroup.mk_nsmul] at hauxg
   rw [← QuotientAddGroup.mk'_apply, ← QuotientAddGroup.mk'_apply, Eq.comm, QuotientAddGroup.mk'_eq_mk'] at hauxg
   obtain ⟨m, hmmem, hmeq ⟩ := hauxg
-  rw [Submodule.mem_toAddSubgroup, mem_span_range_iff_exists_fun] at hmmem
+  rw [Submodule.mem_toAddSubgroup, Submodule.mem_span_range_iff_exists_fun] at hmmem
   obtain ⟨e' ,he ⟩ := hmmem
   apply_fun Additive.toMul at hmeq
   rw [← he] at hmeq
@@ -1839,62 +1837,6 @@ lemma is_primitive_root_finite_field {F : Type*} [Field F] [Fintype F] {n : ℕ}
   rw [orderOf_of_IsOrderOf h, hcard]
   exact Fintype.card_units F
 
-
-/- Now in Mathlib -/
-open NumberField
-
-lemma nrRealPlaces_pos_of_odd_finrank {K : Type*} [Field K] [NumberField K]
-    (h : Odd (Module.finrank ℚ K)) : 0 < NumberField.InfinitePlace.nrRealPlaces K := by
-  refine Nat.pos_of_ne_zero ?_
-  by_contra hc
-  have := NumberField.InfinitePlace.card_add_two_mul_card_eq_rank K
-  rw [hc, zero_add] at this
-  rw [← this] at h
-  exact Nat.not_odd_iff_even.2 (even_two_mul _) h
-
-lemma IsOfFinOrder_iff_eq_one_or_neg_one_of_odd_finrank {K : Type*} [Field K] [NumberField K]
-    (h : Odd (Module.finrank ℚ K)) {x : 𝓞 K} : IsOfFinOrder x ↔ x = 1 ∨ x = -1 := by
-  constructor
-  · intro hf
-    by_cases hc : 2 < orderOf (x : K)
-    · linarith [IsPrimitiveRoot.nrRealPlaces_eq_zero_of_two_lt hc (IsPrimitiveRoot.orderOf (x : K)),
-        nrRealPlaces_pos_of_odd_finrank h]
-    · push_neg at hc
-      erw [le_iff_lt_or_eq, orderOf_submonoid] at hc
-      rcases hc with h1 | h2
-      · rw [← orderOf_pos_iff] at hf
-        exact Or.intro_left _ (orderOf_eq_one_iff.1 (by linarith))
-      · have aux := pow_orderOf_eq_one x
-        rw [h2, sq_eq_one_iff] at aux
-        exact aux
-  · rintro (rfl | rfl)
-    · exact IsOfFinOrder.one
-    · rw [isOfFinOrder_iff_pow_eq_one]
-      exact ⟨2, by simp ⟩
-
-lemma torsionOrder_eq_two_of_odd_finrank {K : Type*} [Field K] [NumberField K]
-    (h : Odd (Module.finrank ℚ K)) : NumberField.Units.torsionOrder K = 2 := by
-  refine PNat.eq ?_
-  erw [Finset.card_eq_two]
-  use 1 , ⟨-1, by erw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one] ; use 2 ; norm_num ⟩
-  constructor
-  · intro hc
-    simp [← Subtype.val_inj] at hc
-  · ext x
-    constructor
-    · intro hx
-      obtain ⟨m ,hm⟩ := isOfFinOrder_iff_pow_eq_one.1
-        ((CommGroup.mem_torsion _ _).1 (SetLike.coe_mem x) )
-      have : IsOfFinOrder (↑(↑x : (𝓞 K)ˣ) : (𝓞 K)) := by
-        rw [isOfFinOrder_iff_pow_eq_one]
-        show (∃ m, 0 < m ∧ (↑((↑x : (𝓞 K)ˣ) ^ m) : (𝓞 K)) = 1)
-        exact ⟨m, ⟨hm.1, by erw [hm.2] ; rfl ⟩ ⟩
-      rw [IsOfFinOrder_iff_eq_one_or_neg_one_of_odd_finrank h] at this
-      simp only [Finset.mem_insert, Finset.mem_singleton]
-      rw [← Subtype.val_inj, ← Subtype.val_inj, ← Units.eq_iff, ← Units.eq_iff]
-      exact this
-    · simp
-
 ------------------
 
 open Finset NumberField InfinitePlace
@@ -1971,22 +1913,6 @@ lemma card_infinite_place_adjoin_root (K : Type*) [Field K] [NumberField K] (f :
     Module.finrank_eq_card_basis (AdjoinRoot.powerBasisAux hf)]
   simp
 
-
-/- Now in Mathlib -/
-open Function
-theorem Function.minimalPeriod_eq_prime_iff {α : Type*} {f : α → α} {x : α}
-    {p : ℕ} [hp : Fact p.Prime] :
-    minimalPeriod f x = p ↔ IsPeriodicPt f p x ∧ ¬IsFixedPt f x := by
-  rw [Function.isPeriodicPt_iff_minimalPeriod_dvd, Nat.dvd_prime hp.out,
-    ← minimalPeriod_eq_one_iff_isFixedPt.not, or_and_right, and_not_self_iff, false_or,
-    iff_self_and]
-  exact fun h ↦ ne_of_eq_of_ne h hp.out.ne_one
-
-
-@[to_additive]
-theorem orderOf_eq_prime_iff {G : Type*} [Monoid G] {x : G} {p : ℕ} [hp : Fact p.Prime] : orderOf x = p ↔ x ^ p = 1 ∧ x ≠ 1 := by
-  rw [orderOf, Function.minimalPeriod_eq_prime_iff, isPeriodicPt_mul_iff_pow_eq_one, IsFixedPt, mul_one]
------
 
 /- If torsion has cardinality `t`, then its generator is a primitive root of order `t` and thus
 a root of `Φₜ(X)`, therefore the order of this polynomial `φ(t)` divides the degree of `K`.
@@ -2093,7 +2019,7 @@ lemma not_dvd_torsion_of_not_dvd {S : Type*} [CommRing S] [IsDomain S]
   intro hdvd
   rw [← hg] at hdvd
   set x := g ^ (orderOf g / n) with hxd
-  have hx := hxd ▸ orderOf_pow_orderOf_div (Nat.not_eq_zero_of_lt (orderOf_pos g)) hdvd
+  have hx := hxd ▸ orderOf_pow_orderOf_div (Nat.ne_zero_of_lt (orderOf_pos g)) hdvd
   rw [← orderOf_submonoid, ← orderOf_units] at hx
   let φ := (modIdealToZMod hq I hcard).comp (Ideal.Quotient.mk I)
   have aux : orderOf (φ ((x : Sˣ) : S)) = n := by

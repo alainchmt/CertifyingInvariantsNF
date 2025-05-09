@@ -21,7 +21,7 @@ lemma IsAdjoinRoot.minpoly_root {Q K : Type*} [Field Q] [CommRing K] [Algebra Q 
   rw [← minpoly.algEquiv_eq φ (root A), IsAdjoinRoot.aequiv_root A (AdjoinRoot.isAdjoinRoot f)]
   exact AdjoinRoot.minpoly_root hf
 
-/-- Similar to Polynomial.Monic.dvd_iff_fraction_map_dvd_fraction_map but does assume
+/-- Similar to `Polynomial.Monic.dvd_iff_fraction_map_dvd_fraction_map` but does assume
   that `p` is monic· -/
 lemma Polynomial.Monic_dvd_iff_fraction_map_dvd_fraction_map' {R K : Type*}
     [CommRing R][Nontrivial R] [Field K] [Algebra R K] [IsFractionRing R K] {p q : R[X]}
@@ -47,7 +47,7 @@ lemma Polynomial.Monic_dvd_iff_fraction_map_dvd_fraction_map' {R K : Type*}
   rw [Polynomial.modByMonic_eq_zero_iff_dvd hq, ← AdjoinRoot.mk_eq_zero] at this
   exact AdjoinRoot.mk_eq_zero.mp this
 
--- We don't use minpoly.isIntegrallyClosed_eq_field_fractions because we don't assume K is a domain·
+-- We don't use `minpoly.isIntegrallyClosed_eq_field_fractions` because we don't assume `K` is a domain·
 lemma Algebra.minpoly_fraction_field {R Q K : Type*}
     [CommRing R] [IsDomain R] [Field Q] [Algebra R Q] [IsFractionRing R Q] [CommRing K]
     [Algebra R K] [Algebra Q K] [IsScalarTower R Q K] (T : Polynomial R)
@@ -68,7 +68,7 @@ lemma Algebra.minpoly_fraction_field {R Q K : Type*}
   refine Polynomial.eq_of_monic_of_dvd_of_natDegree_le hm (minpoly.monic hint) hdvd ?_
   exact Polynomial.natDegree_le_natDegree (minpoly.min R x hm heval)
 
--- We don't use minpoly.equivAdjoin because we don't assume that `K` is a domain·
+-- We don't use `minpoly.equivAdjoin` because we don't assume that `K` is a domain·
 noncomputable def Algebra.adjoin_isAdjoinRoot {R Q K : Type*}
     [CommRing R] [IsDomain R] [Field Q] [Algebra R Q] [IsFractionRing R Q] [CommRing K]
     [Algebra R K] [Algebra Q K] [IsScalarTower R Q K] (T : Polynomial R)
@@ -131,7 +131,7 @@ lemma surj_fraction_ring_of_eq_rank [NeZero n][CommRing R] [IsDomain R] [Field Q
     rw [← LinearIndependent.iff_fractionRing (R := R)]
     refine LinearIndependent.map' b.linearIndependent (SMulMemClass.subtype O) ?_
     · refine LinearMap.ker_eq_bot_of_injective ?_
-      simp only [SMulMemClass.coeSubtype]
+      simp only [SMulMemClass.coe_subtype]
       exact Subtype.val_injective
     · rw [hd, Fintype.card_fin]
   let P : K → Prop := fun x => ∃ (d : R) (y : O), d • x = y ∧ d ∈ nonZeroDivisors R
@@ -411,8 +411,8 @@ lemma subalgebraIsNoetherianRingOfLeFreeFiniteSubalgebra {K R ι: Type*} [Fintyp
 /-- If `R` is a noetherian ring and `O` is an `R`-subalgebra of `K` with a finite basis,
   then it is contained in the integral closure of `R` in `K`·  -/
 lemma le_integralClosure_of_basis  {K R ι: Type*} [Fintype ι] [CommRing K][CommRing R]
-  [Algebra R K] [IsNoetherianRing R] (O : Subalgebra R K) (b : Basis ι R O ) :
-  O ≤ integralClosure R K  := by
+    [Algebra R K] [IsNoetherianRing R] (O : Subalgebra R K) (b : Basis ι R O ) :
+    O ≤ integralClosure R K  := by
   haveI := subalgebraIsNoetherianOfFintypeBasis O b
   exact le_integralClosure_of_noetherian O
 
@@ -435,7 +435,7 @@ in `R[X]`, and `q` a non-constant polynomial· Then `p` is irreducible if `p ∘
 lemma Polynomial.irreducible_of_irreducible_comp {R : Type _}[CommRing R] [NoZeroDivisors R]
     (p q : Polynomial R) (hp : ¬ (IsUnit p)) (hgd : q.natDegree ≠ 0) :
   Irreducible (p.comp q) → Irreducible p := by
-  cases (irreducible_or_factor p hp)
+  cases (irreducible_or_factor hp)
   · case _ hc1 =>
     intro _
     exact hc1
@@ -443,7 +443,7 @@ lemma Polynomial.irreducible_of_irreducible_comp {R : Type _}[CommRing R] [NoZer
   intro h
   exfalso
   obtain ⟨a , b, ⟨hanu, hbnu, hab⟩ ⟩ := hc2
-  rw [← hab, mul_comp] at h
+  rw [hab, mul_comp] at h
   cases of_irreducible_mul h
   · case _ h_1 =>
     have hcompn : (a.comp q).natDegree = 0 := Polynomial.natDegree_eq_zero_of_isUnit h_1

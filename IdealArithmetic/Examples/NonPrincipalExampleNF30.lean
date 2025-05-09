@@ -489,9 +489,9 @@ def RC : RankUnitsCertificate O where
 lemma ne_dvd_torsion3 : ¬3 ∣ Nat.card ↥(CommGroup.torsion (↥O)ˣ) := by
  suffices ¬ 3 ∣ 2 from ?_
  · convert this
-   rw [O_integral_closure, ← Fintype.card_eq_nat_card]
-   convert (Subtype.val_inj.2
-    (torsionOrder_eq_two_of_odd_finrank (by rw [K_finrank] ; decide)))
+   rw [O_integral_closure, ← Fintype.card_eq_nat_card,
+   ←  NumberField.Units.torsionOrder_eq_two_of_odd_finrank (by rw [K_finrank] ; decide)]
+   rfl
  · decide
 
 def NPCJ : NonPrincipalCertificateNDvdT J where

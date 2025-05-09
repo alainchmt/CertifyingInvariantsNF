@@ -31,7 +31,7 @@ noncomputable def basisSpanOfBasis.linearIndependent {K L ι R: Type*} [CommRing
     LinearIndependent R (fun i => (⟨b i, basis_in_span b O h i⟩ : O)) := by
   have : Subtype.val ∘ (fun i => (⟨b i, basis_in_span b O h i⟩ : O)) = b := rfl
   apply LinearIndependent.of_comp (SMulMemClass.subtype O)
-  rw [SMulMemClass.coeSubtype, this, LinearIndependent.iff_fractionRing R K]
+  rw [SMulMemClass.coe_subtype, this, LinearIndependent.iff_fractionRing R K]
   · exact b.linearIndependent
 
 noncomputable def basisSpanOfBasis.spans {K L ι R: Type*} [CommRing R] [CommRing L]
@@ -39,7 +39,7 @@ noncomputable def basisSpanOfBasis.spans {K L ι R: Type*} [CommRing R] [CommRin
     (b : Basis ι K L) (O : Subalgebra R L) (h : (O : Set L) = Submodule.span R (Set.range b))  :
     ⊤ ≤ Submodule.span R (Set.range (fun i => (⟨b i, basis_in_span b O h i⟩ : O))) := by
   have : Function.Injective (SMulMemClass.subtype O) := by
-    rw [SMulMemClass.coeSubtype]
+    rw [SMulMemClass.coe_subtype]
     exact Subtype.coe_injective
   rw [← Submodule.map_le_map_iff_of_injective this, ← Submodule.span_image]
   have aux : Subtype.val '' (Set.range (fun i => (⟨b i, basis_in_span b O h i⟩ : O))) =
@@ -48,7 +48,7 @@ noncomputable def basisSpanOfBasis.spans {K L ι R: Type*} [CommRing R] [CommRin
     rfl
   erw [aux, Submodule.map_top]
   intros x hx
-  rw [← SetLike.mem_coe , LinearMap.range_coe, SMulMemClass.coeSubtype, Subtype.range_coe_subtype,
+  rw [← SetLike.mem_coe , LinearMap.range_coe, SMulMemClass.coe_subtype, Subtype.range_coe_subtype,
       Set.mem_setOf_eq, ← Subalgebra.mem_carrier] at hx
   rw [← SetLike.mem_coe]
   exact h ▸ hx

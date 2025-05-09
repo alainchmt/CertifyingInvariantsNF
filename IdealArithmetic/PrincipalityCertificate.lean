@@ -351,7 +351,7 @@ v : O -- Generator of the torsion group (mod p-powers)
 m : ℕ
 hm : m ≠ 0
 hmv : v ^ m = 1 -- v is a torsion unit. Insetad of proving this directly,
-  --you could, for each prime power dividing m, give elements that order and consider the product.
+  --you could, for each prime power dividing m, give elements that order and consider the product. Or just use square and multiply.
 q : Fin (r + 1 + 1) → ℕ -- List of prime norms
 hqP : ∀ i, Fact (Nat.Prime (q i))
 I : Fin (r + 1 + 1) → Ideal O -- Corresponding list of prime ideals
@@ -379,9 +379,9 @@ lemma torsion_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
   [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
   [IsCyclic (CommGroup.torsion Oˣ)] {J : Ideal O} (C : NonPrincipalCertificateDvdT J) :
   ∀ w ∈ CommGroup.torsion Oˣ, (∃ (a : ℤ) , (∃ t ∈ CommGroup.torsion Oˣ ,
-    w = ((isUnit_ofPowEqOne C.hmv C.hm).unit ^ a * t ^ C.p))) := by
+    w = ((IsUnit.of_pow_eq_one C.hmv C.hm).unit ^ a * t ^ C.p))) := by
   haveI : Fact $ Nat.Prime C.p := {out := C.hp }
-  have hvmem : (isUnit_ofPowEqOne C.hmv C.hm).unit ∈ CommGroup.torsion Oˣ := by
+  have hvmem : (IsUnit.of_pow_eq_one C.hmv C.hm).unit ∈ CommGroup.torsion Oˣ := by
     rw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one]
     use C.m
     constructor
@@ -488,7 +488,7 @@ lemma units_linear_independent_of_NonPrincipalCertificateDvdT {O : Type*} [CommR
   haveI : Fact $ Nat.Prime C.p := {out := C.hp}
   refine units_linear_independent_dvd_torsion_of_full_rank (hF := fun i : Fin (C.r + 1) => C.hqP i) (fun i => C.hcard i) (fun i => C.hr i) C.u C.hu (fun i => C.hdvd i) (fun (i : Fin 1) => C.v) ?_ ?_ ?_
   · intro i
-    exact (isUnit_ofPowEqOne C.hmv C.hm)
+    exact (IsUnit.of_pow_eq_one C.hmv C.hm)
   · intro w' hwmem'
     obtain ⟨a, t, htmem, hat⟩ := torsion_of_NonPrincipalCertificateDvdT C w' hwmem'
     use a, t, htmem
@@ -516,7 +516,7 @@ lemma units_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
   (C : NonPrincipalCertificateDvdT J) (w : Oˣ) :
   ∃ (e' : (Fin C.r) ⊕ (Fin 1) → ℤ), (∃ (t : Oˣ) , w = (∏ (i : (Fin C.r) ⊕ (Fin 1)),
     (Sum.elim (fun i => (C.hu i).unit)
-    (fun i => (isUnit_ofPowEqOne C.hmv C.hm).unit) i) ^ (e' i)) * t ^ C.p) := by
+    (fun _ => (IsUnit.of_pow_eq_one C.hmv C.hm).unit) i) ^ (e' i)) * t ^ C.p) := by
   haveI : Fact $ Nat.Prime C.p := {out := C.hp}
   refine units_up_to_p_power_dvd_torsion_of_full_rank (hF := fun i : Fin (C.r + 1) => C.hqP i)
     (fun i => C.hcard i) (fun i => C.hr i) C.u C.hu (fun i => C.hdvd i)
@@ -551,7 +551,7 @@ lemma not_principal_of_NonPrincipalCertificateDvdT  {O : Type*} [CommRing O]
     intro i
     rcases i with i | j
     · simp [C.hu]
-    · exact isUnit_ofPowEqOne C.hmv C.hm
+    · exact IsUnit.of_pow_eq_one C.hmv C.hm
   haveI : Fact $ Nat.Prime C.p := {out := C.hp}
   refine not_principal_of_full_rank_matrixLogZMod (hF := C.hqP) C.hcard C.hr
     (Sum.elim C.u (fun (_ : Fin 1) => C.v)) ?_
@@ -618,202 +618,3 @@ lemma units_finrank_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K
     erw [C.heq, NumberField.Units.rank_modTorsion]
   unfold NumberField.Units.rank
   rw [card_infinitePlace_of_RankUnitsCertificate C]
-
-
-
-
-
-  --simp
-  --exact C.huc
-
-
-
-
-
-
-
-
-
-
-/-
-structure NonPrincipalCertificateNDvdT {O : Type*} [CommRing O]
-  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
-  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] (J : Ideal O) where
- p : ℕ
- hp : Nat.Prime p
- r : ℕ -- rank of the unit group
- huc : Module.finrank ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ))) ≤ r
- u : Fin r → O
- hu : ∀ (i : Fin r), IsUnit (u i)
- q : Fin (r + 1) → ℕ -- List of prime norms
- hqP : ∀ i, Fact (Nat.Prime (q i))
- I : Fin (r + 1) → Ideal O -- Corresponding list of ideals
- hcard : ∀ j, Nat.card (O ⧸ I j) = q j
- ζ : Fin (r + 1) → ℕ
- hr : ∀ i, IsPrimitiveRoot (ζ i : ZMod (q i)) (q i - 1)
- hdvd : ∀ i, p ∣ q i - 1
- a : O
- n : ℕ -- Power to raise the ideal (usually prime)
- hpdvd : p ∣ n
- hJ : J ^ n = Ideal.span {a}
- hpndvdt : ¬p ∣ Nat.card (CommGroup.torsion Oˣ)
- M : Matrix (Fin (r + 1)) (Fin (r + 1)) (ZMod p)
- hM1 : ∀ i, ∀ hj : j < r , M i j = LogFiniteZMod (hcard i) (hr i) p (u ⟨j, hj⟩) -- First columns of the matrix
- hM2 : ∀ i , DiscreteLogCertificate (hcard i) (hr i) p a (M i r) -- Last column of the matrix. The certificate contains discrete log info.
- hDl : ∀ i, ((hM2 i).m : ZMod (q i)) ≠ 0
- Minv : Matrix (Fin (r + 1)) (Fin (r + 1)) (ZMod p)
- hInv : M * Minv = 1
- N : Matrix (Fin r) (Fin r) (ZMod p)
- hNiv : (M.submatrix (Fin.castSucc) (Fin.castSucc)) * N = 1
-
-
-
--/
-
-
-
-
-
-
-
-
-
-
-
-  -- obtain ⟨e, t, h1⟩ := this
-  --obtain ⟨e',h1, t', h2 ⟩ := (nat_up_to_power_of_int_up_to_power (p := 3) units_isUnit (w := w) (by norm_num) e t h1)
-  --use e' , t'
-
-
-
-
-
-
-
- --hr : ∀ (i : τ), IsPrimitiveRoot (↑(ζ i)) (q i - 1)
-
-#eval (!![1,2,3 ; 1,2,3 ; 1, 1, 1]).submatrix (fun i => (i : Fin 2)) (fun i => (i : Fin 2))
-
-
-example : (!![1,2,3 ; 1,2,3 ; 1, 1, 1]).submatrix (fun i => (i : Fin 2)) (fun i => (i : Fin 2)) =
-  !![1, 2; 1, 2] := by decide
-/-
-
-  --MatrixLogZMod p hcard x hr i j = MatrixLogProd p (F q) (φ hcard) x _ (hr_aux hr) i j := by rfl
-
-
-example (x y z k : ℕ) (h : x * y = z ^ k) : IsCoprime x y → ∃ a b , x = a ^ k ∧ y = b ^ k := by
-  intro hc
-  obtain ⟨a, ha⟩ := exists_eq_pow_of_mul_eq_pow_of_coprime hc h
-  obtain ⟨b, hb⟩ := exists_eq_pow_of_mul_eq_pow_of_coprime hc.symm ((mul_comm x y) ▸ h)
-  use a, b , ha , hb
-
-
-
-
-
--- (1)
-lemma descent (a b c k : ℕ) (h : a * b = c^k) : a.Coprime b → ∃ x y, a = x^k ∧ b = y^k := by
-  intro hc
-  rw [Nat.coprime_iff_gcd_eq_one, ← gcd_eq_nat_gcd] at hc
-  obtain ⟨x, hx⟩ := exists_eq_pow_of_mul_eq_pow (hc ▸ Nat.isUnit_iff.mpr rfl) h
-  obtain ⟨y, hy⟩ := exists_eq_pow_of_mul_eq_pow ((gcd_comm a b ▸ hc) ▸ Nat.isUnit_iff.mpr rfl)
-    (mul_comm a b ▸ h)
-  use x, y , hx , hy
-  -- Alternatively, the API on factorization could be used.
-
-
-lemma cubes_differ_one (x y k : ℕ) (hk : k ≥ 2) (h : x^k = y^k + 1) : y = 0 := by
-  -- hint: Write x = y + z for some z : ℕ.
-  have aux' : ∃ z : ℕ, x = y + z := by
-    apply Nat.exists_eq_add_of_le
-    apply le_of_pow_le_pow_left₀ (show k ≠ 0 by omega) (Nat.zero_le x)
-    rw [h]
-    exact Nat.le_add_right (y ^ k) 1
-  -- hint: The following fact might be useful. Induction can help here.
-  have aux : ∀ m ≥ 2, y ≠ 0 → y ^ m + 1 < (y + 1) ^ m := by
-    intro m hml hz
-    induction' hml with m hml hmrec
-    · ring_nf ; omega
-    · nth_rw 2 [pow_succ]
-      refine lt_of_le_of_lt (b := (y ^ m + 1) * (y + 1) ) ?_ ?_
-      · rw [pow_succ, mul_add, add_mul, add_assoc, add_le_add_iff_left]
-        exact Nat.le_add_left 1 _
-      · refine Nat.mul_lt_mul_of_pos_right hmrec (Nat.zero_lt_succ y)
-  obtain ⟨z, hz⟩ := aux'
-  rw [hz] at h
-  by_contra hy
-  have hz : z = 0 :=
-    (Nat.lt_one_iff).1 ((add_lt_add_iff_left _).1
-      (lt_of_pow_lt_pow_left₀ k (Nat.zero_le _ ) (lt_of_eq_of_lt h (aux k hk hy))))
-  rw [hz, add_zero] at h
-  simp only [self_eq_add_right, one_ne_zero] at h
-
-
-theorem Diophantine (x y k : ℕ) (hk : k ≥ 2) (h : x^2 + x = y^k) : x = 0 ∧ y = 0 := by
-  have aux : x ^ 2 + x = x * (x + 1) := by ring
-  have hcoprime : Nat.Coprime x (x + 1) := by
-    rw [← Nat.coprime_sub_self_right (Nat.le_add_right _ _)]
-    simp only [add_tsub_cancel_left, Nat.coprime_one_right_eq_true]
-  rw [aux] at h
-  obtain ⟨a, b, ha, hb⟩ := descent x (x + 1) _ _ h hcoprime
-  rw [ha] at hb
-  have haz : a = 0 := cubes_differ_one _ _ _ hk hb.symm
-  rw [haz, zero_pow (Nat.not_eq_zero_of_lt hk)] at ha
-  rw [ha, zero_mul] at h
-  constructor
-  · exact ha
-  · exact pow_eq_zero (h.symm)
-
-
-
-
-  -- hint: use the previous two lemmas
-
-
-inductive Shape where
-| circle : ℝ → Shape
-| square : ℝ → Shape
-| disjUnion : Shape → Shape → Shape
-
-noncomputable def Area: Shape → ℝ :=
-  fun x =>
-  match x with
-  | Shape.circle r => (Real.pi * r ^ 2)
-  | Shape.square d => d ^ 2
-  | Shape.disjUnion a b => Area a + Area b
-
-open Shape
-example : Area (disjUnion (circle 3) (disjUnion (square 2) (circle 2))) = 13 * Real.pi + 4 := by
-  simp [Area]
-  ring
-
-
-
- -- | ac : Area (circle r) = Real.Pi * r ^ 2
- -- | as : Area () -/
-/-
-
-inductive Shape where
-| circle : ℝ → Shape
-| square : ℝ → Shape
-| disjUnion : Shape → Shape → Shape
-
-noncomputable def Area: Shape → ℝ :=
-  fun x =>
-  match x with
-  | Shape.circle r => (Real.pi * r ^ 2)
-  | Shape.square d => d ^ 2
-  | Shape.disjUnion a b => Area a + Area b
-
-#check Shape.rec
-
-def ComputablePolynomial.X {R : Type*} [Semiring R] [DecidableEq R] [Nontrivial R] : ComputablePolynomial R :=
-  ⟨ [0, 1], by simp [List.dropTrailingZeros, one_ne_zero]  ⟩
-
-open ComputablePolynomial
-
-
-
-#eval ((X : ComputablePolynomial ℤ) + 3 * X ^ 2  ) * (X ^ 20 + X ^ 5 + 6)
--/

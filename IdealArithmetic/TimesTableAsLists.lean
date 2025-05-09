@@ -99,9 +99,9 @@ lemma List.table_mul_list_ofFn (hn : n ≠ 0) (a b : Fin n → R) :
   congr
   ext j
   congr
-  rw [List.getD_eq_getElem _ _ (lt_of_lt_of_eq i.2 (List.length_ofFn _).symm )]
+  rw [List.getD_eq_getElem _ _ (lt_of_lt_of_eq i.2 (List.length_ofFn).symm )]
   simp only [List.getElem_ofFn, Fin.eta]
-  rw [List.getD_eq_getElem _ _ (lt_of_lt_of_eq j.2 (List.length_ofFn _).symm )]
+  rw [List.getD_eq_getElem _ _ (lt_of_lt_of_eq j.2 (List.length_ofFn).symm )]
   simp only [List.getElem_ofFn, Fin.eta]
 
 lemma FnOfList_table_mul_list_eq_sum_sum (a b c : Fin n → R)
@@ -332,7 +332,7 @@ lemma table_nPow_sq_table_eq_pow {S : Type*} [Semiring S] [Module R S] [SMulComm
         rw [heq', table_mul_eq_table_mul' _ _ heq, table_mul_eq_table_mul' _ _ heq, ] at hc
         let d := FnOfList n (nPow_sq_table T (List.ofFn a) (m / 2))
           (nPow_sq_table_length T' T (List.ofFn a) (m / 2)
-            (Nat.div_pos (nataux2 m h hp) (Nat.ofNat_pos)) heq (List.length_ofFn a) )
+            (Nat.div_pos (nataux2 m h hp) (Nat.ofNat_pos)) heq (List.length_ofFn) )
         have auxd: List.ofFn d = nPow_sq_table T (List.ofFn a) (m / 2) := by
           rw [listOfFn_of_FnOfList]
         let e := FnOfList n (table_mul_list' T'  (nPow_sq_table T (List.ofFn a) (m / 2))
@@ -359,7 +359,7 @@ lemma table_nPow_sq_table_eq_pow {S : Type*} [Semiring S] [Module R S] [SMulComm
         let d := FnOfList n (nPow_sq_table T (List.ofFn a) (Nat.succ m / 2))
           (nPow_sq_table_length T' T (List.ofFn a) (Nat.succ m / 2) (Nat.div_pos
             (nataux2 (Nat.succ m) (Nat.succ_ne_zero m) hp) (Nat.ofNat_pos))
-            heq (List.length_ofFn a) )
+            heq (List.length_ofFn) )
         have auxd : List.ofFn d = nPow_sq_table T (List.ofFn a) (Nat.succ m / 2) := by
           rw [listOfFn_of_FnOfList]
         rw [← auxd] at hc
@@ -385,17 +385,17 @@ lemma table_polynomial_eval {S : Type*} [Semiring S] [Module R S] [SMulCommClass
     let x : Fin (L.length) → (Fin n → R) := fun i =>
       if h : i = 0 then
       FnOfList n (List.mulPointwise (L[i]) (List.ofFn z))
-      (by rw [List.mulPointwise_length] ; exact List.length_ofFn z )
+      (by rw [List.mulPointwise_length] ; exact List.length_ofFn )
       else
       FnOfList n (List.mulPointwise (L[i]) (nPow_sq_table T (List.ofFn a) i))
       (by rw [List.mulPointwise_length, nPow_sq_table_length T' T _ i.val ((Fin.pos_iff_ne_zero' _).2 h) heq (
-        List.length_ofFn a)])
+        List.length_ofFn)])
     have hpola : (fun (i : Fin (L.length)) => if i = 0 then List.mulPointwise (L[i]) (List.ofFn z)
       else List.mulPointwise (L[i]) (nPow_sq_table T (List.ofFn a) i) ) = fun i => List.ofFn (x i) := by
       apply funext ?_
       intro i
       by_cases hz : i = 0
-      · simp only [hz, ↓reduceIte, Fin.getElem_fin, Fin.val_zero', ↓reduceDIte, x]
+      · simp only [hz, ↓reduceIte, Fin.getElem_fin, Fin.val_zero, ↓reduceDIte, x]
         rw [listOfFn_of_FnOfList]
       · simp only [hz, ↓reduceIte, Fin.getElem_fin, ↓reduceDIte, x]
         rw [listOfFn_of_FnOfList]
@@ -404,12 +404,12 @@ lemma table_polynomial_eval {S : Type*} [Semiring S] [Module R S] [SMulCommClass
     congr
     ext i
     by_cases hc : i = 0
-    · simp only [Fin.getElem_fin, hc, ↓reduceDIte, Fin.val_zero', x]
+    · simp only [Fin.getElem_fin, hc, ↓reduceDIte, Fin.val_zero, x]
       rw [← table_mulPointwise_eq_smul B z _ L[0], hBz, pow_zero]
       exact listOfFn_of_FnOfList n _ _
     · simp only [Fin.getElem_fin, hc, ↓reduceDIte, x]
       rw [← table_mulPointwise_eq_smul B (FnOfList n (nPow_sq_table T (List.ofFn a) i) (nPow_sq_table_length T' T _ i.val ((Fin.pos_iff_ne_zero' _).2 hc) heq (
-        List.length_ofFn a)) ) _ L[i]]
+        List.length_ofFn)) ) _ L[i]]
       · congr
         symm
         rw [table_nPow_sq_table_eq_pow T' T B _ basisMulBasis heq _ ((Fin.pos_iff_ne_zero' _).2 hc) _]

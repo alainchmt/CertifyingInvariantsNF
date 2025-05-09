@@ -29,9 +29,8 @@ open scoped BigOperators
 
 open scoped Classical
 
-/- Here we prove that the quotient of free ℤ-modules of the same rank is finite· The proof
-is essentially the same as the proof that the quotient of a ℤ-module by a non-zero ideal is finite,
-which is in the library as Ideal.quotientEquivDirectSum and was written by Anne Baanen.
+/- Here we prove that the quotient of free `ℤ`-modules of the same rank is finite· The proof
+is essentially the same as that of `Ideal.quotientEquivDirectSum`, which was written by Anne Baanen.
 -/
 variable {ι ι' R M : Type _} [CommRing R] [AddCommGroup M] [Module R M]
 
@@ -270,7 +269,8 @@ lemma Submodule.prime_dvd_index [Module.Free R M]
   · rw [← mul_smul, ← ht, ← smith_coeffs_property N B b]
     simp only [SetLike.coe_mem]
 
-/-- Analogous to `Ideal.quotientEquivPiZMod`. -/
+/-- Analogous to `Ideal.quotientEquivPiZMod`. Note that an equivalent result was independently added to
+mathlib in commit `17b56b421c6af7332e747268e5e6f5edbabd0316` by `Xavier Roblot` as `quotientEquivPiSpan`. -/
 noncomputable def moduleQuotientEquivPiSpan' {n : ℕ} (N : Submodule R M) (b : Basis (Fin n) R M)
     (b2 : Basis (Fin n) R N) :
     (M ⧸ N) ≃ₗ[R] ∀ i, R ⧸ Ideal.span ({(moduleSmithCoeffs N b b2) i} : Set R) :=
@@ -328,7 +328,7 @@ noncomputable def moduleQuotientEquivPiZMod {n : ℕ} (N : Submodule ℤ M) (b :
 lemma indexPID_eq_index_int {n : ℕ} [Module.Free ℤ M]
     [Module.Finite ℤ M] (N : Submodule ℤ M) (b : Basis (Fin n) ℤ M)
     (b2 : Basis (Fin n) ℤ N) : (Submodule.indexPID N).natAbs = Nat.card (M ⧸ N) := by
-  rw [← Int.natAbs_ofNat (Nat.card (M ⧸ N)), Int.natAbs_eq_iff_associated]
+  rw [← Int.natAbs_natCast (Nat.card (M ⧸ N)), Int.natAbs_eq_iff_associated]
   refine Associated.trans (prod_moduleSmithCoeffs_associated_index N b b2 ) ?_
   rw [Nat.card_eq_of_bijective (moduleQuotientEquivPiZMod N b b2), Nat.card_pi]
   simp only [Nat.card_zmod, Nat.cast_prod]
