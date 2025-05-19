@@ -1,5 +1,5 @@
 import Mathlib.FieldTheory.Finite.GaloisField
-import DedekindProject4.PolynomialsAsLists
+import IdealArithmetic.PolynomialsAsLists
 
 /-! # Irreducibility of polynomials
 
@@ -72,6 +72,7 @@ section Morphisms
 variable {F : Type*} [Field F] [DecidableEq F] {f : F[X]}
    [Fintype F] (hi : Irreducible f)
 
+-- Generalization of charP_of_card_eq_prime.
 def charPOfCard (hp: Nat.Prime p) (hcard : Fintype.card F = p ^ n) : CharP F p := by
   have card_pow_ne_zero : n ≠ 0 :=
     fun h => (lt_self_iff_false _).1 (lt_of_lt_of_eq (Fintype.one_lt_card (α := F))
@@ -129,10 +130,10 @@ noncomputable def algHomOfCardPow (K : Type) {n m p: ℕ} [hp : Fact $ Nat.Prime
 /- A ring homomorphism between two finite fields· -/
 noncomputable def ringHomOfCardPow (K : Type) {n : ℕ} [Field K][Fintype K]
     (hc : Fintype.card K = (Fintype.card F) ^ n) : F →+* K := by
-  choose p m hp hm using FiniteField.card' F
+  choose p hchar m hp hm using FiniteField.card' F
   rw [ hm, ← pow_mul] at hc
   have hdvd : (m : ℕ) ∣ m * n  := ⟨n, rfl⟩
-  haveI := charPOfCard hp hm
+  haveI := hchar
   haveI := charPOfCard hp hc
   haveI : Fact $ Nat.Prime p := { out := hp }
   haveI : Algebra (ZMod p) F := ZMod.algebra F p
@@ -178,7 +179,7 @@ include hd in
 lemma natDegree_dvd_of_dvd_X_pow_sub_X {n : ℕ} [Fintype F]
    (hn : n ≠ 0) (hi : Irreducible f) (h : f ∣ (X ^ ((Fintype.card F) ^ n) - X)) :
     f.natDegree ∣ n := by
-  choose p m hp hm' using FiniteField.card' F
+  choose p hchar m hp hm' using FiniteField.card' F
   haveI : Fact $ Nat.Prime p := { out := hp }
   have : ∀ m, Fintype (GaloisField p m) := fun m => Fintype.ofFinite _
   have hcard' : Fintype.card (GaloisField p (m * n)) = (Fintype.card F) ^ n := by
@@ -204,7 +205,7 @@ lemma natDegree_dvd_of_dvd_X_pow_sub_X {n : ℕ} [Fintype F]
       AdjoinRoot.powerBasis_dim (Irreducible.ne_zero hi)]
   have hqo := Fintype.one_lt_card (α := F)
   have hdim2: Module.finrank F K = n := by
-    have hcard:= @card_eq_pow_finrank F K _ _ _ _ _
+    have hcard:= @Module.card_eq_pow_finrank F K _ _ _ _ _
     rw [hcard', pow_right_inj₀] at hcard
     exact hcard.symm
     linarith ; linarith
@@ -225,7 +226,7 @@ lemma dvd_X_pow_natDegree_sub_X [Fintype F] (hi : Irreducible f) :
         AdjoinRoot.powerBasis_dim (Irreducible.ne_zero hi)]
   haveI hfin : Finite (AdjoinRoot f) := Module.finite_of_finite F
   haveI hfin : Fintype (AdjoinRoot f) := Fintype.ofFinite _
-  have hcard := @card_eq_pow_finrank F (AdjoinRoot f) _ _ _ _ _
+  have hcard := @Module.card_eq_pow_finrank F (AdjoinRoot f) _ _ _ _ _
   rw [hdim1, ← hmdef] at hcard
   set a := AdjoinRoot.root f
   have hpeval2 :
@@ -289,7 +290,7 @@ theorem irreducible_iff_dvd_X_pow_sub_X (f : F[X]) (hd : 0 < f.natDegree) :
       (natDegree_dvd_iff_dvd_X_pow_sub_X hai).2 (dvd_trans ⟨b, heq⟩ hfdvd)
     have aux2: ¬ IsCoprime f (X^(Fintype.card F)^(natDegree a) - X) := by
       by_contra hc
-      exact (Irreducible.not_unit hai )
+      exact (Irreducible.not_isUnit hai )
         (IsCoprime.isUnit_of_dvd' hc ⟨b, heq⟩ ((natDegree_dvd_iff_dvd_X_pow_sub_X hai).1 dvd_rfl ))
     have hdeq := Not.imp aux2 (hmh (a.natDegree) hadvd)
     simp only [ne_eq, not_not] at hdeq
@@ -360,7 +361,7 @@ lemma natDegree_eq_sum_natDegree_factors_of_dvd {R : Type*} [CommRing R] [IsDoma
   use (UniqueFactorizationMonoid.normalizedFactors a)
   refine ⟨(UniqueFactorizationMonoid.dvd_iff_normalizedFactors_le_normalizedFactors haz hfz).1 hdvd, ?_ ⟩
   rw [← Polynomial.degree_eq_iff_natDegree_eq haz,
-  Polynomial.degree_eq_degree_of_associated (UniqueFactorizationMonoid.normalizedFactors_prod haz).symm,
+  Polynomial.degree_eq_degree_of_associated (UniqueFactorizationMonoid.prod_normalizedFactors haz).symm,
   Polynomial.degree_eq_iff_natDegree_eq, Polynomial.natDegree_multiset_prod]
   · exact UniqueFactorizationMonoid.zero_not_mem_normalizedFactors a
   · simp only [ne_eq, Multiset.prod_eq_zero_iff]
@@ -421,7 +422,7 @@ lemma multisetSum_mem_partialSums
   obtain ⟨L₂, hL1, hL2⟩ := hle
   rw [← List.mem_sublists] at hL2
   rw [← auxeq, Multiset.sum_coe, ← List.Perm.sum_eq hL1]
-  exact List.mem_map_of_mem List.sum hL2
+  exact List.mem_map_of_mem hL2
 
 /-- If `a` divides `f` and `σ : R →+* K` maps the leading coefficient of `f` to a non-zero element,
   then the degree of `a` is contained in the list of partial sums of the degrees of the factors
@@ -581,10 +582,10 @@ lemma le_natDegree_of_partialSums (f : Polynomial ℤ) (d : ℕ) (hf : f.IsPrimi
     exact hqu (Polynomial.isUnit_C.2 (Polynomial.isPrimitive_iff_isUnit_of_C_dvd.1 hf (q.coeff 0) hqdvd))
   have := List.mem_filter_of_mem ((bagInterOfFn_mem _ _).2 (natDegree_in_partialSums_int f q hqdvd p L hmf hL))
     (p := fun a => a ≠ 0 )
-    (by simp only [ne_eq, hqdeg, not_false_eq_true, decide_True])
+    (by simp only [ne_eq, hqdeg, not_false_eq_true, decide_true])
   apply_fun Option.getD at hmin
   have aux := congr_fun hmin 0
-  rw [Option.getD_some, List.getD_min?_eq_untop'_minimum, WithTop.untop'_eq_iff ] at aux
+  rw [Option.getD_some, List.getD_min?_eq_untopD_minimum, WithTop.untopD_eq_iff ] at aux
   rcases aux with h1 | h2
   · exact List.minimum_le_of_mem this h1
   · exfalso
@@ -741,7 +742,7 @@ lemma FnToNat_eval_single {n : ℕ}(t : ℕ)(j : Fin n):
   intro x hx
   rw [Finsupp.single_apply]
   simp only [mul_eq_zero]
-  simp only [hx.symm, ↓reduceIte, Fin.val_zero', pow_eq_zero_iff', ne_eq, true_or]
+  simp only [hx.symm, ↓reduceIte, Fin.val_zero, pow_eq_zero_iff', ne_eq, true_or]
 
 
 /-- The `square-and-multiply`-type algorithm. Gives a way to prove `x ^ n` by
@@ -761,7 +762,7 @@ lemma square_and_multiply_algorithm {R : Type*} [Monoid R] {s t: ℕ} (y : Fin (
     let bit' := λ (i : Fin (s + 1)) => bit (Fin.succ i)
     let y' := λ (i : Fin (s + 1)) => y (Fin.succ i)
     have aux : FnToNat t bit = t * (FnToNat t bit') + (bit 0 : ℕ) := by
-      unfold FnToNat
+      unfold FnToNat bit'
       erw [Fin.sum_univ_succ, pow_zero, mul_one, add_comm, Finset.mul_sum]
       simp only [Fin.val_succ, add_left_inj]
       congr
@@ -883,7 +884,7 @@ lemma irreducible_of_CertificateIrreducibleZMod (p n t s: ℕ)[Fact $ Nat.Prime 
     {f : (ZMod p)[X]} (C : CertificateIrreducibleZMod p n t s f) : Irreducible f := by
   have hd : 0 < f.natDegree := by
     rw [C.hdeg]
-    exact Fin.size_pos'
+    exact Fin.pos'
   rw [irreducible_iff_dvd_X_pow_sub_X f hd, ZMod.card, C.hdeg]
   have aux := certificate_aux' p n t s f C.bit C.hbits C.h C.g C.h' C.hs C.hz C.hmul
   constructor
@@ -891,7 +892,7 @@ lemma irreducible_of_CertificateIrreducibleZMod (p n t s: ℕ)[Fact $ Nat.Prime 
     rw [C.hhz, C.hhn, Fin.natCast_eq_last, Fin.val_last] at aux1
     exact aux1
   · intro m hmdvd hneq
-    have hmlt1 : m < n := (lt_of_le_of_ne (Nat.le_of_dvd (Fin.size_pos') hmdvd) hneq )
+    have hmlt1 : m < n := (lt_of_le_of_ne (Nat.le_of_dvd (Fin.pos') hmdvd) hneq )
     have hmlt : m < n + 1 := Nat.lt_add_right 1 hmlt1
     convert isCoprime_sub_of_isCoprime_sub_dvd_sub (aux ⟨m, hmlt⟩) ?_
     exact (C.hhz).symm
@@ -928,7 +929,7 @@ lemma irreducible_of_CertificateIrreducibleZMod' (p n t s: ℕ)[Fact $ Nat.Prime
     {f : (ZMod p)[X]} (C : CertificateIrreducibleZMod' p n t s f) : Irreducible f := by
   have hd : 0 < f.natDegree := by
     rw [C.hdeg]
-    exact Fin.size_pos'
+    exact Fin.pos'
   rw [irreducible_iff_dvd_X_pow_sub_X' f hd, ZMod.card, C.hdeg]
   have aux := certificate_aux' p n t s f C.bit C.hbits C.h C.g C.h' C.hs C.hz C.hmul
   constructor
@@ -993,18 +994,15 @@ lemma irreducible_ofList_ofCertificateIrreducibleZModOfList {p n t s : ℕ} [Fac
      bit := C.bit,
      hbits := C.hbits,
      hhz := by
-       dsimp
        rw [C.hhz]
-       simp only [ofList_cons, ofList_nil, map_zero, map_one, mul_zero, add_zero, mul_one, zero_add],
+       simp only [ofList_cons, ofList_nil, map_zero, map_one, mul_zero, add_zero, mul_one, zero_add]
      hhn := by
-       dsimp
        rw [C.hhn]
-       simp only [ofList_cons, ofList_nil, map_zero, map_one, mul_zero, add_zero, mul_one, zero_add],
-     hs := by intro i ; dsimp ; rw [C.hs i, ofList_pow_eq_pow]
-     hz := by intro i ; dsimp ; rw [C.hz i]
+       simp only [ofList_cons, ofList_nil, map_zero, map_one, mul_zero, add_zero, mul_one, zero_add]
+     hs := by intro i ; rw [C.hs i, ofList_pow_eq_pow]
+     hz := by intro i ; rw [C.hz i]
      hgcd := by
        intro m hdvd
-       dsimp
        have := C.hgcd m hdvd
        apply_fun ofList at this
        erw [← dropTrailingZeros_eq_dropTrailingZeros', ofList_dropTrailingZeros_eq_ofList,
@@ -1016,7 +1014,6 @@ lemma irreducible_ofList_ofCertificateIrreducibleZModOfList {p n t s : ℕ} [Fac
        exact this
      hmul := by
        intro i j
-       dsimp
        erw [← ofList_convolve_eq_mul, ← ofList_dropTrailingZeros_eq_ofList,
         dropTrailingZeros_eq_dropTrailingZeros', C.hmul,
        ← dropTrailingZeros_eq_dropTrailingZeros', ofList_dropTrailingZeros_eq_ofList,
@@ -1062,6 +1059,7 @@ lemma irreducible_ofList_ofCertificateIrreducibleZModOfList' {p n t s : ℕ} [Fa
    refine irreducible_of_CertificateIrreducibleZMod' (p := p) (n := n) (t:= t) (s:= s) ?_
    exact
    { P := C.P,
+      m := C.m,
       exp := C.exp,
       hneq := C.hneq,
       hP := C.hP,
@@ -1077,18 +1075,15 @@ lemma irreducible_ofList_ofCertificateIrreducibleZModOfList' {p n t s : ℕ} [Fa
      bit := C.bit,
      hbits := C.hbits,
      hhz := by
-       dsimp
        rw [C.hhz]
        simp only [ofList_cons, ofList_nil, map_zero, map_one, mul_zero, add_zero, mul_one, zero_add],
      hhn := by
-       dsimp
        rw [C.hhn]
        simp only [ofList_cons, ofList_nil, map_zero, map_one, mul_zero, add_zero, mul_one, zero_add],
-     hs := by intro i ; dsimp ; rw [C.hs i, ofList_pow_eq_pow]
-     hz := by intro i ; dsimp ; rw [C.hz i]
+     hs := by intro i ; rw [C.hs i, ofList_pow_eq_pow]
+     hz := by intro i ; rw [C.hz i]
      hgcd := by
        intro i
-       dsimp
        have := C.hgcd i
        apply_fun ofList at this
        erw [← dropTrailingZeros_eq_dropTrailingZeros', ofList_dropTrailingZeros_eq_ofList,
@@ -1100,7 +1095,6 @@ lemma irreducible_ofList_ofCertificateIrreducibleZModOfList' {p n t s : ℕ} [Fa
        exact this
      hmul := by
        intro i j
-       dsimp
        erw [← ofList_convolve_eq_mul, ← ofList_dropTrailingZeros_eq_ofList,
         dropTrailingZeros_eq_dropTrailingZeros', C.hmul,
        ← dropTrailingZeros_eq_dropTrailingZeros', ofList_dropTrailingZeros_eq_ofList,
