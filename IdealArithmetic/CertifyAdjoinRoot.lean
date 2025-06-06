@@ -445,8 +445,7 @@ lemma basisOfBuilder_apply (T : R[X])(A : SubalgebraBuilder n R Q K T) (i : Fin 
 lemma basisOfBuilder_zero_eq_one (T : R[X]) (A : SubalgebraBuilder n R Q K T) :
   basisOfBuilder T A 0 = 1 := by
   rw [← Subtype.val_inj, basisOfBuilder_apply]
-  simp_rw [hone_aux (Q := Q) _ A.d A.hd _ A.honed]
-  simp only [map_one, OneMemClass.coe_one]
+  simp_rw [hone_aux (Q := Q) _ A.d A.hd _ A.honed, map_one, OneMemClass.coe_one]
 
 
 /-- The times table for the subalgebra constructed from the `SubalgebraBuilder` -/
@@ -545,6 +544,11 @@ lemma basisOfBuilderLists_apply [DecidableEq R](T : R[X])(l : List R)
     (A.h).map (C (algebraMap R Q A.d)⁻¹ * map (algebraMap R Q) (ofList (List.ofFn (A.B i)))) := by
   erw [basisOfBuilder_apply]
   rfl
+
+/-- The first element in the basis is `1`. -/
+lemma basisOfBuilderLists_zero_eq_one [DecidableEq R](T : R[X])(l : List R)
+    (A : SubalgebraBuilderLists n R Q K T l) : (basisOfBuilderLists T l A) 0 = 1 := by
+  erw [basisOfBuilder_zero_eq_one]
 
 /-- The times table for the subalgebra constructed from the `SubalgebraBuilderLists` -/
 noncomputable def timesTableOfSubalgebraBuilderLists [DecidableEq R]

@@ -1,6 +1,6 @@
-import DedekindProject4.Discriminant
-import DedekindProject4.CertifyAdjoinRoot
-import DedekindProject4.DedekindCriteria
+import IdealArithmetic.Discriminant
+import IdealArithmetic.CertifyAdjoinRoot
+import IdealArithmetic.DedekindCriteria
 import Mathlib.NumberTheory.NumberField.Basic
 import Mathlib.NumberTheory.NumberField.Discriminant.Basic
 

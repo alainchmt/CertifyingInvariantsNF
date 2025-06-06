@@ -683,6 +683,17 @@ lemma C_mul_resultant [NoZeroDivisors R] (a : R) (P Q : Polynomial R)
     · have : P.natDegree = (C a * P).natDegree := by rw [natDegree_C_mul ha]
       rw [sylvesterMatrixAux, this]
 
+/-- Similar to `C_mul_resultant` but the degreeof the polynomial need not be zero.  -/
+lemma C_mul_resultant_of_not_eq_zero [NoZeroDivisors R] (a : R) (ha : a ≠ 0) (P Q : Polynomial R) :
+    (C a * P).resultant Q = a ^ Q.natDegree * P.resultant Q := by
+  rw [resultant, sylvesterMatrix, sylvesterMatrixAux, toVec_C_mul, sylvesterMatrixVec_smul,
+      det_mul_row, resultant, sylvesterMatrix]
+  congr 1
+  · simp only [Fin.prod_univ_add, Fin.addCases_left, Finset.prod_const_one, one_mul,
+        Fin.addCases_right, Fin.prod_const]
+  · have : P.natDegree = (C a * P).natDegree := by rw [natDegree_C_mul ha]
+    rw [sylvesterMatrixAux, this]
+
 lemma C_mul_resultant' [NoZeroDivisors R] (a : R) (P Q : Polynomial R)
     (hQ : Q.natDegree ≠ 0) (h : Q.natDegree = n) :
     (C a * P).resultant Q = a ^ n * P.resultant Q := by
@@ -695,6 +706,12 @@ lemma resultant_C_mul [NoZeroDivisors R] (a : R) (P Q : Polynomial R)
   by_cases ha : a = 0
   · simp [ha, resultant_zero, hP]
   rw [resultant_swap, C_mul_resultant _ _ _ hP, resultant_swap P Q, natDegree_C_mul ha,
+      mul_left_comm]
+
+/-- Similar to `resultant_C_mul` but the degreeof the polynomial need not be zero.  -/
+lemma resultant_C_mul_of_not_eq_zero [NoZeroDivisors R] (a : R) (ha : a ≠ 0) (P Q : Polynomial R) :
+    P.resultant (C a * Q) = a ^ P.natDegree * P.resultant Q := by
+  rw [resultant_swap, C_mul_resultant_of_not_eq_zero _ ha, resultant_swap P Q, natDegree_C_mul ha,
       mul_left_comm]
 
 lemma resultant_C_mul' [NoZeroDivisors R] (a : R) (P Q : Polynomial R)

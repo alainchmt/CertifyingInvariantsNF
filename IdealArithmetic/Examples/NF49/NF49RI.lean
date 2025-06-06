@@ -13,7 +13,16 @@ open Polynomial
 noncomputable def T : ℤ[X] := X^5 + 15*X^3 - 70*X^2 + 60*X - 24
 lemma T_def : T = X^5 + 15*X^3 - 70*X^2 + 60*X - 24 := rfl
 
-local notation "K" => AdjoinRoot (map (algebraMap ℤ ℚ) T)
+def K := AdjoinRoot (map (algebraMap ℤ ℚ) T)
+
+noncomputable instance : CommRing K := by
+  unfold K
+  infer_instance
+
+noncomputable instance : Algebra ℚ K := by
+  unfold K
+  infer_instance
+
 local notation "l" => [-24, 60, -70, 15, 0, 1]
 
 noncomputable def Adj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) T) :=
@@ -26,7 +35,7 @@ lemma T_ofList : ofList l = T := by
 
 -- We build the subalgebra with integral basis [1, a, a^2, 1/2*a^3 - 1/2*a, 1/24*a^4 - 1/12*a^3 - 5/24*a^2 - 1/2*a - 1/2]
 
-noncomputable def BQ : SubalgebraBuilderLists 5 ℤ  ℚ K T l where
+noncomputable def BQ : SubalgebraBuilderLists 5 ℤ ℚ K T l where
  d :=  24
  hlen := rfl
  htr := rfl
@@ -61,7 +70,6 @@ noncomputable def O := subalgebraOfBuilderLists T l BQ
 
 def hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
 
-noncomputable def B : Basis (Fin 5) ℤ O := basisOfBuilderLists T l BQ
 noncomputable def B' : Basis (Fin 5) ℤ Om :=
   Basis.reindex (AdjoinRoot.basisIntegralClosure T_monic
     (Irreducible.prime T_irreducible)) (finCongr T_degree)
@@ -77,6 +85,8 @@ def Table : Fin 5 → Fin 5 → List ℤ :=
  ![[0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [12, 14, 5, 4, 24], [12, -38, 35, -16, 0], [-12, -2, -13, 4, -20]],
  ![[0, 0, 0, 1, 0], [6, 7, 2, 2, 12], [12, -38, 35, -16, 0], [-51, -36, -36, 18, -102], [12, 54, -18, 12, 45]],
  ![[0, 0, 0, 0, 1], [0, -5, 2, -2, -2], [-12, -2, -13, 4, -20], [12, 54, -18, 12, 45], [6, -18, 18, -10, 1]]]
+
+noncomputable def B : Basis (Fin 5) ℤ O := timesTableO.basis
 
 lemma timesTableT_eq_Table :  ∀ i j , Table i j = List.ofFn (timesTableO.table i j) := by decide
 
@@ -198,7 +208,7 @@ noncomputable def M3 : MaximalOrderCertificateWLists 3 O Om hm where
  ac_indw := ![Sum.inl 0, Sum.inl 1, Sum.inr 0, Sum.inr 1, Sum.inr 2]
  hacindw := by decide
 
-
+/-
  instance : Fact $ (Irreducible (map (algebraMap ℤ ℚ) T)) where
   out :=  (Polynomial.Monic.irreducible_iff_irreducible_map_fraction_map (T_monic)).1 T_irreducible
 
@@ -216,3 +226,4 @@ theorem O_ringOfIntegers : O = integralClosure ℤ K := by
 
 
 theorem  O_ringOfIntegers' : O = NumberField.RingOfIntegers K := by rw [O_ringOfIntegers] ; rfl
+-/
