@@ -497,11 +497,11 @@ end
 
 section
 
-variable [CommRing R] [LinearOrder R]
+variable [CommRing R]
 /-- A list of polynomials is a sturm sequence starting with `p` and `q`
   if it has length at least two, it ends in a non-zero constant polynomial, it has strictly decreasing degree
   and `Pᵢ₊₁ ∣ (e₁ * Pᵢ + fᵢ * Pᵢ₊₂)` with `eᵢ` and `f₁` strictly positive numbers. -/
-structure IsSturmSequence (P : List R[X]) (p q : R[X])  where
+structure IsSturmSequence [LinearOrder R] (P : List R[X]) (p q : R[X])  where
   hlen : 2 ≤ P.length
   h0 : P[0] = p
   h1 : P[1] = q
@@ -511,11 +511,11 @@ structure IsSturmSequence (P : List R[X]) (p q : R[X])  where
     (∃ e f : R, ∃ Q : R[X], 0 < e ∧ 0 < f ∧ C e * P[i] = Q * P[i + 1] - C f * P[i + 2] )
 
 
-lemma sturm_sequence_ne_nil {P : List R[X]} {p q : R[X]}
+lemma sturm_sequence_ne_nil [LinearOrder R] {P : List R[X]} {p q : R[X]}
   (hs : IsSturmSequence P p q) : P ≠ [] := by
   have := hs.hlen
   intro h
-  simp [h] at this
+  simp only [h, List.length_nil, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero] at this
 
 lemma getLastD_eq_getLast_of_ne_nil {α : Type*} {a : α} {l : List α} (h : l ≠ []) :
   l.getLastD a = l.getLast h := by
@@ -527,6 +527,26 @@ lemma getLastD_eq_getLast_of_ne_nil {α : Type*} {a : α} {l : List α} (h : l �
     | (c :: cs) =>
     rw [List.getLast_eq_getLastD, List.getLastD_cons]
 
+lemma zero_not_member_of_mono {P : List R[X]}
+  (hlen : 2 ≤ P.length)
+  (hc : ∃ c : R, c ≠ 0 ∧ P.getLastD 0 = C c)
+  (hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree) : ¬ 0 ∈ P := by
+  intro h
+  rw [List.mem_iff_getElem] at h
+  obtain ⟨i, hile, hi⟩ := h
+  by_cases hieq : i = P.length - 1
+  · simp_rw [hieq] at hi
+    have hsl :=hlen
+    obtain ⟨c, hcz, hzl⟩ := hc
+    rw [← List.getLast_eq_getElem (fun  h => by simp [h] at hsl)] at hi
+    rw [getLastD_eq_getLast_of_ne_nil (_), hi, Eq.comm,
+      Polynomial.C_eq_zero] at hzl
+    exact hcz hzl
+  · have := hmono i (by omega)
+    rw [hi] at this
+    simp at this
+
+variable [LinearOrder R]
 
 /-- The zero polynomial is not in a sturm sequence. -/
 lemma zero_not_member {P : List R[X]} {p q : R[X]}

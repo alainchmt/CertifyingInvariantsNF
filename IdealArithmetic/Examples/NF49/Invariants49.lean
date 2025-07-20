@@ -1,5 +1,7 @@
 import IdealArithmetic.Examples.NF49.NonPrincipalExample49
 import Mathlib.NumberTheory.NumberField.ClassNumber
+import IdealArithmetic.ResultantRecursive
+import IdealArithmetic.DiscriminantSubalgebraBuilder
 
 open BigOperators Classical Matrix Polynomial
 
@@ -216,4 +218,35 @@ theorem five_dvd_class_number : 5 ∣ NumberField.classNumber K := by
   exact orderOf_dvd_card
 
 
-#print axioms five_dvd_class_number
+--#print axioms five_dvd_class_number
+
+theorem T_discr : discriminant T = 518400000000 := by
+  convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
+  rw [T_ofList]
+
+theorem K_discr : NumberField.discr K = 225000000 := by
+  rw [discr_numberField_eq_discrSubalgebraBuilder T_irreducible BQ O_integral_closure]
+  rw [T_discr]
+  rfl
+
+lemma K_nrComplexPlaces : NumberField.InfinitePlace.nrComplexPlaces K = 2 := by
+  rw [nrComplexPlaces_of_RankUnitsCertificate RC]
+  rfl
+
+theorem K_minowski (C : ClassGroup (NumberField.RingOfIntegers K)) :
+  ∃ (I : (nonZeroDivisors (Ideal (NumberField.RingOfIntegers K)))),
+    ClassGroup.mk0 I = C ∧
+    ↑(Ideal.absNorm (↑I : Ideal (NumberField.RingOfIntegers K)) ) ≤ (933.78 : ℝ) := by
+  obtain ⟨I, hI1, hI2⟩ := NumberField.exists_ideal_in_class_of_norm_le (K := K) C
+  use I
+  refine ⟨hI1, ?_ ⟩
+  · refine le_trans hI2 ?_
+    rw [K_nrComplexPlaces, K_discr, K_finrank]
+    norm_num
+    have := Real.pi_gt_d20
+    have : (4 / Real.pi) ^ 2 < (4 / 3.14159265358979323846) ^ 2 := by
+      refine (sq_lt_sq₀ ?_ ?_).mpr ?_
+      · refine div_nonneg (by norm_num) (by exact Real.pi_nonneg)
+      · refine div_nonneg (by norm_num) (by norm_num)
+      · refine div_lt_div_of_pos_left (by norm_num) (by norm_num) this
+    nlinarith

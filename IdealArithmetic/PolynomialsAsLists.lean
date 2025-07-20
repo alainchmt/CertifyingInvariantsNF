@@ -626,6 +626,18 @@ lemma natDegree_ofList (l : List R) (hz : l ≠ 0) (hlz : l = l.dropTrailingZero
   rw [hc, toList_zero] at hlz
   exact hz hlz
 
+lemma natDegree_eq_length_sub_one (l : List R) (hz : l ≠ 0) (hlz : l = l.dropTrailingZeros) :
+  natDegree (ofList l) = l.length - 1 := by
+  apply_fun (fun x ↦ x + 1)
+  dsimp
+  rw [natDegree_ofList l hz hlz]
+  have : 1 ≤ l.length  := by
+    by_contra hc
+    simp only [not_le, Nat.lt_one_iff, List.length_eq_zero_iff] at hc
+    exact hz hc
+  · omega
+  · exact add_left_injective 1
+
 lemma natDegree_ofList' (l : List R) (hz : l.dropTrailingZeros ≠ 0) :
     natDegree (ofList l) + 1 = l.dropTrailingZeros.length := by
   rw [← ofList_dropTrailingZeros_eq_ofList]
