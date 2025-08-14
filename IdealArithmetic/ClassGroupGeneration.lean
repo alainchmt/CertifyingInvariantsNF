@@ -464,7 +464,6 @@ lemma AddEquivOfGenerators_apply {G : Type*} [AddCommGroup G] {ι : Type*} [Fint
     (x : ∀ i : ι , (ZMod (n i))) :
     AddEquivOfGenerators h hgen hdvd x = ∑ i, (x i).val • (g i) := by rfl
 
-
 noncomputable def AddEquivOfGeneratorsMult {G : Type*} [CommGroup G] {ι : Type*} [Fintype ι]
     {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (g i) ^ (n i) = 1)
     (hgen : Subgroup.closure (Set.range g) = ⊤)
@@ -487,6 +486,98 @@ lemma card_of_generators_saturated {G : Type*} [CommGroup G] {ι : Type*} [Finty
   rw [← Nat.card_congr (Additive.toMul (α := G)),
     Nat.card_congr (AddEquivOfGeneratorsMult h hgen hdvd).symm.toEquiv , Nat.card_pi]
   simp only [Nat.card_eq_fintype_card, ZMod.card]
+
+noncomputable def equivClassGroupOfSaturated {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
+  {ι : Type*} [Fintype ι]
+  {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal S} {I' : ι → nonZeroDivisors (Ideal (S))}
+  (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
+  (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (I' i))) = ⊤)
+  (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+  (∀ i : ι , (ZMod (n i))) ≃+ Additive (ClassGroup S) := by
+refine AddEquivOfGeneratorsMult (G := ClassGroup S) (g := (fun i => ClassGroup.mk0 (I' i)))
+  (n := n) ?_ hgen ?_
+· intro i
+  dsimp
+  rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI']
+  use (a i)
+  exact h i
+· intro p hp hpdvd a heq
+  simp_rw [← map_pow, ← map_prod] at heq
+  have aux : (∏ x, I' x ^ a x) = ⟨ (∏ x, I' x ^ a x).1 , (∏ x, I' x ^ a x).2 ⟩ := rfl
+  simp [hI'] at aux
+  rw [aux, ClassGroup.mk0_eq_one_iff] at heq
+  obtain ⟨b ,hb⟩ := heq
+  specialize hdvd p hp hpdvd a b
+  apply hdvd
+  exact hb
+
+lemma equivClassGroupOfSaturated_apply {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
+    {ι : Type*} [Fintype ι]
+    {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal S} {I' : ι → nonZeroDivisors (Ideal (S))}
+    (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
+    (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (I' i))) = ⊤)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+        ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i)
+    (x : ∀ i : ι , (ZMod (n i))) :
+    Additive.toMul (equivClassGroupOfSaturated hI' h hgen hdvd x) =
+      ∏ i, ClassGroup.mk0 (I' i) ^ (x i).val := rfl
+
+-- Here, type herarchy is important. Ring of integers is not of type type, but higher.
+lemma class_number_of_saturated
+  {ι : Type*} [Fintype ι]
+  {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal Oκ} {I' : ι → nonZeroDivisors (Ideal Oκ)}
+  (hI' : ∀ i, ↑(I' i) = I i) {a : ι → Oκ} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
+  (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (I' i))) = ⊤)
+  (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, ∀ b : Oκ, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+  NumberField.classNumber K =  ∏ i, n i := by
+    unfold NumberField.classNumber
+    rw [Fintype.card_eq_nat_card]
+    rw [← Nat.card_congr (Additive.toMul (α := ClassGroup Oκ)),
+      Nat.card_congr (equivClassGroupOfSaturated hI' h hgen hdvd).symm.toEquiv , Nat.card_pi]
+    simp only [Nat.card_eq_fintype_card, ZMod.card]
+
+lemma class_order_of_not_principal {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
+    {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
+    (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
+    (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) :
+    orderOf (ClassGroup.mk0 I') = n := by
+    sorry
+
+
+
+noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
+    {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
+    (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
+    (hgen : Subgroup.closure (Set.range (fun (i : Fin 1) => ClassGroup.mk0 I')) = ⊤)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) :
+  ZMod n ≃+ Additive (ClassGroup S) := by
+  refine AddEquiv.trans ((AddEquiv.piUnique fun (j : Fin 1) ↦ ZMod n).symm) ?_
+  refine equivClassGroupOfSaturated (n := fun (i : Fin 1) => n) (a := fun _ => α)
+    (I := fun (i : Fin 1) => I) (I' := fun (i : Fin 1) => I') ?_ ?_ hgen ?_
+  · simp only [hI', implies_true]
+  · simp only [h, implies_true]
+  · intro p hp hpdvd a b heq i hdvd
+    obtain ⟨z, hz⟩ := hdvd
+    simp only [Finset.univ_unique, Fin.default_eq_zero, Fin.isValue, Finset.prod_const,
+      Finset.card_singleton, pow_one] at hpdvd
+    have : a i = n / p * z:= by
+      rw [Nat.div_mul_right_comm hpdvd, ← hz, Nat.mul_div_cancel_left  _ (Nat.Prime.pos hp)]
+    intro j
+    have haeq : a i = a j := by
+      congr
+      rw [Fin.fin_one_eq_zero i, Fin.fin_one_eq_zero j]
+    rw [← haeq]
+    suffices hzdvd : p ∣ z from by
+      obtain ⟨t, ht⟩ := hzdvd
+      rw [ht] at this
+      rw [this, ← mul_assoc, Nat.div_mul_cancel hpdvd]
+      exact Nat.dvd_mul_right n t
+    simp only [Finset.univ_unique, Fin.default_eq_zero, Fin.isValue, Finset.prod_singleton] at heq
+    rw [← Fin.fin_one_eq_zero i, this, pow_mul] at heq
+    rw [← Nat.div_mul_cancel hpdvd, pow_mul] at h
+    sorry
 
 
 
