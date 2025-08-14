@@ -2,6 +2,7 @@ import Mathlib.NumberTheory.NumberField.ClassNumber
 import Mathlib.NumberTheory.SmoothNumbers
 import Mathlib.NumberTheory.RamificationInertia.Basic
 import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+import Mathlib.Algebra.Group.Subgroup.Finsupp
 
 noncomputable def MinkowskiBound (K : Type*) [Field K] [NumberField K] : ℝ :=
   (4 / Real.pi) ^ NumberField.InfinitePlace.nrComplexPlaces K *
@@ -67,7 +68,6 @@ constructor
 
 
 /-- This is now in Mathlib by Riccardo -/
-
 lemma Ideal.absNorm_eq_pow_inertiaDeg {R : Type*} [CommRing R][IsDedekindDomain R]
     [Module.Free ℤ R] [Module.Finite ℤ R] {p : ℤ}
     (P : Ideal R) [P.LiesOver (span {p})] (hp: Prime p) :
@@ -244,17 +244,17 @@ lemma subgroup_closure_eq_of_invertible_relation {G : Type*} {m n r : Type}
 
 -- I prefer to use less than in the bound, because I can use the primes less than type.
 lemma subgroup_closure_eq_classGroup {m n r : Type} {b : ℕ}
-  [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
-  {g : m → Ideal Oκ} {g' : m → nonZeroDivisors (Ideal (Oκ))}
-  {x : n → Ideal Oκ} {x' : n → nonZeroDivisors (Ideal (Oκ))}
-  (hg' : ∀ i, ↑(g' i) = g i) (hx' : ∀ i, ↑(x' i) = x i)
-  (hB : MinkowskiBound K < b)
-  (hg : {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < b} ⊆ Set.range g)
-  {A : Matrix r m ℕ} {B : Matrix r n ℕ}
-  (hA : ∃ M : Matrix m r ℤ, M * A.map (algebraMap ℕ ℤ) = 1)
-  (hgmul : ∀ i, ∃ (α β : Oκ), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
-     Ideal.span {α} * ∏ j , (g j) ^ (A i j) = Ideal.span {β} * ∏ j, (x j) ^ (B i j)) :
-    Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (x' i))) = ⊤ := by
+    [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
+    {g : m → Ideal Oκ} {g' : m → nonZeroDivisors (Ideal (Oκ))}
+    {x : n → Ideal Oκ} {x' : n → nonZeroDivisors (Ideal (Oκ))}
+    (hg' : ∀ i, ↑(g' i) = g i) (hx' : ∀ i, ↑(x' i) = x i)
+    (hB : MinkowskiBound K < b)
+    (hg : {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < b} ⊆ Set.range g)
+    {A : Matrix r m ℕ} {B : Matrix r n ℕ}
+    (hA : ∃ M : Matrix m r ℤ, M * A.map (algebraMap ℕ ℤ) = 1)
+    (hgmul : ∀ i, ∃ (α β : Oκ), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
+      Ideal.span {α} * ∏ j , (g j) ^ (A i j) = Ideal.span {β} * ∏ j, (x j) ^ (B i j)) :
+      Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (x' i))) = ⊤ := by
   have hgnz : ∀ i , g i ∈ nonZeroDivisors (Ideal Oκ) := by
         intro i
         rw [← (hg' i )]
@@ -295,15 +295,15 @@ lemma subgroup_closure_eq_classGroup {m n r : Type} {b : ℕ}
     simp only [Subgroup.mem_top, implies_true]
 
 lemma subgroup_closure_eq_classGroup' {m n r : Type} {b : ℕ}
-  [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
-  {g : m → Ideal Oκ} {g' : m → nonZeroDivisors (Ideal (Oκ))}
-  {x : n → Ideal Oκ} {x' : n → nonZeroDivisors (Ideal (Oκ))}
-  (hg' : ∀ i, ↑(g' i) = g i) (hx' : ∀ i, ↑(x' i) = x i)
-  (hB : MinkowskiBound K < b)
-  (hg : {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < b} ⊆ Set.range g)
-  (B : Matrix m n ℕ) (hgmul : ∀ i, ∃ (α β : Oκ), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
-     Ideal.span {α} * (g i) = Ideal.span {β} * ∏ j, (x j) ^ (B i j)) :
-    Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (x' i))) = ⊤ := by
+    [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
+    {g : m → Ideal Oκ} {g' : m → nonZeroDivisors (Ideal (Oκ))}
+    {x : n → Ideal Oκ} {x' : n → nonZeroDivisors (Ideal (Oκ))}
+    (hg' : ∀ i, ↑(g' i) = g i) (hx' : ∀ i, ↑(x' i) = x i)
+    (hB : MinkowskiBound K < b)
+    (hg : {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < b} ⊆ Set.range g)
+    (B : Matrix m n ℕ) (hgmul : ∀ i, ∃ (α β : Oκ), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
+      Ideal.span {α} * (g i) = Ideal.span {β} * ∏ j, (x j) ^ (B i j)) :
+      Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (x' i))) = ⊤ := by
   refine subgroup_closure_eq_classGroup hg' hx' hB hg (A := 1) (B := B) ?_ ?_
   · use 1
     simp only [eq_natCast, CharP.cast_eq_zero, Nat.cast_one, Matrix.map_one, mul_one]
@@ -321,6 +321,211 @@ lemma subgroup_closure_eq_classGroup' {m n r : Type} {b : ℕ}
       exact hbn hc.symm
     · simp only [Finset.mem_univ, not_true_eq_false, Matrix.one_apply_eq, pow_one,
       Ideal.one_eq_top, IsEmpty.forall_iff]
+
+------------------------------------------------------------------------------
+/- # Group p-saturation -/
+
+lemma addOrderOf_ne_eq_addSubgroup {ι : Type*} (n : ι → ℕ) [∀ i, NeZero (n i)]
+    {p : ℕ} (hpos : 1 < p) (H : AddSubgroup (∀ i : ι , (ZMod (n i))))
+    (hdvd : ∀ a : ι → ℕ, (fun i => ↑(a i)) ∈ H →  ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    ∀ b ∈ H , addOrderOf b ≠ p := by
+  by_contra! hc
+  obtain ⟨b, hb1, hb2⟩ := hc
+  rw [addOrderOf_eq_iff (by omega)] at hb2
+  specialize hdvd (fun i => (b i).val)
+  suffices h : b = 0 from by
+    · rw [h] at hb2
+      simp only [smul_zero, ne_eq, not_true_eq_false, imp_false, not_lt, nonpos_iff_eq_zero,
+        true_and] at hb2
+      specialize hb2 1 hpos
+      contradiction
+  ext i
+  dsimp
+  rw [← ZMod.natCast_zmod_val (b i), ZMod.natCast_zmod_eq_zero_iff_dvd]
+  refine hdvd ?_ i ?_ i
+  · convert hb1
+    exact ZMod.natCast_zmod_val (b _)
+  · rcases hb2 with ⟨hb21, hb22⟩
+    apply_fun (fun f => f i) at hb21
+    simp only [Pi.smul_apply, nsmul_eq_mul, Pi.zero_apply] at hb21
+    rw [← ZMod.natCast_zmod_eq_zero_iff_dvd]
+    simp only [Nat.cast_mul, ZMod.natCast_val, ZMod.cast_id', id_eq, hb21]
+
+lemma addHom_card_ker_dvd_of_dvd {G : Type*} [AddGroup G] {ι : Type*} [Finite ι]
+  {n : ι → ℕ} [∀ i, NeZero (n i)] {p : ℕ} [hp: Fact $ Nat.Prime p]
+  (φ : (∀ i : ι , (ZMod (n i))) →+ G)
+  (hdvd : ∀ a : ι → ℕ, φ (fun i => a i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    ¬ p ∣ Nat.card (φ.ker) := by
+  intro hc
+  haveI : Fintype (φ.ker) := Fintype.ofFinite ↥φ.ker
+  obtain ⟨b, hb⟩ := exists_prime_addOrderOf_dvd_card (G := φ.ker) p
+    (by rw [Fintype.card_eq_nat_card] ; exact hc)
+  refine addOrderOf_ne_eq_addSubgroup n (Nat.Prime.one_lt hp.out) φ.ker ?_ b.1 b.2 ?_
+  · intro a ha i hi
+    exact hdvd a (AddMonoidHom.mem_ker.1 ha) i hi
+  · rw [AddSubgroup.addOrderOf_coe]
+    exact hb
+
+lemma addHom_injective_of_dvd {G : Type*} [AddGroup G] {ι : Type*} [Fintype ι]
+    {n : ι → ℕ} [∀ i, NeZero (n i)]
+    (φ : (∀ i : ι , (ZMod (n i))) →+ G)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, φ (fun i => a i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    Function.Injective φ := by
+  refine (AddMonoidHom.ker_eq_bot_iff φ).mp ?_
+  rw [← AddSubgroup.card_eq_one, Nat.eq_one_iff_not_exists_prime_dvd]
+  intro p hp
+  haveI : Fact $ Nat.Prime p := {out := hp}
+  by_cases hc : p ∣ ∏ i, n i
+  · specialize hdvd p hp hc
+    exact addHom_card_ker_dvd_of_dvd φ hdvd
+  · intro hdvd
+    have := dvd_trans hdvd (AddSubgroup.card_addSubgroup_dvd_card φ.ker)
+    rw [Nat.card_pi] at this
+    simp only [Nat.card_eq_fintype_card, ZMod.card] at this
+    exact hc this
+
+noncomputable def EquivOfSurjectiveOfDvd {G : Type*} [AddGroup G] {ι : Type*} [Fintype ι]
+    {n : ι → ℕ} [∀ i, NeZero (n i)]
+    (φ : (∀ i : ι , (ZMod (n i))) →+ G) (hs : Function.Surjective φ)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, φ (fun i => a i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    (∀ i : ι , (ZMod (n i))) ≃+ G := by
+  apply AddEquiv.ofBijective φ
+  constructor
+  · exact addHom_injective_of_dvd φ hdvd
+  · exact hs
+
+def AddHomOfGenerators {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
+    {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)]
+    (h : ∀ i, (n i) • (g i) = 0) : (∀ i : ι , (ZMod (n i))) →+ G where
+  toFun := by
+    intro x
+    exact ∑ i, (x i).val • (g i)
+  map_zero' := by
+    simp only [Pi.zero_apply, ZMod.val_zero, zero_smul, Finset.sum_const_zero]
+  map_add' := by
+    intro x y
+    rw [← Finset.sum_add_distrib]
+    apply Finset.sum_congr rfl
+    intro i hi
+    rw [← add_nsmul, nsmul_eq_nsmul_iff_modEq, Nat.modEq_iff_dvd]
+    refine dvd_trans (Nat.cast_dvd_cast (addOrderOf_dvd_iff_nsmul_eq_zero.2 (h i))) ?_
+    rw [← ZMod.intCast_eq_intCast_iff_dvd_sub]
+    simp only [Pi.add_apply, ZMod.natCast_val, ZMod.intCast_cast, ZMod.cast_add', ZMod.cast_id',
+      id_eq, Nat.cast_add, Int.cast_add]
+
+lemma AddHomOfGenerators_apply {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
+    {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)]
+    (h : ∀ i, (n i) • (g i) = 0) (x : ∀ i : ι , (ZMod (n i))) :
+    AddHomOfGenerators h x = ∑ i, (x i).val • (g i) := by rfl
+
+lemma AddHomOfGenerators_surjective {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
+    {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)]
+    (h : ∀ i, (n i) • (g i) = 0) (hgen : AddSubgroup.closure (Set.range g) = ⊤) :
+    Function.Surjective (AddHomOfGenerators h) := by
+  intro y
+  have ymem : y ∈ AddSubgroup.closure (Set.range g) := by
+    rw [hgen]
+    exact trivial
+  obtain ⟨a, ha⟩ := AddSubgroup.exists_of_mem_closure_range g y ymem
+  use (fun i => (a i))
+  rw [AddHomOfGenerators_apply, ha]
+  apply Finset.sum_congr rfl
+  intro i hi
+  rw [← natCast_zsmul, zsmul_eq_zsmul_iff_modEq, Int.modEq_iff_dvd]
+  refine dvd_trans (Nat.cast_dvd_cast (addOrderOf_dvd_iff_nsmul_eq_zero.2 (h i))) ?_
+  rw [← ZMod.intCast_eq_intCast_iff_dvd_sub]
+  simp only [ZMod.natCast_val, ZMod.intCast_cast, ZMod.cast_intCast']
+
+noncomputable def AddEquivOfGenerators {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
+    {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (n i) • (g i) = 0)
+    (hgen : AddSubgroup.closure (Set.range g) = ⊤)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, ∑ i, (a i) • (g i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    (∀ i : ι , (ZMod (n i))) ≃+ G := by
+  refine EquivOfSurjectiveOfDvd (AddHomOfGenerators h) (AddHomOfGenerators_surjective h hgen) ?_
+  intro p hp hpdvd a ha
+  rw [AddHomOfGenerators_apply] at ha
+  apply hdvd p hp hpdvd
+  rw [← ha]
+  apply Finset.sum_congr rfl
+  intro i hi
+  rw [← natCast_zsmul, ← natCast_zsmul, zsmul_eq_zsmul_iff_modEq, Int.modEq_iff_dvd]
+  refine dvd_trans (Nat.cast_dvd_cast (addOrderOf_dvd_iff_nsmul_eq_zero.2 (h i))) ?_
+  rw [← ZMod.intCast_eq_intCast_iff_dvd_sub]
+  simp only [Int.cast_natCast, ZMod.val_natCast, Int.natCast_emod, ZMod.intCast_mod]
+
+lemma AddEquivOfGenerators_apply {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
+    {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (n i) • (g i) = 0)
+    (hgen : AddSubgroup.closure (Set.range g) = ⊤)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, ∑ i, (a i) • (g i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i)
+    (x : ∀ i : ι , (ZMod (n i))) :
+    AddEquivOfGenerators h hgen hdvd x = ∑ i, (x i).val • (g i) := by rfl
+
+
+noncomputable def AddEquivOfGeneratorsMult {G : Type*} [CommGroup G] {ι : Type*} [Fintype ι]
+    {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (g i) ^ (n i) = 1)
+    (hgen : Subgroup.closure (Set.range g) = ⊤)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, ∏ i, (g i) ^ (a i) = 1 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    (∀ i : ι , (ZMod (n i))) ≃+ Additive G := by
+    refine AddEquivOfGenerators (g := g) (n := n) (G := Additive G) h ?_ hdvd
+    · apply_fun Subgroup.toAddSubgroup at hgen
+      rw [Subgroup.toAddSubgroup_closure, Set.preimage_equiv_eq_image_symm,
+        ← Set.range_comp] at hgen
+      simp only [Additive.toMul_symm_eq, map_top] at hgen
+      exact hgen
+
+lemma card_of_generators_saturated {G : Type*} [CommGroup G] {ι : Type*} [Fintype ι]
+    {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (g i) ^ (n i) = 1)
+    (hgen : Subgroup.closure (Set.range g) = ⊤)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
+      ∀ a : ι → ℕ, ∏ i, (g i) ^ (a i) = 1 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    Nat.card G = ∏ i, n i := by
+  rw [← Nat.card_congr (Additive.toMul (α := G)),
+    Nat.card_congr (AddEquivOfGeneratorsMult h hgen hdvd).symm.toEquiv , Nat.card_pi]
+  simp only [Nat.card_eq_fintype_card, ZMod.card]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/-
+lemma foo (G : Type*) [AddGroup G] {ι : Type*} (n : ι → ℕ) [∀ i, NeZero (n i)]
+  {p : ℕ} (hpos : 1 < p) (φ : (∀ i : ι , (ZMod (n i))) →+ G)
+  (hdiv : ∀ a : ι → ℕ, φ (fun i => a i) = 0 →  ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    ∀ b ∈ φ.ker , addOrderOf b ≠ p := by
+
+-/
+
 
 
 
