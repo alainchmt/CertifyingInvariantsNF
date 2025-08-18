@@ -171,6 +171,9 @@ refine le_antisymm ?_ ?_
 
 -- Even though we could use the to_additive attribute in the multiplicative version,
 -- proving the additive version first is easier.
+
+-- Why use functions instead of lists? Because its better to use the linear algebra library,
+-- where vectors and encoded in such a way.
 lemma addSubgroup_closure_le_of_invertible_relation {G : Type*} {m n r : Type}
   [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
   [AddCommGroup G] {g : m → G} {x : n → G} {A : Matrix r m ℤ} {B : Matrix r n ℤ}
@@ -322,6 +325,54 @@ lemma subgroup_closure_eq_classGroup' {m n r : Type} {b : ℕ}
     · simp only [Finset.mem_univ, not_true_eq_false, Matrix.one_apply_eq, pow_one,
       Ideal.one_eq_top, IsEmpty.forall_iff]
 
+----------------------------------------------------------------------------------
+/- How should I store the prime ideal info?
+Maybe as a list of pairs ℕ × Ideal O, carrying ⟨p, I⟩ with I a prime ideal above p?
+It's better do it local and then reconstruct it. Create a structure for each p.
+Then a bigger one that proves that it is for all p's below certain bound, and
+cetrtificates for each multiplication.
+
+It seems to be better to use Lists instead of functions because, although the first allows for
+easier indexing, the second has the flatten function which is rather useful.
+-/
+
+structure PrimesBelowPCertificate {S : Type*} [CommRing S]
+  (p : ℕ) (L : List (Ideal S)) where
+  Ip : ∀ I ∈ L, I.IsPrime
+  hPprod : L.prod = Ideal.span {↑p}
+
+#eval Nat.primesBelow 100
+
+structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] (B : ℕ) where
+  m : ℕ
+  P : Fin m → ℕ
+  hP : Set.range P = Nat.primesBelow B
+  hI : Fin m → List (Ideal S)
+  hC : ∀ i : Fin m, PrimesBelowPCertificate (P i) (hI i)
+
+variable (B : ℕ)
+
+
+lemma eq_primes_below_bound_of_PrimesBelowBoundCertificate {B r : ℕ}
+  (g : Fin r → Ideal Oκ) (A : PrimesBelowBoundCertificate Oκ B)
+  (h : List.flatten (List.ofFn A.hI) = List.ofFn g) :
+  Set.range g = {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < b} := by sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#exit
 ------------------------------------------------------------------------------
 /- # Group p-saturation -/
 
@@ -512,6 +563,7 @@ refine AddEquivOfGeneratorsMult (G := ClassGroup S) (g := (fun i => ClassGroup.m
   apply hdvd
   exact hb
 
+@[simp]
 lemma equivClassGroupOfSaturated_apply {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
     {ι : Type*} [Fintype ι]
     {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal S} {I' : ι → nonZeroDivisors (Ideal (S))}
@@ -543,14 +595,22 @@ lemma class_order_of_not_principal {S : Type*} [CommRing S] [IsDomain S] [IsDede
     (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
     (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) :
     orderOf (ClassGroup.mk0 I') = n := by
-    sorry
-
-
+    apply orderOf_eq_of_pow_and_pow_div_prime
+    · exact Nat.pos_of_neZero n
+    · rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI']
+      use α
+      exact h
+    · intro p hp hpdvd hc
+      rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI'] at hc
+      apply hdvd p hp hpdvd
+      obtain ⟨b, hb⟩ := hc
+      use b
+      exact hb
 
 noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
     {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
     (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
-    (hgen : Subgroup.closure (Set.range (fun (i : Fin 1) => ClassGroup.mk0 I')) = ⊤)
+    (hgen : Subgroup.closure (Set.range (fun (_ : Fin 1) => ClassGroup.mk0 I')) = ⊤)
     (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) :
   ZMod n ≃+ Additive (ClassGroup S) := by
   refine AddEquiv.trans ((AddEquiv.piUnique fun (j : Fin 1) ↦ ZMod n).symm) ?_
@@ -562,26 +622,39 @@ noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsD
     obtain ⟨z, hz⟩ := hdvd
     simp only [Finset.univ_unique, Fin.default_eq_zero, Fin.isValue, Finset.prod_const,
       Finset.card_singleton, pow_one] at hpdvd
-    have : a i = n / p * z:= by
-      rw [Nat.div_mul_right_comm hpdvd, ← hz, Nat.mul_div_cancel_left  _ (Nat.Prime.pos hp)]
-    intro j
-    have haeq : a i = a j := by
-      congr
-      rw [Fin.fin_one_eq_zero i, Fin.fin_one_eq_zero j]
-    rw [← haeq]
-    suffices hzdvd : p ∣ z from by
-      obtain ⟨t, ht⟩ := hzdvd
-      rw [ht] at this
-      rw [this, ← mul_assoc, Nat.div_mul_cancel hpdvd]
-      exact Nat.dvd_mul_right n t
     simp only [Finset.univ_unique, Fin.default_eq_zero, Fin.isValue, Finset.prod_singleton] at heq
-    rw [← Fin.fin_one_eq_zero i, this, pow_mul] at heq
-    rw [← Nat.div_mul_cancel hpdvd, pow_mul] at h
-    sorry
+    have : (ClassGroup.mk0 I') ^ (a 0) = 1 := by
+       rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI']
+       exact ⟨b, heq⟩
+    intro i
+    dsimp
+    rw [Fin.fin_one_eq_zero i]
+    convert orderOf_dvd_of_pow_eq_one this
+    exact (class_order_of_not_principal hI' h hdvd).symm
 
+lemma equivClassGroupCyclicOfSaturated_apply {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
+    {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
+    (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
+    (hgen : Subgroup.closure (Set.range (fun (_ : Fin 1) => ClassGroup.mk0 I')) = ⊤)
+    (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) (x : ZMod n) :
+    Additive.toMul (equivClassGroupCyclicOfSaturated hI' h hgen hdvd x) =
+      ClassGroup.mk0 I' ^ x.val := by
+    unfold equivClassGroupCyclicOfSaturated
+    simp only [AddEquiv.trans_apply, equivClassGroupOfSaturated_apply, Finset.univ_unique,
+      Fin.default_eq_zero, Fin.isValue, AddEquiv.piUnique_symm_apply, uniqueElim_const,
+      Finset.prod_const, Finset.card_singleton, pow_one]
 
-
-
+lemma class_number_of_saturated_of_cyclic
+  {n : ℕ} [NeZero n]  {I : Ideal Oκ} {I' : nonZeroDivisors (Ideal Oκ)}
+  (hI' : ↑I' = I) {a : Oκ} (h : I ^ n = Ideal.span {a})
+  (hgen : Subgroup.closure (Set.range (fun (_ : Fin 1) => ClassGroup.mk0 I')) = ⊤)
+  (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) :
+  NumberField.classNumber K =  n := by
+    unfold NumberField.classNumber
+    rw [Fintype.card_eq_nat_card]
+    rw [← Nat.card_congr (Additive.toMul (α := ClassGroup Oκ)),
+      Nat.card_congr (equivClassGroupCyclicOfSaturated  hI' h hgen hdvd).symm.toEquiv]
+    simp only [Nat.card_eq_fintype_card, ZMod.card]
 
 
 
