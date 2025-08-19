@@ -334,43 +334,94 @@ cetrtificates for each multiplication.
 
 It seems to be better to use Lists instead of functions because, although the first allows for
 easier indexing, the second has the flatten function which is rather useful.
+
+Actually, I also need to store the norms of the ideals. So maybe it is better to use
+Fn's.
 -/
 
-structure PrimesBelowPCertificate {S : Type*} [CommRing S]
-  (p : ℕ) (L : List (Ideal S)) where
-  Ip : ∀ I ∈ L, I.IsPrime
-  hPprod : L.prod = Ideal.span {↑p}
+structure PrimesBelowPCertificate {S : Type*} [CommRing S] (p : ℕ) {g : ℕ} (F : Fin g → Ideal S) where
+  Ip : ∀ i, (F i).IsPrime
+  hPprod : ∏ i, F i = Ideal.span {↑p}
 
 #eval Nat.primesBelow 100
 
-structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] (B : ℕ) where
+structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] [IsDedekindDomain S]
+  [Module.Free ℤ S] (B : ℕ) where
   m : ℕ
+  g : Fin m → ℕ
   P : Fin m → ℕ
   hP : Set.range P = Nat.primesBelow B
-  hI : Fin m → List (Ideal S)
-  hC : ∀ i : Fin m, PrimesBelowPCertificate (P i) (hI i)
-
-variable (B : ℕ)
-
-
-lemma eq_primes_below_bound_of_PrimesBelowBoundCertificate {B r : ℕ}
-  (g : Fin r → Ideal Oκ) (A : PrimesBelowBoundCertificate Oκ B)
-  (h : List.flatten (List.ofFn A.hI) = List.ofFn g) :
-  Set.range g = {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < b} := by sorry
+  I : Π i,  Fin (g i) → (Ideal S) -- Factorization for the i-th prime.
+  hC : ∀ i : Fin m, PrimesBelowPCertificate (P i) (I i)
+  N :  Π i,  Fin (g i) → ℕ -- Norms corresponding to the factorization of the i-th prime.
+  hN : ∀ i, ∀ j, (I i j).absNorm = N i j
+  Il : Fin m → List (Ideal S) -- List of ideals over the i-th prime, with norm less than B
+  hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B) (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
 
 
 
+-- List.map (List.filter (List.zip (List.ofFn (A.I i)) (List.ofFn (A.N i))) (λ p => p.2 < B)) Prod.fst
 
+variable (A : Type*) (a : A) (b : A) (c : A)
 
+example : List.map (Prod.fst) (List.filter (λ p => p.2 ≤ 2) (List.zip (List.ofFn ![a,b,c]) (List.ofFn ![1,2,3]))) = [a ,b ] := by rfl
+--#check List.zip [a,b,c] [1,2,3]
 
+open Classical
 
-
-
-
-
-
-
-
+-- Assuming equality in h, this equality actually holds, but we need to impose
+-- the extra restriction that the function P is injective in order to prove it.
+lemma le_primes_below_bound_of_PrimesBelowBoundCertificate {B r : ℕ}
+    (g : Fin r → Ideal Oκ) (A : PrimesBelowBoundCertificate Oκ B)
+    (h : List.flatten (List.ofFn A.Il) ⊆ List.ofFn g) :
+    {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < B} ⊆ Set.range g := by
+  let F : Nat.primesBelow B → Multiset (Ideal Oκ) := by
+    rintro ⟨p, hp1⟩
+    rw [← Finset.mem_coe, ← A.hP] at hp1
+    choose i hi using hp1
+    exact ↑(List.ofFn (A.I i))
+  have : ∀ i , ∀ I, I ∈ List.ofFn (A.I i) ∧ I.absNorm < B → I ∈ A.Il i := by
+    intro i I
+    rw [← A.hIl i]
+    simp only [List.mem_map, List.mem_filter, decide_eq_true_eq, Prod.exists, exists_and_right,
+      exists_eq_right, List.mem_ofFn]
+    have heql : ((List.ofFn (A.I i)).zip (List.ofFn (A.N i))).length = (A.g i) := by
+        rw [List.length_zip]
+        simp only [List.length_ofFn, min_self]
+    · rintro ⟨⟨j, hj⟩, hx⟩
+      use A.N i j
+      rw [List.mem_iff_get]
+      constructor
+      · use finCongr (heql).symm j
+        simp only [finCongr_apply, List.get_eq_getElem, Fin.coe_cast, List.getElem_zip,
+          List.getElem_ofFn, Fin.eta, hj]
+      · rw [← A.hN i j, hj]
+        exact hx
+  intro x
+  rw [Set.mem_range, ← List.mem_ofFn]
+  intro hc ; apply h ; revert hc
+  rw [List.mem_flatten, primes_below_bound_of_factorization B F]
+  simp only [Set.mem_iUnion, Set.mem_setOf_eq, exists_and_right, Subtype.exists, List.mem_ofFn,
+    exists_exists_eq_and, and_imp, forall_exists_index]
+  intro p hpmem hF hn
+  simp only [F, eq_mp_eq_cast, cast_eq, Multiset.mem_coe, List.mem_ofFn] at hF
+  obtain ⟨j, hj⟩ := hF
+  use @choose (Fin A.m) (fun y ↦ A.P y = p) (cast (congrArg (fun _a ↦ p ∈ _a) (Eq.symm A.hP)) hpmem)
+  apply this
+  rw [← hj]
+  simp only [List.mem_ofFn, exists_apply_eq_apply, true_and]
+  rw [hj]
+  exact hn
+  · intro p I hI
+    simp only [F, eq_mp_eq_cast, cast_eq, Multiset.mem_coe, List.mem_ofFn] at hI
+    obtain ⟨j, hj⟩ := hI
+    rw [← hj]
+    exact (A.hC _ ).Ip j
+  · intro p
+    simp only [F, eq_mp_eq_cast, cast_eq, Multiset.prod_coe]
+    rw [List.prod_ofFn, (A.hC _ ).hPprod]
+    congr
+    exact @choose_spec (Fin A.m) (fun y ↦ A.P y = ↑p) _
 
 #exit
 ------------------------------------------------------------------------------
