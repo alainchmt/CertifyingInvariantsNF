@@ -687,9 +687,10 @@ structure PrimeIdeal (O : Type*) (p : ℕ) [Fact $ Nat.Prime p] [CommRing O]  wh
   c : Fin r → ℤ
   a : Fin r → ℤ
   hcmem : TT.basis.equivFun.symm c ∈ I
-  hpmem : ↑p ∈ I
   z : Fin r → ℤ
+  --hpmem : ↑p ∈ I
   hBz : TT.basis.equivFun.symm z = 1
+  hpmem : TT.basis.equivFun.symm ((p : ℤ) • z) ∈ I
   hpol : List.ofFn c = List.sum
       (List.ofFn (fun (i : Fin (n + 1)) => if i = 0 then List.mulPointwise (P[i]' (by rw [hlen]; exact i.isLt)) (List.ofFn z)
       else List.mulPointwise (P[i]' (by rw [hlen] ; exact i.isLt )) (nPow_sq_table T (List.ofFn a) i) ))
@@ -779,7 +780,12 @@ noncomputable def isAdjoinRoot_quot_ofPrimeIdeal {O : Type*} {p : ℕ} [Fact $ N
 
 noncomputable def PrimeIdeal_residue_field_is_field {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
     (I : PrimeIdeal O p) : IsField (O ⧸ I.I) := by
-  haveI := ZModP_algebra_of_mem I.I p I.hpmem
+  have hpmem : ↑p ∈ I.I := by
+    have := I.hpmem
+    rw [LinearEquiv.map_smul, I.hBz] at this
+    simp only [zsmul_eq_mul, Int.cast_natCast, mul_one] at this
+    exact this
+  haveI := ZModP_algebra_of_mem I.I p hpmem
   haveI := PrimeIdeal_residue_field_finite_dimensional I
   refine field_of_adjoin_root_irreducible (K := O ⧸ I.I) I.f I.hirr ?_ ?_
   · use ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a))

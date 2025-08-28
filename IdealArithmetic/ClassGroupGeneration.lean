@@ -345,8 +345,7 @@ structure PrimesBelowPCertificate {S : Type*} [CommRing S] (p : ℕ) {g : ℕ} (
 
 #eval Nat.primesBelow 100
 
-structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] [IsDedekindDomain S]
-  [Module.Free ℤ S] (B : ℕ) where
+structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] (B : ℕ) where
   m : ℕ
   g : Fin m → ℕ
   P : Fin m → ℕ
@@ -354,7 +353,7 @@ structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] [I
   I : Π i,  Fin (g i) → (Ideal S) -- Factorization for the i-th prime.
   hC : ∀ i : Fin m, PrimesBelowPCertificate (P i) (I i)
   N :  Π i,  Fin (g i) → ℕ -- Norms corresponding to the factorization of the i-th prime.
-  hN : ∀ i, ∀ j, (I i j).absNorm = N i j
+  hN : ∀ i, ∀ j, Nat.card (S ⧸ I i j) = N i j
   Il : Fin m → List (Ideal S) -- List of ideals over the i-th prime, with norm less than B
   hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B) (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
 
@@ -423,7 +422,7 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate {B r : ℕ}
     congr
     exact @choose_spec (Fin A.m) (fun y ↦ A.P y = ↑p) _
 
-#exit
+
 ------------------------------------------------------------------------------
 /- # Group p-saturation -/
 
