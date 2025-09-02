@@ -325,6 +325,227 @@ lemma subgroup_closure_eq_classGroup' {m n r : Type} {b : ℕ}
     · simp only [Finset.mem_univ, not_true_eq_false, Matrix.one_apply_eq, pow_one,
       Ideal.one_eq_top, IsEmpty.forall_iff]
 
+
+/- noncomputable def ClassGroup.congr (R S : Type*) [CommRing R] [IsDedekindDomain R] [CommRing S] [IsDomain R] [IsDomain S]
+  (equiv : R ≃* S) : ClassGroup R ≃* ClassGroup S := by
+  unfold ClassGroup
+  refine QuotientGroup.congr (G := (FractionalIdeal (nonZeroDivisors R) (FractionRing R))ˣ)
+    (H := (FractionalIdeal (nonZeroDivisors S) (FractionRing S))ˣ) (G' := (toPrincipalIdeal R (FractionRing R)).range)
+    (H' := (toPrincipalIdeal S (FractionRing S)).range) ?_ ?_
+  · exact {
+    toFun := by
+      rintro ⟨⟨I, hI⟩ , hu⟩
+
+    }
+  --toFun := by
+  --  intro I
+  --  obtain ⟨J, hJ⟩ := ClassGroup.mk0_surjective I -/
+
+-- We assume Dedekind domain to make the proof easier, since we can use mk0.
+noncomputable def ClassGroup.map0 {R S : Type*} [CommRing R]
+  [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
+  [IsDomain R] [IsDomain S]
+  (φ : R →+* S) (hinj : Function.Injective φ) : ClassGroup R →* ClassGroup S where
+    toFun := by
+      intro I
+      choose J hJ using ClassGroup.mk0_surjective I
+      have : Ideal.map φ J.val ∈ nonZeroDivisors (Ideal S) := by
+        simp only [mem_nonZeroDivisors_iff_ne_zero,
+        Submodule.zero_eq_bot, ne_eq]
+        rw [Ideal.map_eq_bot_iff_le_ker]
+        simp only [(RingHom.injective_iff_ker_eq_bot _).1 hinj, le_bot_iff]
+        intro hc
+        exact (mem_nonZeroDivisors_iff_ne_zero.1 J.2) hc
+      exact (mk0 ⟨_, this⟩ )
+    map_one' := by
+      dsimp
+      have := Classical.choose_spec (mk0_surjective (1  : ClassGroup R))
+      erw [ClassGroup.mk0_eq_one_iff]
+      apply Submodule.IsPrincipal.map_ringHom
+      rw [← ClassGroup.mk0_eq_one_iff]
+      exact this
+    map_mul' := by
+      dsimp
+      intro x y
+      have hxy := Classical.choose_spec (mk0_surjective (x * y  : ClassGroup R))
+      have hx:= Classical.choose_spec (mk0_surjective (x  : ClassGroup R))
+      have hy := Classical.choose_spec (mk0_surjective (y  : ClassGroup R))
+      rw [← map_mul, ClassGroup.mk0_eq_mk0_iff]
+      rw [← hx, ← hy, ← map_mul, ClassGroup.mk0_eq_mk0_iff] at hxy
+      obtain ⟨a, b, ha, hb, hab⟩ := hxy
+      use φ a, φ b, ((map_ne_zero_iff φ hinj).mpr ha) ,  ((map_ne_zero_iff φ hinj).mpr hb)
+      apply_fun (fun I => Ideal.map φ I) at hab
+      simp only [map_mul, Ideal.map_mul, Ideal.map_span, Set.image_singleton,
+        Submonoid.coe_mul, hx, hy] at hab
+      convert hab
+
+lemma ClassGroup.map0_apply {R S : Type*} [CommRing R]
+  [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
+  [IsDomain R] [IsDomain S]
+  (φ : R →+* S) (hinj : Function.Injective φ)
+  (I : nonZeroDivisors (Ideal R)) (J : nonZeroDivisors (Ideal S))
+  (hI : ↑J = Ideal.map φ I) : ClassGroup.map0 φ hinj (mk0 I) = mk0 J := by
+  have haux := Classical.choose_spec (mk0_surjective (mk0 I  : ClassGroup R))
+  unfold map0
+  dsimp
+  rw [ClassGroup.mk0_eq_mk0_iff] at haux ⊢
+  obtain ⟨a, b, ha, hb, hab⟩ := haux
+  use φ a, φ b, ((map_ne_zero_iff φ hinj).mpr ha) ,  ((map_ne_zero_iff φ hinj).mpr hb)
+  apply_fun (fun I => Ideal.map φ I) at hab
+  simp only [map_mul, Ideal.map_mul, Ideal.map_span, Set.image_singleton,
+        Submonoid.coe_mul, ← hI] at hab
+  exact hab
+
+
+noncomputable def ClassGroup.equiv0 {R S : Type*} [CommRing R]
+  [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
+  [IsDomain R] [IsDomain S] (φ : R ≃+* S) : ClassGroup R ≃* ClassGroup S := by
+  refine MulEquiv.ofBijective (ClassGroup.map0 (R := R) (S := S) φ (RingEquiv.injective φ)) ?_
+  constructor
+  · rw [← MonoidHom.ker_eq_bot_iff]
+    ext x
+    simp only [MonoidHom.mem_ker, Subgroup.mem_bot]
+    constructor
+    · intro h
+      let I := Classical.choose (mk0_surjective (x  : ClassGroup R))
+      have haux : Ideal.map φ I ∈ nonZeroDivisors (Ideal S) := by
+        simp only [mem_nonZeroDivisors_iff_ne_zero,
+        Submodule.zero_eq_bot, ne_eq]
+        rw [Ideal.map_eq_bot_iff_le_ker]
+        simp only [RingHom.ker_equiv, le_bot_iff]
+        intro hc
+        exact (mem_nonZeroDivisors_iff_ne_zero.1 I.2) hc
+      have hx := Classical.choose_spec (mk0_surjective (x  : ClassGroup R))
+      rw [← hx] at h
+      rw [ClassGroup.map0_apply (R := R) (S := S) φ (RingEquiv.injective φ) _
+        ⟨_, haux⟩  rfl , ClassGroup.mk0_eq_one_iff] at h
+      obtain ⟨s, hs⟩ := h
+      rw [← hx, ClassGroup.mk0_eq_one_iff]
+      use φ.symm s
+      apply_fun (fun I => Ideal.map φ.symm I) at hs
+      erw [Ideal.map_of_equiv, Ideal.map_span, Set.image_singleton] at hs
+      rw [hs]
+      rfl
+    ·  intro h
+       simp only [h, map_one]
+  · intro y
+    have hy := Classical.choose_spec (mk0_surjective (y  : ClassGroup S))
+    use ClassGroup.map0 φ.symm (RingEquiv.injective φ.symm) y
+    rw [← hy]
+    apply ClassGroup.map0_apply
+    erw [Ideal.map_of_equiv, hy]
+
+
+
+lemma primes_below_bound_of_equiv {m} {R S : Type*} [CommRing R] [CommRing S]
+    (φ : R ≃+* S) {g : m → Ideal R} (b : ℕ)
+    (h : {I : Ideal S | 0 < Nat.card (S ⧸ I) ∧ I.IsPrime ∧ Nat.card (S ⧸ I) < b} ⊆ Set.range (Ideal.map φ ∘ g)) :
+    {I : Ideal R | 0 < Nat.card (R ⧸ I) ∧ I.IsPrime ∧ Nat.card (R ⧸ I) < b} ⊆ Set.range g := by
+  rintro I hImem
+  have hcard : ∀ (J : Ideal R), Nat.card (R ⧸ I) = Nat.card (S ⧸ (I.map φ)) := by
+    intro J
+    refine Nat.card_congr ?_
+    exact (Ideal.quotientEquiv I (I.map φ) φ rfl).toEquiv
+  have hprime : ∀ (J : Ideal R) , J.IsPrime ↔ (J.map φ).IsPrime := by
+    intro J
+    constructor
+    · intro hx ; exact Ideal.map_isPrime_of_equiv φ
+    · intro hx
+      convert Ideal.map_isPrime_of_equiv φ.symm (I := (Ideal.map φ J))
+      erw [Ideal.map_of_equiv]
+  have : I.map φ ∈ Set.range (Ideal.map φ ∘ g) := by
+    apply h
+    dsimp
+    rw [← hcard I , ← hprime I]
+    exact hImem
+  suffices haux : Ideal.map φ.symm (Ideal.map φ I) ∈ (Ideal.map φ.symm)'' (Set.range (Ideal.map φ ∘ g)) by
+    erw [← Set.range_comp, Ideal.map_of_equiv] at haux
+    convert haux
+    ext i
+    simp only [Function.comp_apply, Ideal.map_symm, Ideal.mem_comap, Ideal.apply_mem_of_equiv_iff]
+  exact Set.mem_image_of_mem (Ideal.map φ.symm) this
+
+
+      --exact mk0
+
+
+  --refine MulEquiv.ofBijective
+
+
+   -- exact mk0 ⟨Ideal.map equiv J, by simp only [mem_nonZeroDivisors_iff_ne_zero,
+   --   Submodule.zero_eq_bot, ne_eq]; rw [Ideal.map_eq_bot_iff_le_ker]⟩
+
+
+-- This is useful when the subalgebra O is not definitionally equal to Oκ
+lemma subgroup_closure_eq_classGroup'' {m n r : Type} {b : ℕ}
+    [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
+    {O : Subalgebra ℤ K} [IsDedekindDomain ↥O] [Module.Free ℤ ↥O]
+    ( φ : O ≃+* Oκ)
+    {g : m → Ideal O} {g' : m → nonZeroDivisors (Ideal (O))}
+    {x : n → Ideal O} {x' : n → nonZeroDivisors (Ideal (O))}
+    (hg' : ∀ i, ↑(g' i) = g i) (hx' : ∀ i, ↑(x' i) = x i)
+    (hB : MinkowskiBound K < b)
+    (hg : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < b} ⊆ Set.range g)
+    (B : Matrix m n ℕ) (hgmul : ∀ i, ∃ (α β : O), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
+      Ideal.span {α} * (g i) = Ideal.span {β} * ∏ j, (x j) ^ (B i j)) :
+      Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (x' i))) = ⊤ := by
+  --let φ : O ≃+* Oκ := (O.equivOfEq _ heq).toRingEquiv. No need to assume equality of subalgebras.
+  let gg : m → Ideal Oκ := fun i => Ideal.map φ (g i)
+  let xx : n → Ideal Oκ := fun i => Ideal.map φ (x i)
+  have hgaux : ∀ i, (g' i).val ≠ ⊥ := fun i => nonZeroDivisors.ne_zero (g' i).2
+  have hxaux : ∀ i, (x' i).val ≠ ⊥ := fun i => nonZeroDivisors.ne_zero (x' i).2
+  have hgg: ∀ i, Ideal.map φ (g' i).val ∈ nonZeroDivisors (Ideal Oκ) := by
+    intro i
+    rw [mem_nonZeroDivisors_iff_ne_zero (M₀ := Ideal Oκ), Submodule.zero_eq_bot, ne_eq, Ideal.map_eq_bot_iff_le_ker, RingHom.ker_equiv, le_bot_iff]
+    exact hgaux i
+  have hxx: ∀ i, Ideal.map φ (x' i).val ∈ nonZeroDivisors (Ideal Oκ) := by
+    intro i
+    rw [mem_nonZeroDivisors_iff_ne_zero (M₀ := Ideal Oκ), Submodule.zero_eq_bot, ne_eq, Ideal.map_eq_bot_iff_le_ker, RingHom.ker_equiv, le_bot_iff]
+    exact hxaux i
+  let gg' : m → nonZeroDivisors (Ideal Oκ) := fun i => ⟨Ideal.map φ (g' i).val, hgg i⟩
+  let xx' : n → nonZeroDivisors (Ideal Oκ) := fun i => ⟨Ideal.map φ (x' i).val, hxx i⟩
+  have : IsDedekindDomain ↥(integralClosure ℤ K) := by
+    show IsDedekindDomain Oκ
+    exact NumberField.RingOfIntegers.instIsDedekindDomain K
+  let E : ClassGroup ↥O ≃* ClassGroup Oκ := ClassGroup.equiv0 φ
+  apply_fun (Subgroup.map (G := ClassGroup O) (N := ClassGroup Oκ) E)
+  · rw [Subgroup.map_top_of_surjective _ (by exact EquivLike.surjective E)]
+    rw [MonoidHom.map_closure]
+    convert subgroup_closure_eq_classGroup' (K := K) (m := m) (n := n)
+      (r := r) (b := b) (g := gg) (x := xx) (g' := gg') (x' := xx') ?_ ?_ hB ?_ B ?_
+    · rw [← Set.range_comp]
+      refine (congr_arg _ ?_)
+      ext i
+      simp only [ClassGroup.equiv0, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.toRingEquiv_toRingHom,
+        MonoidHom.coe_coe, Function.comp_apply, MulEquiv.ofBijective_apply, E]
+      apply ClassGroup.map0_apply
+      rfl
+    · intro i
+      simp only [hg', gg, E, gg']
+    · intro i
+      simp only [hx', xx, E, gg, gg', xx']
+    · convert primes_below_bound_of_equiv φ.symm (g := gg) b ?_
+      convert hg
+      ext i
+      simp only [Function.comp_apply, Ideal.map_symm, Ideal.mem_comap, Ideal.apply_mem_of_equiv_iff,
+        gg, gg', xx', xx, E]
+    · intro i
+      obtain ⟨α, β, hα, hβ, hαβ⟩ := hgmul i
+      use (φ α), φ β, (EmbeddingLike.map_ne_zero_iff.mpr hα) ,(EmbeddingLike.map_ne_zero_iff.mpr hβ)
+      simp [gg, xx]
+      apply_fun (Ideal.map φ) at hαβ
+      simp only [Ideal.map_mul, Ideal.map_span, Set.image_singleton,
+        Submonoid.coe_mul] at hαβ
+      convert hαβ
+      let φaux := Ideal.mapHom φ
+      have hIaux : ∀ I , Ideal.map φ I = φaux I := by
+        intro I
+        rfl
+      simp_rw [hIaux, ← map_pow]
+      rw [map_prod]
+  · refine Subgroup.map_injective (EquivLike.injective E)
+
+
 ----------------------------------------------------------------------------------
 /- How should I store the prime ideal info?
 Maybe as a list of pairs ℕ × Ideal O, carrying ⟨p, I⟩ with I a prime ideal above p?
@@ -345,6 +566,10 @@ structure PrimesBelowPCertificate {S : Type*} [CommRing S] (p : ℕ) {g : ℕ} (
 
 #eval Nat.primesBelow 100
 
+
+-- Turns out it's better to use lists to encode the factorizations. Because pattern matching with large n
+-- is annoying? Still not sure about this.
+
 structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] (B : ℕ) where
   m : ℕ
   g : Fin m → ℕ
@@ -356,6 +581,29 @@ structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] (B
   hN : ∀ i, ∀ j, Nat.card (S ⧸ I i j) = N i j
   Il : Fin m → List (Ideal S) -- List of ideals over the i-th prime, with norm less than B
   hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B) (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
+
+/- structure PrimesBelowPCertificate {S : Type*} [CommRing S] (p : ℕ) (F : List (Ideal S)) where
+  Ip : ∀ I ∈ F , I.IsPrime
+  hPprod : F.prod = Ideal.span {↑p}
+
+#eval Nat.primesBelow 100
+
+
+-- Turns out it's better to use lists to encode the factorizations,
+structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] (B : ℕ) where
+  m : ℕ
+  g : Fin m → ℕ
+  P : Fin m → ℕ
+  hP : Set.range P = Nat.primesBelow B
+  I : Fin m → List (Ideal S) -- Factorization for the i-th prime.
+  hC : ∀ i : Fin m, PrimesBelowPCertificate (P i) (I i)
+  N :  Fin m → List ℕ -- Norms corresponding to the factorization of the i-th prime.
+  hNle : ∀ i, (N i).length = g i
+  hIle : ∀ i, (I i).length = g i
+  hN : ∀ i, ∀ j, ∀ h: j < g i, Nat.card (S ⧸ ((I i)[j]'(by rw [hIle i] ; exact h))) = (N i)[j]'(by rw [hNle i] ; exact h)
+  Il : Fin m → List (Ideal S) -- List of ideals over the i-th prime, with norm less than B
+  hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B) (List.zip (I i) (N i))) = Il i -/
+
 
 
 
@@ -421,6 +669,51 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate {B r : ℕ}
     rw [List.prod_ofFn, (A.hC _ ).hPprod]
     congr
     exact @choose_spec (Fin A.m) (fun y ↦ A.P y = ↑p) _
+
+
+-- We don't require definitional equality with the ring of integers.
+lemma le_primes_below_bound_of_PrimesBelowBoundCertificate' {O : Subalgebra ℤ K}
+    [IsDedekindDomain ↥O] [Module.Free ℤ ↥O]  {B r : ℕ} (φ : O ≃+* Oκ) (g : Fin r → Ideal O)
+    (A : PrimesBelowBoundCertificate O B)
+    (h : List.flatten (List.ofFn A.Il) ⊆ List.ofFn g) :
+    {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < B} ⊆ Set.range g := by
+  refine primes_below_bound_of_equiv φ B ?_
+  let A' : PrimesBelowBoundCertificate Oκ B :=
+  { m := A.m
+    g := A.g
+    P := A.P
+    hP := A.hP
+    I := fun i => (Ideal.map φ) ∘ (A.I i)
+    hC := fun i =>
+      { Ip :=  by
+          intro j
+          have := (A.hC i).Ip j
+          exact Ideal.map_isPrime_of_equiv φ (I := (A.I i) j)
+        hPprod := by
+          have := (A.hC i ).hPprod
+          apply_fun (Ideal.mapHom φ) at this
+          rw [map_prod, Ideal.mapHom_apply, Ideal.map_span] at this
+          simp only [Ideal.mapHom_apply, Set.image_singleton, map_natCast] at this
+          exact this }
+    N := A.N
+    hN := by
+      intro i j
+      rw [← A.hN i j]
+      refine Nat.card_congr ?_
+      exact (Ideal.quotientEquiv _ ((A.I i j).map φ) φ rfl).toEquiv.symm
+    Il := fun i => List.map (Ideal.map φ) (A.Il i)
+    hIl := by
+      intro i
+      rw [← A.hIl i, ← List.map_ofFn, List.zip_map_left,
+        List.filter_map, ← List.comp_map, ← List.comp_map]
+      rfl }
+  refine le_primes_below_bound_of_PrimesBelowBoundCertificate _ A' ?_
+  unfold A'
+  dsimp
+  erw [← List.map_ofFn, ← List.map_ofFn (f := g), ← List.map_flatten]
+  refine List.map_subset _ ?_
+  exact h
+
 
 
 ------------------------------------------------------------------------------

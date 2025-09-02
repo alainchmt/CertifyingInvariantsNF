@@ -226,6 +226,45 @@ lemma ideal_le_of_IdealLeCertificateO [Algebra R O] (S : Type*) [CommRing S] [Al
     rw [algebra_compatible_smul O s x]
     exact J.smul_mem' ((algebraMap S O) s) hx
 
+/- Prove equality of ideals from O-generators. -/
+structure IdealEqCertificateO [Algebra R O]
+  {r n m : ℕ} (TT  : TimesTable (Fin r) R O) (I : Ideal O) (J : Ideal O) (v : Fin m → Fin r → R)
+  (w : Fin n → Fin r → R) where
+  T : Fin r → Fin r → List R
+  heq : ∀ i j , T i j = List.ofFn (TT.table i j)
+  hieq1 : I = Ideal.span (Set.range (fun i => TT.basis.equivFun.symm (v i)))
+  hieq2 : J = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (w j)))
+  g : Fin m → Fin n → Fin r → R
+  h : Fin n → Fin m → Fin r → R
+  hle1 : ∀ i, List.ofFn (v i) = List.sum (List.ofFn (fun k => table_mul_list T  (List.ofFn (g i k)) (List.ofFn (w k))))
+  hle2 : ∀ i, List.ofFn (w i) = List.sum (List.ofFn (fun k => table_mul_list T  (List.ofFn (h i k)) (List.ofFn (v k))))
+
+lemma ideal_eq_of_IdealEqCertificateO [Algebra R O]
+  {r n m : ℕ} (TT  : TimesTable (Fin r) R O) (I : Ideal O) (J : Ideal O) (v : Fin m → Fin r → R)
+  (w : Fin n → Fin r → R) (A : IdealEqCertificateO O R TT I J v w) : I = J := by
+  let A1 : IdealLeCertificateO O R O TT I J v w :=
+    { T := A.T
+      heq := A.heq
+      hieq1 := by
+        rw [A.hieq1] ; rfl
+      hieq2 := A.hieq2
+      g := A.g
+      hle2 := A.hle1 }
+  let A2 : IdealLeCertificateO O R O TT J I w v :=
+    { T := A.T
+      heq := A.heq
+      hieq1 := by
+        rw [A.hieq2] ; rfl
+      hieq2 := A.hieq1
+      g := A.h
+      hle2 := A.hle2 }
+  refine le_antisymm ?_ ?_
+  · exact ideal_le_of_IdealLeCertificateO _ _ _ TT I J v w A1
+  · exact ideal_le_of_IdealLeCertificateO _ _ _ TT J I w v A2
+
+
+
+
 /-- Certificate for membership a ∈ I. -/
 structure IdealMemCertificate [Algebra R O] {r m : ℕ} (B  : Basis (Fin r) R O)
   (I : Ideal O) (v : Fin m → Fin r → R)  (a : Fin r → R) where
@@ -422,6 +461,47 @@ refine subset_antisymm ?_ ?_
   · rfl
   · intro s x hx
     exact Submodule.smul_mem' _ s hx
+
+structure IdealMulPrincipalCertificate [Algebra R O] {r m : ℕ} [NeZero r]
+  (TT  : TimesTable (Fin r) R O) (I : Ideal O)
+  (α : Fin r → R) (u : Fin m → Fin r → R) (w : Fin m → Fin r → R) where
+  T : Fin r → Fin r → List R
+  heq : ∀ i j , T i j = List.ofFn (TT.table i j)
+  hI : I = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (u i)))
+  hmul : ∀ i, table_mul_list T (List.ofFn α) (List.ofFn (u i)) = List.ofFn (w i)
+
+lemma  ideal_eq_principal_mul_of_IdealMulPrincipalCertificate [Algebra R O] {r m : ℕ} [NeZero r]
+  (TT  : TimesTable (Fin r) R O) (I : Ideal O)
+  (α : Fin r → R) (u : Fin m → Fin r → R) (w : Fin m → Fin r → R)
+  (A : IdealMulPrincipalCertificate O R TT I α u w) :
+    Ideal.span {(TT.basis).equivFun.symm α} * I = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w i))) := by
+  have aux := A.hmul
+  simp_rw [table_mul_eq_table_mul' TT.table A.T A.heq] at aux
+  rw [A.hI, Ideal.span_mul_span]
+  congr
+  simp only [Set.mem_singleton_iff, Set.mem_range, Set.iUnion_exists,
+    Set.iUnion_iUnion_eq', Set.iUnion_singleton_eq_range, Set.iUnion_iUnion_eq_left]
+  have : (fun i ↦ TT.basis.equivFun.symm (w i)) = fun x ↦ TT.basis.equivFun.symm α * TT.basis.equivFun.symm (u x) := by
+    ext i
+    exact (table_mul_list_eq_mul TT.table TT.basis _ _ _ TT.basis_mul_basis (aux i).symm).symm
+  rw [this]
+
+-- Prove element is nonzero from proof coordinates are not zero:
+-- (LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr hv
+
+lemma ideal_mem_principal_class [Algebra R O] {r : ℕ} [NeZero r] (B : Basis (Fin r) R O)
+  (I : Ideal O) (v : Fin r → R) (hv : v ≠ 0) (hI : I = Ideal.span (Set.range (fun _ : Fin 1 => B.equivFun.symm v))) :
+   ∃ (α β : O), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
+      Ideal.span {α} * I = Ideal.span {β} := by
+  use 1 , B.equivFun.symm v
+  have haux : B.equivFun.symm v ≠ 0 := (LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr hv
+  have : Nontrivial O := nontrivial_of_ne (B.equivFun.symm v) 0 haux
+  use (zero_ne_one' O).symm , haux
+  simp only [Ideal.span_singleton_one, Ideal.top_mul]
+  convert hI
+  simp only [Basis.equivFun_symm_apply, Set.range_const]
+
+
 
 end I
 

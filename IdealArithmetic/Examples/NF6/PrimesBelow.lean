@@ -1001,4 +1001,91 @@ def PBC13 : PrimesBelowPCertificate 13 ![I13N] where
     rfl
 
 
-def PB17 : PrimesBelowBoundCertificate O
+lemma primes_below_17 : Set.range ![13, 11, 7, 5, 3, 2] = ↑(Nat.primesBelow 17) := by
+  have : Nat.primesBelow 17 = {2,3,5,7,11,13} := by decide
+  rw [this]
+  simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Matrix.range_cons, Matrix.range_empty,
+    Set.union_empty, Set.union_singleton, Set.union_insert, Finset.coe_insert, Finset.coe_singleton]
+
+
+def PB17 : PrimesBelowBoundCertificate O 17 where
+  m := 6
+  g := ![1,3,3,5,3,5]
+  P := ![13,11,7,5,3,2]
+  hP := primes_below_17
+  I := fun i =>
+    match i with
+    | 0 => ![I13N]
+    | 1 => ![I11N0, I11N1, I11N2]
+    | 2 => ![I7N0, I7N1, I7N2]
+    | 3 => ![I5N, I5N, I5N, I5N, I5N]
+    | 4 => ![I3N0, I3N1, I3N2]
+    | 5 => ![I2N0, I2N1, I2N1, I2N2, I2N2]
+  hC := fun i =>
+    match i with
+    | 0 => PBC13
+    | 1 => PBC11
+    | 2 => PBC7
+    | 3 => PBC5
+    | 4 => PBC3
+    | 5 => PBC2
+  N := fun i =>
+    match i with
+    | 0 => ![371293]
+    | 1 => ![121, 121, 11]
+    | 2 => ![49,49,7]
+    | 3 => ![5, 5, 5, 5, 5]
+    | 4 => ![9, 9, 3]
+    | 5 => ![2,2,2,2,2]
+  hN := by
+    intro i
+    fin_cases i
+    · dsimp ; intro j
+      match j with
+      | 0 => exact NI13N
+    · dsimp ; intro j
+      match j with
+      | 0 => exact NI11N0
+      | 1 => exact NI11N1
+      | 2 => exact NI11N2
+    · dsimp ; intro j
+      match j with
+      | 0 => exact NI7N0
+      | 1 => exact NI7N1
+      | 2 => exact NI7N2
+    · dsimp ; intro j
+      match j with
+      | 0 => exact NI5N
+      | 1 => exact NI5N
+      | 2 => exact NI5N
+      | 3 => exact NI5N
+      | 4 => exact NI5N
+    · dsimp ; intro j
+      match j with
+      | 0 => exact NI3N0
+      | 1 => exact NI3N1
+      | 2 => exact NI3N2
+    · dsimp ; intro j
+      match j with
+      | 0 => exact NI2N0
+      | 1 => exact NI2N1
+      | 2 => exact NI2N1
+      | 3 => exact NI2N2
+      | 4 => exact NI2N2
+  Il := ![[], [I11N2], [I7N2], [I5N,I5N,I5N,I5N,I5N], [I3N0, I3N1, I3N2], [I2N0, I2N1, I2N1, I2N2, I2N2]]
+  hIl := by
+    intro i
+    match i with
+    | 0 => dsimp  ; rfl
+    | 1 => dsimp  ; rfl
+    | 2 => dsimp  ; rfl
+    | 3 => dsimp  ; rfl
+    | 4 => dsimp  ; rfl
+    | 5 => dsimp  ; rfl
+
+
+
+example : (List.flatten (List.ofFn PB17.Il)) ⊆ List.ofFn ![I11N2, I7N2, I5N, I3N0, I3N1, I3N2, I2N0, I2N1, I2N2] := by
+  have : PB17.Il = ![[], [I11N2], [I7N2], [I5N,I5N,I5N,I5N,I5N], [I3N0, I3N1, I3N2], [I2N0, I2N1, I2N1, I2N2, I2N2]] := rfl
+  rw [this]
+  simp
