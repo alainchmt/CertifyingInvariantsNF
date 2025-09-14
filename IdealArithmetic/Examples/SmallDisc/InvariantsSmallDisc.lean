@@ -173,7 +173,6 @@ def NPCJ : NonPrincipalCertificateNDvdT J where
 theorem J_not_principal : ¬ ∃ b, J = Ideal.span {b} :=
   not_principal_of_NonPrincipalCertificateNDvdT NPCJ
 
-
 theorem T_discr : discriminant T = 1024000000 := by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
   rw [T_ofList]
@@ -187,19 +186,32 @@ lemma K_nrComplexPlaces : NumberField.InfinitePlace.nrComplexPlaces K = 2 := by
   rw [nrComplexPlaces_of_RankUnitsCertificate RC]
   rfl
 
+theorem K_minkowski_decimal {F : Type*} [Field F] [NumberField F] (r : ℝ)
+    (h : (4 / 3.14159265358979323846 : ℝ) ^ NumberField.InfinitePlace.nrComplexPlaces F
+    * (↑(Module.finrank ℚ F).factorial / ↑(Module.finrank ℚ F) ^ Module.finrank ℚ F * √|↑(NumberField.discr F)|) ≤ r) :
+    MinkowskiBound F ≤ r  := by
+  unfold MinkowskiBound
+  have := Real.pi_gt_d20
+  have : (4 / Real.pi) ^ (NumberField.InfinitePlace.nrComplexPlaces F) ≤
+    (4 / 3.14159265358979323846) ^ (NumberField.InfinitePlace.nrComplexPlaces F) := by
+    refine pow_le_pow_left₀ ?_ ?_ _
+    · refine div_nonneg (by norm_num) (by exact Real.pi_nonneg)
+    · refine le_of_lt ?_
+      refine div_lt_div_of_pos_left (by norm_num) (by norm_num) this
+  refine le_trans ?_ h
+  refine mul_le_mul_of_nonneg_right this ?_
+  refine mul_nonneg ?_ ?_
+  · refine div_nonneg ?_ ?_
+    · simp only [Nat.cast_nonneg]
+    · simp only [Nat.cast_nonneg, pow_nonneg]
+  · simp only [Real.sqrt_nonneg]
+
 
 theorem K_minowski :
-  (4 / Real.pi) ^ NumberField.InfinitePlace.nrComplexPlaces K *
-          (↑(Module.finrank ℚ K).factorial / ↑(Module.finrank ℚ K) ^ Module.finrank ℚ K * √|↑(NumberField.discr K)|) ≤ (62.2518 : ℝ) := by
+  MinkowskiBound K ≤ (62.2518 : ℝ) := by
+  refine K_minkowski_decimal _ ?_
   rw [K_nrComplexPlaces, K_discr, K_finrank]
   norm_num
-  have := Real.pi_gt_d20
-  have : (4 / Real.pi) ^ 2 < (4 / 3.14159265358979323846) ^ 2 := by
-    refine (sq_lt_sq₀ ?_ ?_).mpr ?_
-    · refine div_nonneg (by norm_num) (by exact Real.pi_nonneg)
-    · refine div_nonneg (by norm_num) (by norm_num)
-    · refine div_lt_div_of_pos_left (by norm_num) (by norm_num) this
-  nlinarith
 
 --instance DD : IsDedekindDomainInv O := by
 --  rw [← isDedekindDomain_iff_isDedekindDomainInv, O_integral_closure]
@@ -212,18 +224,161 @@ instance DD' : IsDedekindDomain O  := by
 instance : Module.Free ℤ ↥O := Module.Free.of_basis B -- Remove from assumptions in theorem?
 
 
-def g := ![I43N1, I43N2, I41N1, I41N2, I37N2, I29N1, I29N2, I23N2, I17N1, I17N2, I11N1, I11N2, I7N1, I7N2, I5N, I2N0,I2N1]
+def g : Fin 17 → Ideal O := ![I43N1, I43N2, I41N1, I41N2, I37N2, I29N1, I29N2, I23N2, I17N1, I17N2, I11N1, I11N2, I7N1, I7N2, I5N, I2N0,I2N1]
+
+-- We cannot just dedup the list, because comparison between ideals is not decidable.
+lemma primesGenerationBelowAux {x} : x ∈ (List.ofFn PB17.Il).flatten ↔ x ∈ List.ofFn g := by
+  unfold g
+  have h1: (List.ofFn PB17.Il).flatten = [I43N1, I43N2, I41N1, I41N2, I37N2, I29N1, I29N2, I23N2, I17N1, I17N2, I11N1, I11N2, I7N1,
+    I7N2, I5N, I5N, I5N, I5N, I5N, I2N0,I2N1, I2N1, I2N1, I2N1] := by rfl
+  have h2: List.ofFn ![I43N1, I43N2, I41N1, I41N2, I37N2, I29N1, I29N2, I23N2, I17N1, I17N2, I11N1, I11N2, I7N1, I7N2, I5N, I2N0, I2N1] =
+    [I43N1, I43N2, I41N1, I41N2, I37N2, I29N1, I29N2, I23N2, I17N1, I17N2, I11N1, I11N2, I7N1, I7N2, I5N, I2N0, I2N1] := by rfl
+  rw [h1, h2]
+  simp only [List.mem_cons, List.not_mem_nil, or_false, or_self, or_self_left]
 
 
-
+-- To do: Note : Need to find a better way to compare lists
 lemma primesGenerationBelow :
   {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < 63} ⊆ Set.range g := by
-  sorry
-/-
-lemma le_primes_below_bound_of_PrimesBelowBoundCertificate' {O : Subalgebra ℤ K}
-    [IsDedekindDomain ↥O] [Module.Free ℤ ↥O]  {B r : ℕ} (φ : O ≃+* Oκ) (g : Fin r → Ideal O)
-    (A : PrimesBelowBoundCertificate O B)
-    (h : List.flatten (List.ofFn A.Il) ⊆ List.ofFn g) :
-    {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < B} ⊆ Set.range g := by
+refine le_primes_below_bound_of_PrimesBelowBoundCertificate' (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv g PB17 ?_
+intro x hx
+exact primesGenerationBelowAux.1 hx
 
--/
+
+--Matrxix describing relations between elements in g and J
+def BM : Matrix (Fin 17) (Fin 1) ℕ := !![2; 1; 1; 2; 0; 2; 1; 0 ; 1; 2 ; 2 ; 1 ; 1; 2; 0 ; 2; 1]
+
+
+def g' : Fin 17 → nonZeroDivisors (Ideal O) := by
+  intro i
+  refine Ideal.toNonZeroDivisorOfNeZero (g i) ?_
+  have : g i ∈ (List.ofFn PB17.Il).flatten := by
+    rw [primesGenerationBelowAux, List.mem_ofFn]
+    use i
+  intro hc
+  rw [hc] at this
+  exact (zero_ne_mem_of_PrimesBelowCertificate 63 PB17) this
+
+
+def x : Fin 1 → Ideal O := ![J]
+
+def x' : Fin 1 → nonZeroDivisors (Ideal O) := fun _ => g' (16)
+
+
+lemma g'_apply : ∀ (i : Fin 17), ↑(g' i) = g i := by
+  intro i
+  rfl
+
+lemma x'_apply : ∀ (i : Fin 1), ↑(x' i) = x i := by
+  intro i
+  rw [Fin.fin_one_eq_zero i]
+  rfl
+
+
+
+
+
+-- Remove extra variable r
+-- To do : change ideal_mem_principal_class so that it matches this
+theorem class_group_generator :
+  Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (x' i))) = ⊤ := by
+
+refine subgroup_closure_eq_classGroup'' (r := Fin 1) (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv
+  g'_apply x'_apply ?_ primesGenerationBelow BM ?_
+· refine lt_of_le_of_lt K_minowski ?_
+  norm_num
+· simp only [Finset.univ_unique, Fin.default_eq_zero, Fin.isValue, Finset.prod_singleton]
+  intro i
+  fin_cases i
+  · use 2 , (B.equivFun.symm ![2, 0, 1, 0, 1]), (two_ne_zero) ,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R43N1
+  · use 2, B.equivFun.symm ![2, -1, 1, 0, 1], (two_ne_zero),
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R43N2
+  · use 2, B.equivFun.symm ![6, 1, 1, 2, 1], (two_ne_zero),
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R41N1
+  · use 2, B.equivFun.symm ![6, 0, 1, 0, 1], (two_ne_zero),
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R41N2
+  · exact ideal_mem_principal_class' O ℤ B I37N2 ![1, 1, 0, 0, 0] (by decide) rfl
+  · use 2, B.equivFun.symm ![6, 0, -1, 0, 1], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R29N1
+  · use 2, B.equivFun.symm ![2, 1, -1, 0, 1], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R29N2
+  · exact ideal_mem_principal_class' O ℤ B I23N2 ![3, 0, 0, 1, 1] (by decide) rfl
+  · use 2, B.equivFun.symm ![-2, 1, 1, 0, -1], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R17N1
+  · use 2, B.equivFun.symm ![10, 1, 0, 2, 2], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R17N2
+  · use 2, B.equivFun.symm ![2, 1, 0, 0, 0], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R11N1
+  · use 2, B.equivFun.symm ![6, -1, -1, 0, 1], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R11N2
+  · use 2, B.equivFun.symm ![2, 1, 1, 2, 1], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R7N1
+  · use 2, B.equivFun.symm ![2, -1, 0, 0, 0], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R7N2
+  · exact ideal_mem_principal_class' O ℤ B I5N ![1, -1, 0, 0, 0] (by decide) rfl
+  · use 2, B.equivFun.symm ![0, 1, 0, 0, 0], two_ne_zero,
+      ((LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide))
+    exact R2N0
+  · use 1, 1, one_ne_zero, one_ne_zero
+    exact R2N1
+
+
+def class_group_O_equiv_ZMod3 : ZMod 3 ≃+ Additive (ClassGroup O) := by
+  refine equivClassGroupCyclicOfSaturated (I := J) (I' := x' 0) (rfl) J3 ?_ ?_
+  exact class_group_generator
+  intro p hp hpdvd
+  have : p = 3 := by
+    rw [← prime_dvd_prime_iff_eq (Nat.prime_iff.mp hp)]
+    exact hpdvd
+    exact Nat.prime_iff.mp Nat.prime_three
+  simp only [this, Nat.ofNat_pos, Nat.div_self, pow_one]
+  exact J_not_principal
+
+def class_group_equiv_ZMod3 : ZMod 3 ≃+ Additive (ClassGroup (NumberField.RingOfIntegers K)) := by
+  refine AddEquiv.trans class_group_O_equiv_ZMod3 ?_
+  exact MulEquiv.toAdditive (ClassGroup.congr
+    ((Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv))
+
+
+theorem class_number_K_eq_3 : NumberField.classNumber K = 3 := by
+  unfold NumberField.classNumber
+  rw [Fintype.card_eq_nat_card, ← Nat.card_congr (Additive.toMul),
+    Nat.card_congr (class_group_equiv_ZMod3).symm.toEquiv]
+  simp only [Nat.card_eq_fintype_card, ZMod.card]
+
+
+
+
+#print axioms class_number_K_eq_3
+
+
+
+
+
+
+
+
+
+
+
+
+
+/- def Ideal.toNonZeroDivisorOfNormPos {R : Type} [CommRing R] [IsDomain R]
+  (I : Ideal R) (hp : Nat.card (R ⧸ I) > 0) : nonZeroDivisors (Ideal R) := by
+  refine ⟨I, ?_⟩
+  simp only [mem_nonZeroDivisors_iff_ne_zero, Submodule.zero_eq_bot, ne_eq]
+  intro hc
+  rw [hc, Nat.card_congr (RingEquiv.quotientBot R).toEquiv] at hp -/

@@ -1169,7 +1169,7 @@ def PBC61 : PrimesBelowPCertificate 61 ![I61N] where
 
 
 lemma primes_below_63 : Set.range ![61, 59, 53, 47, 43, 41, 37, 31, 29, 23, 19, 17, 13, 11, 7, 5, 3, 2] = ↑(Nat.primesBelow 63) := by
-  have : Nat.primesBelow 63 =  {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61} := by sorry
+  have : Nat.primesBelow 63 =  {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61} := by decide
   rw [this]
   simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Matrix.range_cons, Matrix.range_empty,
     Set.union_empty, Set.union_singleton, Set.union_insert, Finset.coe_insert, Finset.coe_singleton]
@@ -1179,7 +1179,7 @@ lemma primes_below_63 : Set.range ![61, 59, 53, 47, 43, 41, 37, 31, 29, 23, 19, 
 -- Better to use fin_cases than pattern matching
 --set_option maxHeartbeats 300000
 #count_heartbeats
-def PB17 : PrimesBelowBoundCertificate O 63 where
+/- def PB17 : PrimesBelowBoundCertificate O 63 where
   m := 18
   g := ![1,1,1,1,3,3,3,1,3,3,1,3,1,3,3,5,1,5]
   P := ![61, 59, 53, 47, 43, 41, 37, 31, 29, 23, 19, 17, 13, 11, 7, 5, 3, 2]
@@ -1338,4 +1338,165 @@ def PB17 : PrimesBelowBoundCertificate O 63 where
     cases i
     rename_i i h
     interval_cases i
-    all_goals rfl
+    all_goals rfl -/
+
+def PB17 : PrimesBelowBoundCertificate O 63 where
+  m := 18
+  g := ![1, 1, 1, 1, 3, 3, 3, 1, 3, 3, 1, 3, 1, 3, 3, 5, 1, 5]
+  P := ![61, 59, 53, 47, 43, 41, 37, 31, 29, 23, 19, 17, 13, 11, 7, 5, 3, 2]
+  hP := primes_below_63
+  I := fun i => by
+    cases i
+    rename_i i h
+    interval_cases i
+    · exact ![I61N]
+    · exact ![I59N]
+    · exact ![I53N]
+    · exact ![I47N]
+    · exact ![I43N0, I43N1, I43N2]
+    · exact ![I41N0, I41N1, I41N2]
+    · exact ![I37N0, I37N1, I37N2]
+    · exact ![I31N]
+    · exact ![I29N0, I29N1, I29N2]
+    · exact ![I23N0, I23N1, I23N2]
+    · exact ![I19N]
+    · exact ![I17N0, I17N1, I17N2]
+    · exact ![I13N]
+    · exact ![I11N0, I11N1, I11N2]
+    · exact ![I7N0, I7N1, I7N2]
+    · exact ![I5N, I5N, I5N, I5N, I5N]
+    · exact ![I3N]
+    · exact ![I2N0, I2N1, I2N1, I2N1, I2N1]
+  hC := fun i => by
+    cases i
+    rename_i i h
+    interval_cases i
+    · exact PBC61
+    · exact PBC59
+    · exact PBC53
+    · exact PBC47
+    · exact PBC43
+    · exact PBC41
+    · exact PBC37
+    · exact PBC31
+    · exact PBC29
+    · exact PBC23
+    · exact PBC19
+    · exact PBC17
+    · exact PBC13
+    · exact PBC11
+    · exact PBC7
+    · exact PBC5
+    · exact PBC3
+    · exact PBC2
+  N := fun i => by
+    cases i
+    rename_i i h
+    interval_cases i
+    · exact ![844596301]
+    · exact ![714924299]
+    · exact ![418195493]
+    · exact ![229345007]
+    · exact ![79507, 43, 43]
+    · exact ![68921, 41, 41]
+    · exact ![1369, 1369, 37]
+    · exact ![28629151]
+    · exact ![24389, 29, 29]
+    · exact ![529, 529, 23]
+    · exact ![2476099]
+    · exact ![4913, 17, 17]
+    · exact ![371293]
+    · exact ![1331, 11, 11]
+    · exact ![343, 7, 7]
+    · exact ![5, 5, 5, 5, 5]
+    · exact ![243]
+    · exact ![2, 2, 2, 2, 2]
+  hN := fun i => by
+     cases i
+     rename_i i h
+     interval_cases i
+     · dsimp ; intro j
+       fin_cases j
+       exact NI61N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI59N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI53N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI47N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI43N0
+       exact NI43N1
+       exact NI43N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI41N0
+       exact NI41N1
+       exact NI41N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI37N0
+       exact NI37N1
+       exact NI37N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI31N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI29N0
+       exact NI29N1
+       exact NI29N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI23N0
+       exact NI23N1
+       exact NI23N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI19N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI17N0
+       exact NI17N1
+       exact NI17N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI13N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI11N0
+       exact NI11N1
+       exact NI11N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI7N0
+       exact NI7N1
+       exact NI7N2
+     · dsimp ; intro j
+       fin_cases j
+       exact NI5N
+       exact NI5N
+       exact NI5N
+       exact NI5N
+       exact NI5N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI3N
+     · dsimp ; intro j
+       fin_cases j
+       exact NI2N0
+       exact NI2N1
+       exact NI2N1
+       exact NI2N1
+       exact NI2N1
+  Il := ![[], [], [], [], [I43N1, I43N2], [I41N1, I41N2], [I37N2], [], [I29N1, I29N2], [I23N2], [], [I17N1, I17N2], [], [I11N1, I11N2], [I7N1, I7N2], [I5N, I5N, I5N, I5N, I5N], [], [I2N0, I2N1, I2N1, I2N1, I2N1]]
+  hIl := by
+      intro i
+      cases i
+      rename_i i h
+      interval_cases i
+      all_goals rfl

@@ -8,6 +8,25 @@ noncomputable def MinkowskiBound (K : Type*) [Field K] [NumberField K] : ℝ :=
   (4 / Real.pi) ^ NumberField.InfinitePlace.nrComplexPlaces K *
   (↑(Module.finrank ℚ K).factorial / ↑(Module.finrank ℚ K) ^ Module.finrank ℚ K * √|↑(NumberField.discr K)|)
 
+theorem K_minkowski_decimal {F : Type*} [Field F] [NumberField F] (r : ℝ)
+    (h : (4 / 3.14159265358979323846 : ℝ) ^ NumberField.InfinitePlace.nrComplexPlaces F
+    * (↑(Module.finrank ℚ F).factorial / ↑(Module.finrank ℚ F) ^ Module.finrank ℚ F * √|↑(NumberField.discr F)|) ≤ r) :
+    MinkowskiBound F ≤ r  := by
+  unfold MinkowskiBound
+  have := Real.pi_gt_d20
+  have : (4 / Real.pi) ^ (NumberField.InfinitePlace.nrComplexPlaces F) ≤
+    (4 / 3.14159265358979323846) ^ (NumberField.InfinitePlace.nrComplexPlaces F) := by
+    refine pow_le_pow_left₀ ?_ ?_ _
+    · refine div_nonneg (by norm_num) (by exact Real.pi_nonneg)
+    · refine le_of_lt ?_
+      refine div_lt_div_of_pos_left (by norm_num) (by norm_num) this
+  refine le_trans ?_ h
+  refine mul_le_mul_of_nonneg_right this ?_
+  refine mul_nonneg ?_ ?_
+  · refine div_nonneg ?_ ?_
+    · simp only [Nat.cast_nonneg]
+    · simp only [Nat.cast_nonneg, pow_nonneg]
+  · simp only [Real.sqrt_nonneg]
 
 variable {K : Type*} [Field K] [NumberField K]
 
@@ -326,21 +345,372 @@ lemma subgroup_closure_eq_classGroup' {m n r : Type} {b : ℕ}
       Ideal.one_eq_top, IsEmpty.forall_iff]
 
 
-/- noncomputable def ClassGroup.congr (R S : Type*) [CommRing R] [IsDedekindDomain R] [CommRing S] [IsDomain R] [IsDomain S]
-  (equiv : R ≃* S) : ClassGroup R ≃* ClassGroup S := by
+open FractionalIdeal
+open Pointwise
+
+lemma FractionalIdeal.den_mul_self_eq_num'' {R S P : Type*} [CommRing R] [CommRing S] [CommRing P]
+  [Algebra R S] [Algebra R P] [Algebra S P] [IsScalarTower R S P]
+  (S₁ : Submonoid R) (S₂ : Submonoid S) [IsLocalization S₂ P] (I : FractionalIdeal S₁ P)
+  (hu : IsUnit ((algebraMap R P) ↑I.den)) :
+    Submodule.span S (I : Set P) =
+    FractionalIdeal.coeToSubmodule ((FractionalIdeal.spanSingleton  (S := S₂) ((hu.unit.inv) : P))
+      *  FractionalIdeal.coeIdeal (Ideal.map (algebraMap R S) I.num)) := by
+    have aux1 := FractionalIdeal.den_mul_self_eq_num I
+    apply_fun (fun x => x.carrier) at aux1
+    apply_fun Submodule.span S at aux1
+    simp only [Submodule.pointwise_smul_toAddSubmonoid, Submodule.carrier_eq_coe, Submodule.map_coe,
+      Algebra.linearMap_apply] at aux1
+    have aux := Submodule.span_smul (R := S) ((I.den)) (I : Set P)
+    apply_fun (fun x => (((algebraMap R S) ↑(I.den)) • x : Submodule S P))
+    simp
+    convert aux1
+    convert aux.symm using 1
+    · rw [← aux, Submodule.smul_span]
+      congr
+      ext x
+      simp_rw [Set.mem_smul_set, Algebra.smul_def,
+        Eq.symm (IsScalarTower.algebraMap_apply R S P _), ← Algebra.smul_def]
+      rfl
+    · unfold Ideal.map Ideal.span
+      rw [Ideal.submodule_span_eq, IsLocalization.coeSubmodule_span,
+        ← Set.image_comp, Submodule.span_mul_span, ← Submodule.span_smul (algebraMap R S (I.den )) _]
+      congr
+      have auxf := IsScalarTower.algebraMap_eq R S P
+      apply_fun (fun x => x.toFun) at auxf
+      simp only [RingHom.toMonoidHom_eq_coe, OneHom.toFun_eq_coe, MonoidHom.toOneHom_coe,
+        MonoidHom.coe_coe, RingHom.coe_comp] at auxf
+      rw [← auxf, Set.singleton_mul]
+      ext x
+      rw [Set.mem_smul_set]
+      simp only [Set.mem_image, SetLike.mem_coe, exists_exists_and_eq_and, algebraMap_smul]
+      simp_rw [Algebra.smul_def, ← mul_assoc, IsUnit.mul_val_inv, one_mul]
+    · refine injective_of_le_imp_le (fun x ↦ (algebraMap R S) ↑I.den • x) ?_
+      intro x y hxy i hi
+      dsimp at hxy
+      have := hxy (Submodule.smul_mem_pointwise_smul i ((algebraMap R S) ↑I.den) x hi)
+      rw [Submodule.mem_smul_pointwise_iff_exists] at this
+      obtain ⟨b, hb1, hb2⟩ := this
+      apply_fun (fun x => (hu.unit.inv) • x) at hb2
+      simp_rw [Algebra.smul_def _ b, ← (IsScalarTower.algebraMap_apply R S P ↑I.den),
+        Algebra.smul_def _ i, ← (IsScalarTower.algebraMap_apply R S P ↑I.den) , Algebra.smul_def] at hb2
+      simp only [ ← mul_assoc, Algebra.id.map_eq_id, Units.inv_eq_val_inv, RingHom.id_apply, IsUnit.val_inv_mul,
+        one_mul] at hb2
+      rw [← hb2]
+      exact hb1
+
+
+noncomputable def FractionalIdeal.map_map {R S P : Type*} [CommRing R] [CommRing S] [CommRing P]
+    [Algebra R S] [Algebra R P] [Algebra S P] [IsScalarTower R S P]
+    {S₁ : Submonoid R} {S₂ : Submonoid S} [IsLocalization S₂ P]
+    (h : (algebraMap R S)'' S₁ ≤ S₂) : FractionalIdeal S₁ P →* FractionalIdeal S₂ P where
+  toFun := by
+    intro I
+    have hu : IsUnit ((algebraMap R P) I.den) := by
+      rw [← Eq.symm (IsScalarTower.algebraMap_apply R S P _)]
+      refine IsLocalization.map_units _ (⟨(algebraMap R S) ↑I.den , ?_ ⟩ : S₂)
+      apply h
+      use I.den.1 , I.den.2
+    let J := FractionalIdeal.spanSingleton  (S := S₂) hu.unit.inv
+    let II := (Ideal.map (algebraMap R S) I.num : FractionalIdeal S₂ P)
+    exact J * II
+  map_one' := by
+    dsimp
+    apply_fun FractionalIdeal.coeToSubmodule
+    have : (↑(1 : FractionalIdeal S₁ P) : Set P) = ↑(1 : Submodule R P) := by
+      rw [← FractionalIdeal.coe_one]
+      rfl
+    erw [← FractionalIdeal.den_mul_self_eq_num'' S₁ S₂ 1 ]
+    simp_rw [FractionalIdeal.coe_one, this,
+      Submodule.one_eq_span, Submodule.span_span_of_tower]
+    · exact coeToSubmodule_injective
+  map_mul' := by
+    dsimp
+    intro x y
+    apply_fun FractionalIdeal.coeToSubmodule
+    nth_rw 2 [coe_mul]
+    erw [← FractionalIdeal.den_mul_self_eq_num'', ← FractionalIdeal.den_mul_self_eq_num''
+    , ← FractionalIdeal.den_mul_self_eq_num'']
+    have : Submodule.span S (↑(x * y) : Set P) =
+      Submodule.span S ((coeToSubmodule x) * (coeToSubmodule y)) := by
+     congr
+     rw [FractionalIdeal.mul_def] ; rfl
+    rw [this, Submodule.mul_def, Submodule.span_span_of_tower,
+      ← Submodule.span_mul_span] ; rfl
+    · exact coeToSubmodule_injective
+
+lemma FractionalIdeal.map_map_apply {R S P : Type*} [CommRing R] [CommRing S] [CommRing P]
+    [Algebra R S] [Algebra R P] [Algebra S P] [IsScalarTower R S P]
+    (S₁ : Submonoid R) (S₂ : Submonoid S) [IsLocalization S₂ P]
+    (h : (algebraMap R S)'' S₁ ≤ S₂)
+    (I : FractionalIdeal S₁ P) : FractionalIdeal.map_map h I = Submodule.span S (I : Set P) := by
+      erw [← FractionalIdeal.den_mul_self_eq_num'']
+
+lemma FractionalIdeal.map_map_apply_int {R S P : Type*} [CommRing R] [CommRing S] [CommRing P]
+    [Algebra R S] [Algebra R P] [Algebra S P] [IsScalarTower R S P]
+    (S₁ : Submonoid R) (S₂ : Submonoid S) [IsLocalization S₂ P]
+    (h : (algebraMap R S)'' S₁ ≤ S₂) (I : Ideal R) : FractionalIdeal.map_map h (I : FractionalIdeal S₁ P) = I.map (algebraMap R S) := by
+      apply_fun FractionalIdeal.coeToSubmodule
+      rw [FractionalIdeal.map_map_apply, Ideal.map, coe_coeIdeal, IsLocalization.coeSubmodule_span]
+      have : (↑(↑I : FractionalIdeal S₁ P) : Set P) = ↑(↑(↑I : FractionalIdeal S₁ P) : Submodule R P) := by rfl
+      rw [this, FractionalIdeal.coe_coeIdeal, IsLocalization.coeSubmodule]
+      simp only [Submodule.map_coe, Algebra.linearMap_apply, ←
+        Eq.symm (IsScalarTower.algebraMap_apply R S P _), ← Set.image_comp, Function.comp_apply]
+      exact coeToSubmodule_injective
+
+noncomputable def FractionalIdeal.mapOfInjective {R S P : Type*} [CommRing R] [Nontrivial R]
+    [CommRing S] [IsDomain S] [CommRing P] [Algebra R S] [Algebra R P] [Algebra S P] [IsScalarTower R S P]
+    (hinj : Function.Injective (algebraMap R S)) [IsFractionRing S P] :
+    FractionalIdeal (nonZeroDivisors R) P →* FractionalIdeal (nonZeroDivisors S) P := by
+  refine FractionalIdeal.map_map ?_
+  intro x hx
+  simp only [SetLike.mem_coe, mem_nonZeroDivisors_iff_ne_zero, ne_eq]
+  obtain ⟨a,ha1, ha2⟩ := hx
+  rw [← ha2]
+  refine (map_ne_zero_iff (algebraMap R S) hinj).mpr ?_
+  intro hca
+  rw [hca] at ha1
+  exact zero_not_mem_nonZeroDivisors ha1
+
+-- I need these algebra instances for the fraction ring statements
+noncomputable def FractionalIdeal.mapOfInjective' {R S : Type*} (F K : Type*) [CommRing R] [Nontrivial R]
+    [CommRing S] [IsDomain S] [CommRing F] [CommRing K] [Algebra R F] [Algebra S K] [Algebra R S]
+    (hinj : Function.Injective (algebraMap R S)) [IsFractionRing R F] [IsFractionRing S K] :
+      FractionalIdeal (nonZeroDivisors R) F →* FractionalIdeal (nonZeroDivisors S) K := by
+  letI:  Algebra R K := ((algebraMap S K).comp (algebraMap R S)).toAlgebra
+  let ψ : F →+* K := IsFractionRing.map hinj
+  let ψa : F →ₐ[R] K := by
+    refine AlgHom.mk' ψ ?_
+    intro c x
+    rw [Algebra.smul_def c (ψ x)]
+    simp [ψ, IsFractionRing.map]
+    rw [IsLocalization.map_smul, Algebra.smul_def _ _]
+    rfl
+  haveI : IsScalarTower R S K := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  let f : (FractionalIdeal (nonZeroDivisors R) K) →*
+    (FractionalIdeal (nonZeroDivisors S) K) :=
+    FractionalIdeal.mapOfInjective (hinj)
+  exact
+  {toFun := fun x => (f ((FractionalIdeal.map ψa) x))
+   map_one' := by simp only [Function.comp_apply, FractionalIdeal.map_one, map_one, ψ]
+   map_mul' := by simp only [Function.comp_apply, FractionalIdeal.map_mul, map_mul, implies_true, ψ]}
+
+
+lemma FractionalIdeal.mapOfInjective_apply' {R S : Type*} (F K : Type*) [CommRing R] [Nontrivial R]
+    [CommRing S] [IsDomain S] [CommRing F] [CommRing K] [Algebra R F] [Algebra S K] [Algebra R S]
+    (hinj : Function.Injective (algebraMap R S)) [IsFractionRing R F] [IsFractionRing S K]
+    (I : FractionalIdeal (nonZeroDivisors R) F) :
+    FractionalIdeal.mapOfInjective' F K hinj I =
+    (Submodule.span S ((IsFractionRing.map hinj)'' (↑I : Set F)) : Submodule S K) := by
+  unfold mapOfInjective' mapOfInjective
+  dsimp
+  simp_rw [FractionalIdeal.map_map_apply]
+  rfl
+
+lemma FractionalIdeal.mapOfInjective_apply_int' {R S : Type*} (F K : Type*) [CommRing R] [Nontrivial R]
+    [CommRing S] [IsDomain S] [CommRing F] [CommRing K] [Algebra R F] [Algebra S K] [Algebra R S]
+    (hinj : Function.Injective (algebraMap R S)) [IsFractionRing R F] [IsFractionRing S K]
+    (I : Ideal R) :
+    FractionalIdeal.mapOfInjective' F K hinj I = Ideal.map (algebraMap R S) I := by
+  apply_fun FractionalIdeal.coeToSubmodule
+  rw [FractionalIdeal.mapOfInjective_apply', Ideal.map, coe_coeIdeal, IsLocalization.coeSubmodule_span]
+  congr
+  ext i
+  unfold IsFractionRing.map
+  simp only [Set.mem_image, SetLike.mem_coe, mem_coeIdeal, exists_exists_and_eq_and,
+    IsLocalization.map_eq]
+  · exact coeToSubmodule_injective
+
+-- I need to ask for the ringHom to be injective, in order to induce a morphism
+-- between fraction rings:
+noncomputable def ClassGroup.map {R S : Type*} [CommRing R]
+    [CommRing S] [IsDomain R] [IsDomain S] {φ : R →+* S} (hinj : Function.Injective φ) :
+    ClassGroup R →* ClassGroup S := by
+  let F := FractionRing R
+  let K := FractionRing S
+  letI : Algebra R S := φ.toAlgebra
+  letI :  Algebra R K := ((algebraMap S K).comp (algebraMap R S)).toAlgebra
+  letI : Module R K := Algebra.toModule
+  haveI :=  IsScalarTower.of_algebraMap_eq (R := R) (S := S) (A := K) (congrFun rfl)
+  let ψ : F →+* K := IsFractionRing.map hinj
   unfold ClassGroup
-  refine QuotientGroup.congr (G := (FractionalIdeal (nonZeroDivisors R) (FractionRing R))ˣ)
-    (H := (FractionalIdeal (nonZeroDivisors S) (FractionRing S))ˣ) (G' := (toPrincipalIdeal R (FractionRing R)).range)
-    (H' := (toPrincipalIdeal S (FractionRing S)).range) ?_ ?_
-  · exact {
-    toFun := by
-      rintro ⟨⟨I, hI⟩ , hu⟩
+  let g : (FractionalIdeal (nonZeroDivisors R) F) →*
+    (FractionalIdeal (nonZeroDivisors S) K) := FractionalIdeal.mapOfInjective' _ _ hinj
+  refine QuotientGroup.map _ _ (Units.map g) ?_
+  · intro x hx
+    simp only [MonoidHom.mem_range, toPrincipalIdeal_eq_iff, Subgroup.mem_comap, Units.coe_map, K,
+      this, F, ψ] at hx ⊢
+    obtain ⟨a, ha⟩ := hx
+    use (Units.map ψ) a
+    rw [← ha]
+    unfold g
+    have : ∀ x, (mapOfInjective' _ _ hinj).toFun x =
+      (mapOfInjective' (F := (FractionRing R)) (K:= FractionRing S) hinj) x  := fun x => rfl
+    rw [← this]
+    unfold mapOfInjective'
+    dsimp
+    simp only [Units.coe_map, MonoidHom.coe_coe, FractionalIdeal.map, coe_spanSingleton,
+      Submodule.map_span, AlgHom.toLinearMap_apply, Set.image_singleton, *]
+    unfold FractionalIdeal.mapOfInjective
+    apply_fun FractionalIdeal.coeToSubmodule
+    simp_rw [FractionalIdeal.map_map_apply,  ← ha, coe_spanSingleton, Submodule.map_span]
+    simp only [AlgHom.toLinearMap_apply, Set.image_singleton, *]
+    rw [← @Submodule.span_span_of_tower (R := R) _ (S:= S) _ _ _ _ _ ]
+    rfl
+    · exact coeToSubmodule_injective
 
-    }
-  --toFun := by
-  --  intro I
-  --  obtain ⟨J, hJ⟩ := ClassGroup.mk0_surjective I -/
+-- I need algebra instance to exist for FractionalIdeal.mapOfInjective'
+def ClassGroup.map_apply {R S : Type*} [CommRing R]
+    [CommRing S] [IsDomain R] [IsDomain S] [Algebra R S] (hinj : Function.Injective (algebraMap R S))
+    (I : (FractionalIdeal (nonZeroDivisors R) (FractionRing R))ˣ) :
+    ClassGroup.map hinj (ClassGroup.mk I) =
+      ClassGroup.mk ((Units.map (FractionalIdeal.mapOfInjective' _ (FractionRing S) hinj)) I) := by
+  unfold ClassGroup.map
+  simp only  [QuotientGroup.map_mk]
+  unfold ClassGroup.mk
+  simp only [canonicalEquiv_self, QuotientGroup.coe_mk']
+  rfl
 
+
+lemma ClassGroup.map_apply' {R S : Type*} [CommRing R]
+  [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
+  (φ : R →+* S) (hinj : Function.Injective φ)
+  (I : nonZeroDivisors (Ideal R)) (J : nonZeroDivisors (Ideal S))
+  (hI : ↑J = Ideal.map φ I) : ClassGroup.map hinj (mk0 I) = mk0 J := by
+    letI : Algebra R S := φ.toAlgebra
+    rw [← ClassGroup.mk_mk0 (K := FractionRing R), ClassGroup.map_apply hinj,
+      ← ClassGroup.mk_mk0 (K := FractionRing S)]
+    congr
+    have : ((FractionalIdeal.mk0 (FractionRing R)) I :
+      FractionalIdeal (nonZeroDivisors R) (FractionRing R)) = I := by rfl
+    erw [← Units.eq_iff, Units.coe_map, this,
+      FractionalIdeal.mapOfInjective_apply_int', ← hI]
+    rfl
+
+
+-- Note that to construct any inverse map of class groups induced by an inverse map (right or left)
+--  of 'φ', we need to assume it is injective and thus φ is an iso.
+
+def ClassGroup.map_inverse_apply {R S : Type*} [CommRing R]
+  [CommRing S] [IsDomain R] [IsDomain S] (φ : R ≃+* S) (I : ClassGroup R) :
+    ClassGroup.map (φ := φ.symm.toRingHom) (RingEquiv.injective φ.symm)
+      (ClassGroup.map (φ := φ.toRingHom) (RingEquiv.injective φ) I) = I := by
+  letI : Algebra R S := φ.toRingHom.toAlgebra
+  letI : Algebra S R := φ.symm.toRingHom.toAlgebra
+  let J := Quot.out I
+  have : ClassGroup.mk J = I := by rw [← ClassGroup.Quot_mk_eq_mk, Quot.out_eq]
+  simp_rw [← this, ClassGroup.map_apply (RingEquiv.injective φ) J,
+    ClassGroup.map_apply (RingEquiv.injective φ.symm) _]
+  congr
+  show ((Units.map (mapOfInjective' (FractionRing S) (FractionRing R) (RingEquiv.injective φ.symm))).comp
+    (Units.map (mapOfInjective' (FractionRing R) (FractionRing S) (RingEquiv.injective φ)))) J = J
+  rw [← Units.map_comp, ← Units.eq_iff, Units.coe_map]
+  simp only [MonoidHom.coe_comp, Function.comp_apply]
+  apply_fun FractionalIdeal.coeToSubmodule
+  simp_rw [FractionalIdeal.mapOfInjective_apply' _ _ (RingEquiv.injective φ.symm), ← FractionalIdeal.coeToSet_coeToSubmodule]
+  simp_rw [FractionalIdeal.mapOfInjective_apply' _ _ (RingEquiv.injective φ)]
+  let φsymml : (FractionRing S) →ₛₗ[φ.symm.toRingHom] (FractionRing R) :=
+    { toFun := IsFractionRing.map (j := φ.symm.toRingHom) (RingEquiv.injective φ.symm)
+      map_add' := by simp only [map_add, implies_true]
+      map_smul' := by
+        intro x m
+        simp only [IsFractionRing.map, IsLocalization.map_smul] }
+  haveI : RingHomSurjective φ.symm.toRingHom := by
+    refine { is_surjective := RingEquiv.surjective φ.symm }
+  have := Submodule.map_coe φsymml ↑(Submodule.span S ((IsFractionRing.map (j := φ.toRingHom) (RingEquiv.injective φ)) '' (↑J : Set (FractionRing R))))
+  erw [← this, Submodule.span_image, Submodule.span_span, ← Submodule.span_image, ← Set.image_comp]
+  suffices heqid : ⇑φsymml ∘ ⇑(IsFractionRing.map (j := φ.toRingHom) ((RingEquiv.injective φ))) = id by
+    rw [heqid]
+    simp only [id_eq, Set.image_id']
+    rw [← FractionalIdeal.coeToSet_coeToSubmodule J.val]
+    simp only [Submodule.span_coe_eq_restrictScalars, Submodule.restrictScalars_self]
+  · unfold φsymml
+    simp only [RingEquiv.toRingHom_eq_coe, IsFractionRing.map, LinearMap.coe_mk, AddHom.coe_mk]
+    ext x
+    simp only [Function.comp_apply, IsLocalization.map_map, RingEquiv.symm_comp,
+      IsLocalization.map_id, id_eq]
+  · exact coeToSubmodule_injective
+
+noncomputable def ClassGroup.congr {R S : Type*} [CommRing R]
+  [CommRing S] [IsDomain R] [IsDomain S] (φ : R ≃+* S) : ClassGroup R ≃* ClassGroup S where
+  toFun := ClassGroup.map (RingEquiv.injective φ)
+  invFun := ClassGroup.map (RingEquiv.injective φ.symm)
+  map_mul' := fun x y ↦ MonoidHom.map_mul (map (RingEquiv.injective φ)) x y
+  left_inv := by
+    intro I
+    exact ClassGroup.map_inverse_apply φ I
+  right_inv := by
+    intro J
+    exact ClassGroup.map_inverse_apply φ.symm J
+
+
+
+/-
+
+
+    --simp?
+    --erw [Submodule.map_coe φsymml]
+    --simp_rw [← Submodule.span_image (f := IsFractionRing.map (RingEquiv.injective φ))]
+
+
+    --rw [← Units.map_comp (N := FractionalIdeal (nonZeroDivisors S) (FractionRing S)) (M := FractionalIdeal (nonZeroDivisors R) (FractionRing R)) _ _]
+    --simp_rw [FractionalIdeal.mapOfInjective_apply']
+
+
+
+
+
+
+
+
+
+#exit
+
+
+
+    --simp only [Units.coe_map, MonoidHom.coe_coe, g, K, this, F, ψ]
+
+
+
+
+
+  --let ff : (FractionalIdeal (nonZeroDivisors R) (FractionRing S))ˣ →* (FractionalIdeal (nonZeroDivisors S) (FractionRing S))ˣ := by
+  --  exact Units.map f
+  --  rintro ⟨I, hI⟩
+
+
+
+  --refine QuotientGroup.map _ _ ?_ ?_
+
+
+
+      --show c • ψ x = (OreLocalization.numeratorRingHom.comp (algebraMap R K) r) * ψ x
+    --(algebraMap R K c) * ψ x := Algebra.smul_def c (ψ x)
+    --unfold K at this
+
+   -- simp [ψ, hinj, IsFractionRing.map, IsLocalization.map]
+    --expose_names
+    --have := (IsLocalization.lift (IsLocalization.map._proof_15 K φ (IsFractionRing.map._proof_23 hinj))) c x)
+    --rw[ map_smul ]
+
+
+    --(IsLocalization.lift (IsLocalization.map._proof_15 K φ (IsFractionRing.map._proof_23 hinj))) c x)
+    --erw [OreLocalization.numeratorRingHom_apply]
+
+  --letI : Algebra R K := {
+
+
+  --}
+
+
+
+
+
+
+
+
+
+
+#exit
 -- We assume Dedekind domain to make the proof easier, since we can use mk0.
 noncomputable def ClassGroup.map0 {R S : Type*} [CommRing R]
   [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
@@ -435,7 +805,7 @@ noncomputable def ClassGroup.equiv0 {R S : Type*} [CommRing R]
     apply ClassGroup.map0_apply
     erw [Ideal.map_of_equiv, hy]
 
-
+-/
 
 lemma primes_below_bound_of_equiv {m} {R S : Type*} [CommRing R] [CommRing S]
     (φ : R ≃+* S) {g : m → Ideal R} (b : ℕ)
@@ -507,7 +877,7 @@ lemma subgroup_closure_eq_classGroup'' {m n r : Type} {b : ℕ}
   have : IsDedekindDomain ↥(integralClosure ℤ K) := by
     show IsDedekindDomain Oκ
     exact NumberField.RingOfIntegers.instIsDedekindDomain K
-  let E : ClassGroup ↥O ≃* ClassGroup Oκ := ClassGroup.equiv0 φ
+  let E : ClassGroup ↥O ≃* ClassGroup Oκ := ClassGroup.congr φ
   apply_fun (Subgroup.map (G := ClassGroup O) (N := ClassGroup Oκ) E)
   · rw [Subgroup.map_top_of_surjective _ (by exact EquivLike.surjective E)]
     rw [MonoidHom.map_closure]
@@ -516,9 +886,9 @@ lemma subgroup_closure_eq_classGroup'' {m n r : Type} {b : ℕ}
     · rw [← Set.range_comp]
       refine (congr_arg _ ?_)
       ext i
-      simp only [ClassGroup.equiv0, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.toRingEquiv_toRingHom,
+      simp only [ClassGroup.congr, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.toRingEquiv_toRingHom,
         MonoidHom.coe_coe, Function.comp_apply, MulEquiv.ofBijective_apply, E]
-      apply ClassGroup.map0_apply
+      apply ClassGroup.map_apply'
       rfl
     · intro i
       simp only [hg', gg, E, gg']
@@ -604,7 +974,51 @@ structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] (B
   Il : Fin m → List (Ideal S) -- List of ideals over the i-th prime, with norm less than B
   hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B) (List.zip (I i) (N i))) = Il i -/
 
+-- Function that sends an ideal with a proof that its has non-zero norm to a nonzerodivisor ideal.
+-- To do: move
+lemma zero_ne_mem_of_PrimesBelowCertificate {S : Type*} [CommRing S] [Nontrivial S]
+  [CharZero S] (B : ℕ)
+  (A : PrimesBelowBoundCertificate S B) : ¬ ⊥ ∈ List.flatten (List.ofFn A.Il) := by
+  intro hc
+  simp only [List.mem_flatten, List.mem_ofFn, exists_exists_eq_and] at hc
+  obtain ⟨a, ha⟩ := hc
+  have : A.Il a ⊆ (List.ofFn (A.I a)) := by
+    rw [← A.hIl a]
+    intro x hx
+    simp only [List.mem_map, List.mem_filter, decide_eq_true_eq, Prod.exists, exists_and_right,
+      exists_eq_right] at hx
+    obtain ⟨y, hy1, hy2⟩ :=  hx
+    exact (List.of_mem_zip hy1).1
+  have hmem : ⊥ ∈  List.ofFn (A.I a) := this ha
+  rw [List.mem_iff_get] at hmem
+  simp at hmem
+  obtain ⟨i, hi⟩ := hmem
+  set ii : Fin (A.g a):= ⟨↑i, id (Eq.mp (congrArg (LT.lt ↑i) List.length_ofFn) i.isLt)⟩
+  have := (A.hC a).hPprod
+  erw [Finset.prod_eq_zero (Finset.mem_univ ii) hi, Eq.comm, Ideal.span_singleton_eq_bot] at this
+  have haP : (A.P a).Prime := by
+    have hmemP : A.P a ∈ Nat.primesBelow B := by
+      show A.P a ∈ (Nat.primesBelow B : Set ℕ)
+      rw [← A.hP]
+      simp only [Set.mem_range, exists_apply_eq_apply]
+    exact Nat.prime_of_mem_primesBelow hmemP
+  simp at this
+  rw [this] at haP
+  exact Nat.prime_zero_false haP
 
+
+def Ideal.toNonZeroDivisorOfNeZero {R : Type} [CommRing R] [IsDomain R]
+  (I : Ideal R) (hp : I ≠ ⊥) : nonZeroDivisors (Ideal R) := by
+  refine ⟨I, ?_⟩
+  simp only [mem_nonZeroDivisors_iff_ne_zero, Submodule.zero_eq_bot,
+    ne_eq, hp, not_false_eq_true]
+
+def Ideal.toNonZeroDivisorOfNormPos {R : Type} [CommRing R] [IsDomain R] [CharZero R]
+  (I : Ideal R) (hp : 0 < Nat.card (R ⧸ I) ) : nonZeroDivisors (Ideal R) := by
+  refine Ideal.toNonZeroDivisorOfNeZero I ?_
+  intro hc
+  rw [hc, Nat.card_congr (RingEquiv.quotientBot R).toEquiv] at hp
+  simp only [Nat.card_eq_zero_of_infinite, gt_iff_lt, lt_self_iff_false] at hp
 
 
 -- List.map (List.filter (List.zip (List.ofFn (A.I i)) (List.ofFn (A.N i))) (λ p => p.2 < B)) Prod.fst
@@ -919,17 +1333,18 @@ lemma equivClassGroupOfSaturated_apply {S : Type*} [CommRing S] [IsDomain S] [Is
       ∏ i, ClassGroup.mk0 (I' i) ^ (x i).val := rfl
 
 -- Here, type herarchy is important. Ring of integers is not of type type, but higher.
-lemma class_number_of_saturated
-  {ι : Type*} [Fintype ι]
-  {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal Oκ} {I' : ι → nonZeroDivisors (Ideal Oκ)}
-  (hI' : ∀ i, ↑(I' i) = I i) {a : ι → Oκ} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
+lemma class_number_of_saturated {S : Subalgebra ℤ K} [IsDedekindDomain S]
+  {ι : Type*} [Fintype ι] (heq : S = integralClosure ℤ K)
+  {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal S} {I' : ι → nonZeroDivisors (Ideal S)}
+  (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
   (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (I' i))) = ⊤)
   (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, ∀ b : Oκ, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
   NumberField.classNumber K =  ∏ i, n i := by
     unfold NumberField.classNumber
-    rw [Fintype.card_eq_nat_card]
-    rw [← Nat.card_congr (Additive.toMul (α := ClassGroup Oκ)),
+    have : ClassGroup S ≃* ClassGroup Oκ := ClassGroup.congr (Subalgebra.equivOfEq _ _ heq).toRingEquiv
+    rw [Fintype.card_eq_nat_card, ← Nat.card_congr this.toEquiv,
+    ← Nat.card_congr (Additive.toMul (α := ClassGroup S)),
       Nat.card_congr (equivClassGroupOfSaturated hI' h hgen hdvd).symm.toEquiv , Nat.card_pi]
     simp only [Nat.card_eq_fintype_card, ZMod.card]
 
@@ -987,37 +1402,19 @@ lemma equivClassGroupCyclicOfSaturated_apply {S : Type*} [CommRing S] [IsDomain 
       Fin.default_eq_zero, Fin.isValue, AddEquiv.piUnique_symm_apply, uniqueElim_const,
       Finset.prod_const, Finset.card_singleton, pow_one]
 
-lemma class_number_of_saturated_of_cyclic
-  {n : ℕ} [NeZero n]  {I : Ideal Oκ} {I' : nonZeroDivisors (Ideal Oκ)}
-  (hI' : ↑I' = I) {a : Oκ} (h : I ^ n = Ideal.span {a})
+lemma class_number_of_saturated_of_cyclic {S : Subalgebra ℤ K} [IsDedekindDomain S]
+  {ι : Type*} [Fintype ι] (heq : S = integralClosure ℤ K)
+  {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal S)}
+  (hI' : ↑I' = I) {a : S} (h : I ^ n = Ideal.span {a})
   (hgen : Subgroup.closure (Set.range (fun (_ : Fin 1) => ClassGroup.mk0 I')) = ⊤)
   (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) :
   NumberField.classNumber K =  n := by
     unfold NumberField.classNumber
-    rw [Fintype.card_eq_nat_card]
-    rw [← Nat.card_congr (Additive.toMul (α := ClassGroup Oκ)),
+    have : ClassGroup S ≃* ClassGroup Oκ := ClassGroup.congr (Subalgebra.equivOfEq _ _ heq).toRingEquiv
+    rw [Fintype.card_eq_nat_card, ← Nat.card_congr this.toEquiv]
+    rw [← Nat.card_congr (Additive.toMul (α := ClassGroup S)),
       Nat.card_congr (equivClassGroupCyclicOfSaturated  hI' h hgen hdvd).symm.toEquiv]
     simp only [Nat.card_eq_fintype_card, ZMod.card]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1032,25 +1429,6 @@ lemma foo (G : Type*) [AddGroup G] {ι : Type*} (n : ι → ℕ) [∀ i, NeZero 
     ∀ b ∈ φ.ker , addOrderOf b ≠ p := by
 
 -/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

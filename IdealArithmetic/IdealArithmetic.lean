@@ -501,7 +501,29 @@ lemma ideal_mem_principal_class [Algebra R O] {r : ℕ} [NeZero r] (B : Basis (F
   convert hI
   simp only [Basis.equivFun_symm_apply, Set.range_const]
 
+lemma ideal_mem_principal_class'
+  [Algebra R O] {r : ℕ} [NeZero r] (B : Basis (Fin r) R O)
+  (I : Ideal O) {J : Ideal O} (v : Fin r → R) (hv : v ≠ 0)
+  (hI : I = Ideal.span (Set.range (fun i : Fin 1 => B.equivFun.symm (![v] i) ))) :
+   ∃ (α β : O), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
+      Ideal.span {α} * I = Ideal.span {β} * J ^ 0 := by
+  convert ideal_mem_principal_class (r := r) O R B I v hv ?_
+  · simp only [pow_zero, Ideal.one_eq_top, Ideal.mul_top]
+  · rw [hI]
+    refine congrArg _ ?_
+    simp only [Matrix.cons_val_fin_one, Basis.equivFun_symm_apply, Set.range_const]
 
+lemma ideal_mul_span_singleton_coe [Algebra R O] {r m : ℕ} [NeZero r] (B : Basis (Fin r) R O)
+  (I : Ideal O) (v : Fin m → Fin r → R)
+  (hI : I = Ideal.span (Set.range (fun i => B.equivFun.symm (v i)))) (r : R) :
+  Ideal.span {(algebraMap R O r)} * I = Ideal.span (Set.range (fun i => B.equivFun.symm ((r • v) i))) := by
+  rw [hI, Ideal.span_mul_span] ; congr
+  simp only [Set.mem_singleton_iff, Basis.equivFun_symm_apply, Set.mem_range, Set.iUnion_exists,
+    Set.iUnion_iUnion_eq', Set.iUnion_singleton_eq_range, Set.iUnion_iUnion_eq_left, Pi.smul_apply,
+    map_smul]
+  refine congrArg (f := Set.range) ?_
+  simp only [Basis.equivFun_symm_apply, Algebra.smul_def, Pi.smul_apply, Pi.mul_apply,
+    Pi.algebraMap_apply, Algebra.id.map_eq_id, RingHom.id_apply, map_mul]
 
 end I
 
