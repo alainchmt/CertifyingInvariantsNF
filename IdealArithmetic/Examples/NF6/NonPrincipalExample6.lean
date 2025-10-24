@@ -6,27 +6,6 @@ import IdealArithmetic.Examples.NF6.RI6
 
 open BigOperators Classical Matrix Polynomial
 
-lemma B_one : B 0 = 1 := by
-  refine basisOfBuilderLists_zero_eq_one _ _ BQ
-
-lemma B_one_repr : B.equivFun.symm ![1, 0, 0, 0, 0] = 1 := by
-  rw [Basis.equivFun_symm_eq_repr_symm']
-  apply_fun B.repr
-  rw [← B_one]
-  simp only [Basis.repr_symm_apply, Basis.repr_linearCombination, Fin.isValue, Basis.repr_self]
-  ext i
-  fin_cases i <;> norm_num
-  · exact LinearEquiv.injective B.repr
-
-instance : IsDomain O := by
-  haveI hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
-  {out := (Polynomial.Monic.irreducible_iff_irreducible_map_fraction_map (T_monic)).1 T_irreducible}
-  letI hola : Field K := by
-    unfold K
-    exact AdjoinRoot.instField
-  haveI : IsDomain K := by infer_instance
-  refine Subalgebra.isDomain O
-
 noncomputable section
 instance hq151 : Fact $ Nat.Prime 151 := by decide
 instance hq11 : Fact $ Nat.Prime 11 := by decide
@@ -38,7 +17,11 @@ def R151 : IsOrderOf (6 : ZMod 151) 150 where
  e := ![1, 1, 2]
  hP := by decide
  hm := by rfl
- hid := by sorry
+ hid := by
+  suffices h : ((6 : ZMod 151) ^ 15) ^ 10 = 1 by
+    rw [← pow_mul] at h
+    convert h
+  decide
  hnid := by decide
 
 def R11 : IsOrderOf (2 : ZMod 11) 10 where
@@ -290,7 +273,12 @@ def Log21: DiscreteLogCertificate N2 ((orderOf_of_IsOrderOf R151) ▸ IsPrimitiv
  hCeq := by rfl
  hmem := mem_of_certificate O ℤ _ _ _ _ Log21Mem
  k :=  119
- hpow := by sorry
+ hpow := by
+  show (6 : ZMod 151) ^ 119 = 61
+  suffices h : ((6 : ZMod 151) ^ 7) ^ 17 = 61 by
+    rw [← pow_mul] at h
+    convert h
+  decide
  heql := by decide
 
 def Log22Mem : IdealMemCertificate O ℤ B I2
@@ -332,29 +320,29 @@ def MulJ0 : IdealMulEqCertificate O ℤ timesTableO (J) J
 
 def MulJ1 : IdealMulEqCertificate O ℤ timesTableO (J*J) J
   ![![2, 0, 0, 0, 0], ![4, 2, -2, -1, -4]] ![![2, 0, 0, 0, 0], ![2, 0, -2, -1, -3]]
-  ![![4, 0, 0, 0, 0], ![2, -6, 4, 1, 6]] where
+  ![![4, 0, 0, 0, 0], ![4, 7, -3, -1, -6]] where
  T := Table
  heq := timesTableT_eq_Table
  hI1 := ideal_eq_mul_of_IdealMulEqCertificate O ℤ timesTableO _ _ _ _ _ MulJ0
  hI2 := rfl
  M :=  ![![![4, 0, 0, 0, 0], ![4, 0, -4, -2, -6]], ![![8, 4, -4, -2, -8], ![8, 8, -12, -5, -20]]]
  hmul := by decide
- f :=  ![![![![114, -28, 147, -63, -13], ![26, 84, -60, 116, 0]], ![![0, 0, 0, 0, 0], ![-20, 16, -4, 0, 0]]], ![![![-3, 12, 456, 22, 345], ![263, 124, -64, 180, 0]], ![![0, 0, 0, 0, 0], ![-33, 26, -8, 0, 0]]]]
- g :=  ![![![![-270, 782, -543, -138, -828], ![548, 32, 36, 0, 0]], ![![-334, 969, -674, -172, -1029], ![679, 39, 45, -1, 0]]], ![![![-586, 1694, -1176, -300, -1796], ![1188, 70, 78, -2, 0]], ![![-703, 2025, -1406, -360, -2150], ![1422, 85, 93, -5, 0]]]]
+ f :=  ![![![![114, -28, 147, -63, -13], ![26, 84, -60, 116, 0]], ![![0, 0, 0, 0, 0], ![-20, 16, -4, 0, 0]]], ![![![-718, 119, -255, -101, -352], ![123, -357, -17, -28, 0]], ![![0, 0, 0, 0, 0], ![7, -5, 3, 0, 0]]]]
+ g :=  ![![![![20, -124, -95, -68, -96], ![44, 96, 4, 0, 0]], ![![-253, 1408, 1115, 795, 1131], ![-493, -1119, -45, 3, 0]]], ![![![-488, 2759, 2173, 1551, 2200], ![-968, -2184, -88, 6, 0]], ![![-1294, 7334, 5772, 4120, 5845], ![-2574, -5802, -234, 15, 0]]]]
  hle1 := by decide
  hle2 := by decide
 
 def MulJ2 : IdealMulEqCertificate O ℤ timesTableO (J*J*J) J
-  ![![4, 0, 0, 0, 0], ![2, -6, 4, 1, 6]] ![![2, 0, 0, 0, 0], ![2, 0, -2, -1, -3]]
+  ![![4, 0, 0, 0, 0], ![4, 7, -3, -1, -6]] ![![2, 0, 0, 0, 0], ![2, 0, -2, -1, -3]]
   ![![4, 0, 0, 0, 0], ![4, 2, -2, -1, -4]] where
  T := Table
  heq := timesTableT_eq_Table
  hI1 := ideal_eq_mul_of_IdealMulEqCertificate O ℤ timesTableO _ _ _ _ _ MulJ1
  hI2 := rfl
- M :=  ![![![8, 0, 0, 0, 0], ![8, 0, -8, -4, -12]], ![![4, -12, 8, 2, 12], ![10, -18, 8, 1, 12]]]
+ M :=  ![![![8, 0, 0, 0, 0], ![8, 0, -8, -4, -12]], ![![8, 14, -6, -2, -12], ![-4, 15, -23, -9, -36]]]
  hmul := by decide
- f :=  ![![![![-3191799671, 704089614, -1064283293, -547556494, -1642583916], ![610137753, -1642875766, -62289409, 85566, 0]], ![![19079391, 17249352, -1830039, 0, 0], ![48137, 9491, -633, 49, 0]]], ![![![-4119882642, 908818497, -1373746074, -706770076, -2120199782], ![787548153, -2120576493, -80401366, 110446, 0]], ![![24627126, 22264965, -2362161, 0, 0], ![62134, 12251, -817, 63, 0]]]]
- g :=  ![![![![-484, 834, 24, 303, 108], ![-252, -1104, -120, 0, 0]], ![![-452, 780, 20, 282, 97], ![-236, -1032, -112, 0, 0]]], ![![![-958, 1666, 50, 607, 221], ![-514, -2208, -244, 0, 0]], ![![-1661, 2890, 84, 1051, 378], ![-891, -3828, -422, 0, 0]]]]
+ f :=  ![![![![-42537978769, 9340402926, -13771349688, -7546020842, -22188968907], ![8289834707, -21794273494, -1138509278, 400316779, 0]], ![![-174527976, -28197456, 1028736, 0, 0], ![-94043, 3397, 1131, -49, 0]]], ![![![-54752732986, 12022493832, -17725784207, -9712856047, -28560517565], ![10670255602, -28052485608, -1465431512, 515267496, 0]], ![![-224643576, -36294336, 1324136, 0, 0], ![-121048, 4372, 1456, -63, 0]]]]
+ g :=  ![![![![-484, 834, 24, 303, 108], ![-252, -1104, -120, 0, 0]], ![![-452, 780, 20, 282, 97], ![-236, -1032, -112, 0, 0]]], ![![![350, -618, -20, -227, -87], ![198, 822, 94, 0, 0]], ![![1181, -2070, -62, -753, -273], ![645, 2739, 303, 0, 0]]]]
  hle1 := by decide
  hle2 := by decide
 

@@ -5,13 +5,13 @@ import Mathlib.Tactic.NormNum.Prime
 import IdealArithmetic.MaximalAPI
 import Mathlib.NumberTheory.NumberField.Basic
 import IdealArithmetic.Examples.NF6.Irreducible6
-import IdealArithmetic.IdealArithmetic
+import IdealArithmetic.DiscriminantSubalgebraBuilder
 
 
 
 open Polynomial
 
-noncomputable def T : ℤ[X] := X^5 + 10*X^3 - 10*X^2 - 15*X - 18
+noncomputable def T : ℤ[X] := X^5 + 10*X^3 - 10*X^2 - 15*X - 18 
 lemma T_def : T = X^5 + 10*X^3 - 10*X^2 - 15*X - 18 := rfl
 
 def K := AdjoinRoot (map (algebraMap ℤ ℚ) T)
@@ -28,13 +28,13 @@ local notation "l" => [-18, -15, -10, 10, 0, 1]
 
 noncomputable def Adj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) T) :=
    AdjoinRoot.isAdjoinRoot _
-
+   
 local notation "θ" => Adj.root
 
 lemma T_ofList : ofList l = T := by
   rw [T_def] ; norm_num ; ring
 
--- We build the subalgebra with integral basis [1, a, a^2, 1/2*a^3 - 1/2*a, 1/24*a^4 - 1/8*a^3 - 5/24*a^2 + 5/24*a - 1/4]
+-- We build the subalgebra with integral basis [1, a, a^2, 1/2*a^3 - 1/2*a, 1/24*a^4 - 1/8*a^3 - 5/24*a^2 + 5/24*a - 1/4] 
 
 noncomputable def BQ : SubalgebraBuilderLists 5 ℤ  ℚ K T l where
  d :=  24
@@ -43,19 +43,19 @@ noncomputable def BQ : SubalgebraBuilderLists 5 ℤ  ℚ K T l where
  hofL := T_ofList.symm
  hm := rfl
  B := ![![24, 0, 0, 0, 0], ![0, 24, 0, 0, 0], ![0, 0, 24, 0, 0], ![0, -12, 0, 12, 0], ![-6, 5, -5, -3, 1]]
- a := ![ ![![1, 0, 0, 0, 0],![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 0, 0, 1, 0],![0, 0, 0, 0, 1]],
-![![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 1, 0, 2, 0],![3, -1, 2, 3, 12],![0, 0, 0, -2, -3]],
-![![0, 0, 1, 0, 0],![0, 1, 0, 2, 0],![6, -2, 5, 6, 24],![9, 2, 5, -11, 0],![-6, 2, -4, 0, -15]],
-![![0, 0, 0, 1, 0],![3, -1, 2, 3, 12],![9, 2, 5, -11, 0],![-18, 13, -11, -13, -72],![0, -5, 1, 12, 24]],
+ a := ![ ![![1, 0, 0, 0, 0],![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 0, 0, 1, 0],![0, 0, 0, 0, 1]], 
+![![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 1, 0, 2, 0],![3, -1, 2, 3, 12],![0, 0, 0, -2, -3]], 
+![![0, 0, 1, 0, 0],![0, 1, 0, 2, 0],![6, -2, 5, 6, 24],![9, 2, 5, -11, 0],![-6, 2, -4, 0, -15]], 
+![![0, 0, 0, 1, 0],![3, -1, 2, 3, 12],![9, 2, 5, -11, 0],![-18, 13, -11, -13, -72],![0, -5, 1, 12, 24]], 
 ![![0, 0, 0, 0, 1],![0, 0, 0, -2, -3],![-6, 2, -4, 0, -15],![0, -5, 1, 12, 24],![4, 0, 2, -4, 2]]]
  s := ![![[], [], [], [], []],![[], [], [], [], [-24]],![[], [], [], [-288], [72, -24]],![[], [], [-288], [0, -144], [192, 36, -12]],![[], [-24], [72, -24], [192, 36, -12], [-110, 11, 6, -1]]]
  h := Adj
  honed := by decide
  hd := by norm_num
- hcc := by decide
+ hcc := by decide 
  hin := by decide
  hsymma := by decide
- hc_le := by decide
+ hc_le := by decide 
 
 lemma T_degree : T.natDegree = 5 := (SubalgebraBuilderOfList T l BQ).hdeg
 
@@ -79,15 +79,15 @@ instance OmFree : Module.Free ℤ Om := Module.Free.of_basis B'
 instance OmFinite : Module.Finite ℤ Om := Module.Finite.of_basis B'
 
 noncomputable def timesTableO : TimesTable (Fin 5) ℤ O :=
-  timesTableOfSubalgebraBuilderLists T l BQ
+  timesTableOfSubalgebraBuilderLists T l BQ 
 
-noncomputable def B : Basis (Fin 5) ℤ O := timesTableO.basis
+noncomputable def B : Basis (Fin 5) ℤ O := timesTableO.basis 
 
-def Table : Fin 5 → Fin 5 → List ℤ :=
- ![ ![[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]],
- ![[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [3, -1, 2, 3, 12], [0, 0, 0, -2, -3]],
- ![[0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [6, -2, 5, 6, 24], [9, 2, 5, -11, 0], [-6, 2, -4, 0, -15]],
- ![[0, 0, 0, 1, 0], [3, -1, 2, 3, 12], [9, 2, 5, -11, 0], [-18, 13, -11, -13, -72], [0, -5, 1, 12, 24]],
+def Table : Fin 5 → Fin 5 → List ℤ := 
+ ![ ![[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]], 
+ ![[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [3, -1, 2, 3, 12], [0, 0, 0, -2, -3]], 
+ ![[0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [6, -2, 5, 6, 24], [9, 2, 5, -11, 0], [-6, 2, -4, 0, -15]], 
+ ![[0, 0, 0, 1, 0], [3, -1, 2, 3, 12], [9, 2, 5, -11, 0], [-18, 13, -11, -13, -72], [0, -5, 1, 12, 24]], 
  ![[0, 0, 0, 0, 1], [0, 0, 0, -2, -3], [-6, 2, -4, 0, -15], [0, -5, 1, 12, 24], [4, 0, 2, -4, 2]]]
 
 lemma timesTableT_eq_Table :  ∀ i j , Table i j = List.ofFn (timesTableO.table i j) := by decide
@@ -113,7 +113,7 @@ def CD5: CertificateDedekindCriterionLists l 5 where
  hdvdpow := rfl
  hcop := rfl
  hf := by rfl
- habc := by rfl
+ habc := by rfl 
 
 noncomputable def D : CertificateDedekindAlmostAllLists T l [2, 3] where
  n := 3
@@ -122,16 +122,16 @@ noncomputable def D : CertificateDedekindAlmostAllLists T l [2, 3] where
  pdgood := [5]
  hsub := by decide
  hp := by
-  intro i ; fin_cases i
+  intro i ; fin_cases i 
   exact hp2.out
   exact hp3.out
   exact hp5.out
  a := [-812500000, 397500000, -97500000, 62500000]
  b := [15000000, 315500000, -129500000, 19500000, -12500000]
  hab := by decide
- hd := by
-  intro p hp
-  fin_cases hp
+ hd := by 
+  intro p hp 
+  fin_cases hp 
   exact satisfiesDedekindCriterion_of_certificate_lists T l 5 T_ofList CD5
 
 noncomputable def M2 : MaximalOrderCertificateWLists 2 O Om hm where
@@ -143,10 +143,10 @@ noncomputable def M2 : MaximalOrderCertificateWLists 2 O Om hm where
  B' := B'
  T := Table
  heq := timesTableT_eq_Table
- TMod := ![![[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]],
-![[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 0, 0, 0], [1, 1, 0, 1, 0], [0, 0, 0, 0, 1]],
-![[0, 0, 1, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [1, 0, 1, 1, 0], [0, 0, 0, 0, 1]],
-![[0, 0, 0, 1, 0], [1, 1, 0, 1, 0], [1, 0, 1, 1, 0], [0, 1, 1, 1, 0], [0, 1, 1, 0, 0]],
+ TMod := ![![[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]], 
+![[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 0, 0, 0], [1, 1, 0, 1, 0], [0, 0, 0, 0, 1]], 
+![[0, 0, 1, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [1, 0, 1, 1, 0], [0, 0, 0, 0, 1]], 
+![[0, 0, 0, 1, 0], [1, 1, 0, 1, 0], [1, 0, 1, 1, 0], [0, 1, 1, 1, 0], [0, 1, 1, 0, 0]], 
 ![[0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [0, 1, 1, 0, 0], [0, 0, 0, 0, 0]]]
  hTMod := by decide
  hle := by decide
@@ -162,15 +162,15 @@ noncomputable def M2 : MaximalOrderCertificateWLists 2 O Om hm where
  hindv := by decide
  hindw := by decide
  hvFrobKer := by decide
- hwFrobComp := by decide
+ hwFrobComp := by decide 
  g := ![![0, 1, 1, 1, 1],![1, 1, 1, 0, 0],![1, 0, 1, 0, 1],![1, 1, 0, 0, 1],![0, 0, 0, 0, 1]]
  w1 := ![0, 1]
  w2 := ![1, 1, 0]
  a := ![![1, -44],![14, 7],![12, 32],![10, 68],![4, 46]]
  c := ![![-4, -2, 10],![10, -6, 4],![9, 0, -6],![6, 11, -20],![2, 8, -15]]
- hmulw := by decide
+ hmulw := by decide 
  ac_indw := ![Sum.inl 0, Sum.inl 1, Sum.inr 0, Sum.inr 1, Sum.inr 2]
- hacindw := by decide
+ hacindw := by decide 
 
 noncomputable def M3 : MaximalOrderCertificateOfUnramifiedLists 3 O Om hm where
  n := 5
@@ -180,10 +180,10 @@ noncomputable def M3 : MaximalOrderCertificateOfUnramifiedLists 3 O Om hm where
  B' := B'
  T := Table
  heq := timesTableT_eq_Table
- TMod := ![![[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]],
-![[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [0, 2, 2, 0, 0], [0, 0, 0, 1, 0]],
-![[0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [0, 1, 2, 0, 0], [0, 2, 2, 1, 0], [0, 2, 2, 0, 0]],
-![[0, 0, 0, 1, 0], [0, 2, 2, 0, 0], [0, 2, 2, 1, 0], [0, 1, 1, 2, 0], [0, 1, 1, 0, 0]],
+ TMod := ![![[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]], 
+![[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [0, 2, 2, 0, 0], [0, 0, 0, 1, 0]], 
+![[0, 0, 1, 0, 0], [0, 1, 0, 2, 0], [0, 1, 2, 0, 0], [0, 2, 2, 1, 0], [0, 2, 2, 0, 0]], 
+![[0, 0, 0, 1, 0], [0, 2, 2, 0, 0], [0, 2, 2, 1, 0], [0, 1, 1, 2, 0], [0, 1, 1, 0, 0]], 
 ![[0, 0, 0, 0, 1], [0, 0, 0, 1, 0], [0, 2, 2, 0, 0], [0, 1, 1, 0, 0], [1, 0, 2, 2, 2]]]
  hTMod := by decide
  hle := by decide
@@ -191,6 +191,33 @@ noncomputable def M3 : MaximalOrderCertificateOfUnramifiedLists 3 O Om hm where
  wFrob := ![![1, 0, 0, 0, 0],![0, 1, 0, 0, 0],![0, 0, 1, 0, 0],![0, 0, 0, 1, 0],![0, 0, 0, 0, 1]]
  w_ind := ![0, 1, 2, 3, 4]
  hindw := by decide
- hwFrobComp := by decide
+ hwFrobComp := by decide 
 
---------------------------------------------------------------------------
+open BigOperators Classical Matrix Polynomial
+    
+lemma B_one : B 0 = 1 := by
+  refine basisOfBuilderLists_zero_eq_one _ _ BQ
+
+lemma B_one_repr : B.equivFun.symm ![1, 0, 0, 0, 0] = 1 := by
+  rw [Basis.equivFun_symm_eq_repr_symm']
+  apply_fun B.repr
+  rw [← B_one]
+  simp only [Basis.repr_symm_apply, Basis.repr_linearCombination, Fin.isValue, Basis.repr_self]
+  ext i
+  fin_cases i <;> norm_num
+  · exact LinearEquiv.injective B.repr 
+
+lemma B_int_repr {n : ℤ} : B.equivFun.symm ![n, 0, 0, 0, 0] = n := by
+  suffices B.equivFun.symm ![n, 0, 0, 0, 0] = n • 1 by convert this ; simp only [zsmul_eq_mul,mul_one]
+  rw [← B_one_repr, ← LinearEquiv.map_smul]
+  simp only [Basis.equivFun_symm_apply, zsmul_eq_mul, Matrix.smul_cons, smul_eq_mul, mul_one,
+    mul_zero, Matrix.smul_empty]
+
+instance : IsDomain O := by
+  haveI hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
+  {out := (Polynomial.Monic.irreducible_iff_irreducible_map_fraction_map (T_monic)).1 T_irreducible}
+  letI hola : Field K := by
+    unfold K
+    exact AdjoinRoot.instField
+  haveI : IsDomain K := by infer_instance
+  refine Subalgebra.isDomain O 

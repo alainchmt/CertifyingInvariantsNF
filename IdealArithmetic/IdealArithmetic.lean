@@ -1259,7 +1259,7 @@ lemma not_principal_of_full_rank_matrix'' {S ι τ κ γ : Type*} {p : ℕ} [hp 
     (φ : Π i : τ, S →+* (F i)) (ζ : Π i, F i) (hr : ∀ i , IsPrimitiveRoot (ζ i) (Fintype.card (F i)ˣ))
     (hdvd : ∀ i, p ∣ (Fintype.card (F i)ˣ))
     (I : κ → Ideal S) (a : κ → S) (n : κ → ℕ) (r : κ → ℕ)
-    (ψ : γ → κ) (hinj : Function.Injective ψ) (hψ : ∀ i, (p ∣ n i) → ∃ j , ψ j = i )
+    (ψ : γ → κ) (hψ : ∀ i, (p ∣ n i) → ∃ j , ψ j = i )
     (hua : ∀ i j, IsUnit ((φ i) (a (ψ j))))
     (hnzero : ∀ j , j ∈ (Finset.image ψ Finset.univ)ᶜ → a j ≠ 0 )
     (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i}) (b : S)
@@ -1295,12 +1295,30 @@ lemma not_principal_of_full_rank_matrix'' {S ι τ κ γ : Type*} {p : ℕ} [hp 
       intro x hx
       rw [this x hx]
     obtain ⟨e, t , het ⟩ := hugen v
+    have hinj' : Function.Injective ψ := by
+      unfold Function.Injective
+      by_contra! hc
+      obtain ⟨a,b, habeq, hneq⟩ := hc
+      rw [Matrix.rank_eq_finrank_span_cols, Eq.comm] at hrank
+      have := hrank ▸ (finrank_span_le_card _)
+      simp at this
+      have hunivcard : (Finset.univ (α := ι ⊕ γ)).card = Fintype.card ι + Fintype.card γ := by
+        simp only [Finset.card_univ, Fintype.card_sum, Nat.add_left_cancel_iff]
+      rw [← hunivcard] at this
+      have heqcard := le_antisymm this (Finset.card_image_le)
+      rw [Eq.comm, Finset.card_image_iff] at heqcard
+      have := heqcard (x₁ := Sum.inr a) (by simp only [Finset.coe_univ, Set.mem_univ]) (x₂ := Sum.inr b) (by simp only [Finset.coe_univ,
+        Set.mem_univ])
+      rw [Sum.inr.injEq] at this
+      refine hneq (this ?_ )
+      ext i
+      simp only [col_apply, MatrixLogProd, Sum.elim_inr, habeq]
     have hauxprod2 : (∏ i ∈ Finset.filter (fun j ↦ ∃ k, ψ k = j) Finset.univ, a i ^ q i) = ∏ i, a (ψ i) ^ q (ψ i) := by
       symm
       refine Finset.prod_nbij ψ ?_ ?_ ?_ ?_
       · intro x hx
         simp
-      · exact fun x1 a x2 a ↦ fun a ↦ hinj a
+      · exact fun x1 a x2 a ↦ fun a ↦ hinj' a
       · intro x hx
         simp at hx
         obtain ⟨j, hj⟩ := hx
@@ -1329,13 +1347,13 @@ lemma not_principal_of_full_rank_matrix'' {S ι τ κ γ : Type*} {p : ℕ} [hp 
         rw [← ne_eq, Finset.prod_ne_zero_iff]
         intro i hi
         exact pow_ne_zero _ (hnzero i hi)
-    simp[e'] at he
+    simp [e'] at he
     obtain ⟨m, hm⟩ := hdvdcc
     rcases he with ⟨h1, h2⟩
     obtain ⟨k, hk ⟩ := h2 m
     specialize hq (ψ m)
     rw [hk, ← mul_assoc, mul_comm _ p, mul_assoc] at hq
-    simp [Nat.Prime.ne_zero hp.out] at hq
+    simp only [mul_eq_mul_left_iff, Nat.Prime.ne_zero hp.out, or_false, q, e', x] at hq
     rw [← hm]
     exact ⟨k, hq⟩
   · rw [← Nat.Prime.coprime_iff_not_dvd (hp.out), Nat.coprime_iff_gcd_eq_one, Nat.gcd_comm] at hdvdc

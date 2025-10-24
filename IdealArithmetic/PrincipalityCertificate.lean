@@ -1,6 +1,7 @@
 import IdealArithmetic.IdealArithmetic
 import IdealArithmetic.Sturm
 import Mathlib.NumberTheory.NumberField.Units.DirichletTheorem
+import IdealArithmetic.ClassGroupGeneration
 
 /- Here we specialized `LogFiniteRing` , `MatrixLogProd`
   and the releated theorems to prove nonprincipality to the case
@@ -131,6 +132,30 @@ lemma not_principal_of_full_rank_matrixLogZMod {p n : ℕ} [hp : Fact $ Nat.Prim
   · rw [← MatrixLog_eq p hcard _ hr]
     exact hrank
 
+lemma pSaturated_of_full_rank_matrixLogZMod [IsIntegrallyClosed O] {κ γ} [Fintype κ] [Fintype γ]
+  {p : ℕ} [hp : Fact $ Nat.Prime p]
+  [IsDomain O] (u : ι → O) (hu : ∀ i, IsUnit (u i))
+  (hugen : ∀ (w : Oˣ), (∃ (e : ι → ℕ) , (∃ (t : Oˣ) , w = (∏ (i : ι), (u i) ^ (e i)) * t ^ p)))
+  (hdvd : ∀ i, p ∣ q i - 1) (J : κ → Ideal O) (a : κ → O)
+  (n : κ → ℕ) (ψ : γ → κ) (hψ : ∀ i, (p ∣ n i) → ∃ j , ψ j = i )
+  (hua : ∀ i, ∀ j, (modIdealToZMod (hF i).out (I i) (hcard i)) ((Ideal.Quotient.mk (I i)) (a (ψ j))) ≠ 0)
+  (hnzero : ∀ j , j ∈ (Finset.image ψ Finset.univ)ᶜ → a j ≠ 0 )
+  (h : ∀ i, (J i) ^ (n i) = Ideal.span {a i})
+  (hrank : (MatrixLogZMod p hcard (Sum.elim (fun i => u i) (fun i => a (ψ i))) hr).rank = Fintype.card ι + Fintype.card γ)
+  (r : κ → ℕ) (b : O) (hrprod : ∏ i, (J i) ^ (r i) = Ideal.span {b}) (hdvdp : ∀ i , (n i) ∣ p * (r i)) :
+  ∀ i , n i ∣ r i := by
+  refine not_principal_of_full_rank_matrix'' (F q) u hu hugen (φ hcard)
+    (fun i => ↑(ζ i)) (hr_aux hr) ?_ J a n r ψ hψ ?_ hnzero h b hrprod hdvdp hrank
+  · intro i
+    unfold F
+    simp only [ZMod.card_units_eq_totient, Nat.totient_prime (hF i).out]
+    exact hdvd i
+  · intro i j
+    apply (isUnit_iff_ne_zero (a := (φ hcard i) (a (ψ j)))).2
+    exact hua i j
+
+
+
 lemma units_linear_independent_not_dvd_torsion_of_full_rank {p : ℕ} [hp : Fact $ Nat.Prime p]
   [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
   [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
@@ -204,6 +229,431 @@ lemma units_linear_independent_dvd_torsion_of_full_rank [Fintype κ] {p : ℕ} [
 
 
 end
+
+
+
+-- We allow the inclusion of more than r prime ideals, so these can be reused when we want to certify the class group.
+/- Certify that a system of units is p-maximal. Every unit can be written as a product of these
+  units and a p-power. -/
+structure pMaximailUnitsCertificateNDvdT (O : Type*)  [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] (p : ℕ)   where
+hp : Nat.Prime p
+r : ℕ -- rank of the unit group
+huc : Module.finrank ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ))) ≤ r
+u : Fin r → O
+hu : ∀ i, IsUnit (u i)
+t : ℕ -- Number of prime ideals we consider. This has to be at least r.
+hrle : r ≤ t
+q : Fin t → ℕ -- List of prime norms
+hqP : ∀ i, Fact (Nat.Prime (q i))
+I : Fin t → Ideal O
+hcard : ∀ j, Nat.card (O ⧸ I j) = q j
+ζ : Fin t → ℕ
+hr : ∀ i, IsPrimitiveRoot (ζ i : ZMod (q i)) (q i - 1)
+hdvd : ∀ i, p ∣ q i - 1
+hpndvdt : ¬p ∣ Nat.card (CommGroup.torsion Oˣ)
+M : Matrix (Fin t) (Fin r) (ZMod p)
+hM1 : ∀ i, ∀ j, M i j = LogFiniteZMod (hcard i) (hr i) p (u j)
+Minv : Matrix (Fin r) (Fin r) (ZMod p)
+hInv : M.submatrix (Fin.castLE hrle) id * Minv = 1
+--Removing the last rows so that the matrix is square we get an invertible matrix (simple way to check that M is full rank)
+
+
+
+
+lemma matrix_of_pMaximailUnitsCertificateNDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p : ℕ}
+  (C : pMaximailUnitsCertificateNDvdT O p) :
+    C.M.submatrix (Fin.castLE C.hrle) id  = (MatrixLogZMod p (hF := fun i : Fin C.r => C.hqP (Fin.castLE C.hrle i))
+        (fun i => C.hcard (Fin.castLE C.hrle i)) C.u (fun i => C.hr (Fin.castLE C.hrle i))) := by
+    ext i j
+    simp only [Matrix.submatrix_apply, id_eq, MatrixLogZMod]
+    convert C.hM1 (Fin.castLE C.hrle i) j
+
+
+lemma units_linear_independent_of_pMaximailUnitsCertificateNDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p : ℕ}
+  (C : pMaximailUnitsCertificateNDvdT O p) :
+LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Oˣ)) (C.hu i).unit)) := by
+  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  refine units_linear_independent_not_dvd_torsion_of_full_rank (hF := fun i : Fin C.r => C.hqP (Fin.castLE C.hrle i))  (fun i => C.hcard (Fin.castLE C.hrle i))
+    (fun i => C.hr (Fin.castLE C.hrle i)) C.u C.hu (fun i => C.hdvd (Fin.castLE C.hrle i)) C.hpndvdt ?_
+  rw [← matrix_of_pMaximailUnitsCertificateNDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    exact strongRankCondition_of_orzechProperty (ZMod p)
+  · refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.Minv)
+    rw [C.hInv]
+    simp only [Fintype.card_fin, Matrix.rank_one]
+
+
+lemma units_of_pMaximailUnitsCertificateNDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p : ℕ}
+  (C : pMaximailUnitsCertificateNDvdT O p) (w : Oˣ) :
+  ∃ (e' : Fin C.r → ℤ), (∃ (t : Oˣ) , w = (∏ i, ((C.hu i).unit) ^ (e' i)) * t ^ p) := by
+  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  refine units_up_to_p_power_not_dvd_torsion_of_full_rank (hF := fun i : Fin C.r => C.hqP (Fin.castLE C.hrle i))
+    (fun i => C.hcard (Fin.castLE C.hrle i))
+    (fun i => C.hr (Fin.castLE C.hrle i)) C.u C.hu (fun i => C.hdvd (Fin.castLE C.hrle i)) C.hpndvdt ?_ ?_ w
+  rw [← matrix_of_pMaximailUnitsCertificateNDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    exact strongRankCondition_of_orzechProperty (ZMod p)
+  · refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.Minv)
+    rw [C.hInv]
+    simp only [Fintype.card_fin, Matrix.rank_one]
+  simp
+  exact C.huc
+
+
+
+structure pMaximailUnitsCertificateDvdT (O : Type*) [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] (p : ℕ) where
+hp : Nat.Prime p
+r : ℕ -- rank of the unit group
+huc : Module.finrank ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ))) ≤ r
+u : Fin r → O
+hu : ∀ i, IsUnit (u i)
+v : O -- Generator of the torsion group (mod p-powers)
+m : ℕ
+hm : m ≠ 0
+hmv : v ^ m = 1
+t : ℕ -- Number of prime ideals we consider. This has to be at least r.
+hrle : r + 1 ≤ t
+q : Fin t → ℕ -- List of prime norms
+hqP : ∀ i, Fact (Nat.Prime (q i))
+I : Fin t → Ideal O
+hcard : ∀ j, Nat.card (O ⧸ I j) = q j
+ζ : Fin t → ℕ
+hr : ∀ i, IsPrimitiveRoot (ζ i : ZMod (q i)) (q i - 1)
+hdvd : ∀ i, p ∣ q i - 1
+M : Matrix (Fin t) (Fin (r + 1)) (ZMod p)
+hM1 : ∀ i, ∀ {j} , ∀ hj : j < r , M i j = LogFiniteZMod (hcard i) (hr i) p (u ⟨j, hj⟩) -- First columns of the matrix
+hM2 : ∀ i, M i r = LogFiniteZMod (hcard i) (hr i) p v
+Minv : Matrix (Fin (r + 1)) (Fin (r + 1)) (ZMod p)
+hInv : (M.submatrix (Fin.castLE hrle) id) * Minv = 1
+
+
+lemma torsion_of_pMaximailUnitsCertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p : ℕ}
+  [IsCyclic (CommGroup.torsion Oˣ)] (C : pMaximailUnitsCertificateDvdT O p) :
+  ∀ w ∈ CommGroup.torsion Oˣ, (∃ (a : ℤ) , (∃ t ∈ CommGroup.torsion Oˣ ,
+    w = ((IsUnit.of_pow_eq_one C.hmv C.hm).unit ^ a * t ^ p))) := by
+  haveI : Fact $ Nat.Prime p := {out := C.hp }
+  have hvmem : (IsUnit.of_pow_eq_one C.hmv C.hm).unit ∈ CommGroup.torsion Oˣ := by
+    rw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one]
+    use C.m
+    constructor
+    · exact Nat.pos_of_ne_zero C.hm
+    · rw [Units.ext_iff]
+      simp [C.hmv]
+  intro w hwmem
+  obtain ⟨⟨g, hgmem⟩ , hg ⟩ := exists_zpow_surjective (CommGroup.torsion Oˣ)
+  obtain ⟨r, hr⟩ := hg ⟨w, hwmem⟩
+  obtain ⟨t, ht⟩ := hg ⟨_, hvmem⟩
+  rw [← Subtype.val_inj] at hr ht
+  simp at hr ht
+  haveI := C.hqP
+  have hnz : ∃ i, LogFiniteZMod (C.hcard (Fin.castLE C.hrle i)) (C.hr (Fin.castLE C.hrle i)) p C.v ≠ 0 := by
+    by_contra! h
+    simp_rw [← C.hM2] at h
+    have : (C.Minv *(C.M.submatrix (Fin.castLE C.hrle) id)) C.r C.r = 1 := by
+      rw [Matrix.mul_eq_one_comm.1 C.hInv]
+      simp only [Matrix.one_apply_eq]
+    rw [Matrix.mul_apply] at this
+    simp only [Matrix.submatrix_apply, id_eq, h, mul_zero, Finset.sum_const_zero, zero_ne_one] at this
+  have hC : IsCoprime ↑p t := by
+    rw [Prime.coprime_iff_not_dvd (Nat.prime_iff_prime_int.mp C.hp)]
+    rintro ⟨k, hk⟩
+    obtain ⟨i, hi⟩ := hnz
+    rw [hk, mul_comm, zpow_mul, zpow_natCast, Units.ext_iff] at ht
+    simp at ht
+    rw [← ht] at hi
+    simp [LogFiniteZMod] at hi
+    rw [LogFiniteRing_p_power_eq_zero] at hi
+    exact hi rfl
+    simp only [ZMod.card_units_eq_totient, Nat.totient_prime (C.hqP (Fin.castLE C.hrle i)).out]
+    exact C.hdvd (Fin.castLE C.hrle i)
+  obtain ⟨b, a, hab⟩ := hC
+  use r * a , g ^ (r * b)
+  constructor
+  · exact Subgroup.zpow_mem (CommGroup.torsion Oˣ) hgmem _
+  · rw [← ht, ← zpow_mul, ← zpow_natCast, ← zpow_mul,
+      ← zpow_add, add_comm, mul_comm t _, ← hr]
+    nth_rw 1 [← mul_one r, ← hab]
+    congr
+    ring
+
+
+lemma matrix_of_pMaximailUnitsCertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p : ℕ}
+  [IsCyclic (CommGroup.torsion Oˣ)] (C : pMaximailUnitsCertificateDvdT O p) :
+    C.M.submatrix (Fin.castLE C.hrle) (id ∘ (finSumFinEquiv).toFun)  =
+      (MatrixLogZMod p (hF := fun i : Fin (C.r + 1) => C.hqP (Fin.castLE C.hrle i))
+        (fun i => C.hcard (Fin.castLE C.hrle i)) (Sum.elim C.u (fun (_ : Fin 1) => C.v)) (fun i => C.hr (Fin.castLE C.hrle i))) := by
+ext i j
+rcases j with j | r
+· simp only [Equiv.toFun_as_coe, CompTriple.comp_eq, Matrix.submatrix_apply,
+  finSumFinEquiv_apply_left, MatrixLogZMod, Sum.elim_inl]
+  convert C.hM1 (Fin.castLE C.hrle i) j.2 using 2
+  simp only [Fin.castAdd, Fin.castLE, Fin.coe_eq_castSucc, Fin.castSucc]
+· simp only [Equiv.toFun_as_coe, CompTriple.comp_eq, Matrix.submatrix_apply,
+  finSumFinEquiv_apply_right, MatrixLogZMod, Sum.elim_inr]
+  convert C.hM2 (Fin.castLE C.hrle i)
+  simp only [Fin.natAdd, Fin.val_eq_zero, add_zero, Fin.natCast_eq_last]
+  rfl
+
+lemma units_linear_independent_of_pMaximailUnitsCertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [IsCyclic (CommGroup.torsion Oˣ)] {p : ℕ}
+  (C : pMaximailUnitsCertificateDvdT O p) :
+  LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk (s := (CommGroup.torsion Oˣ)) (C.hu i).unit)) := by
+  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  refine units_linear_independent_dvd_torsion_of_full_rank (hF := fun i : Fin (C.r + 1) => C.hqP (Fin.castLE C.hrle i))
+    (fun i => C.hcard (Fin.castLE C.hrle i)) (fun i => C.hr (Fin.castLE C.hrle i)) C.u C.hu (fun i => C.hdvd (Fin.castLE C.hrle i)) (fun (i : Fin 1) => C.v) ?_ ?_ ?_
+  · intro i
+    exact (IsUnit.of_pow_eq_one C.hmv C.hm)
+  · intro w' hwmem'
+    obtain ⟨a, t, htmem, hat⟩ := torsion_of_pMaximailUnitsCertificateDvdT C w' hwmem'
+    use a, t, htmem
+    rw [hat]
+    simp
+  rw [← matrix_of_pMaximailUnitsCertificateDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    simp only [Fintype.card_fin, Fintype.card_unique, Fintype.card_sum]
+    exact strongRankCondition_of_orzechProperty (ZMod p)
+  · simp only [Fintype.card_fin, Fintype.card_unique, Equiv.toFun_as_coe, CompTriple.comp_eq]
+    erw [← Matrix.submatrix_submatrix C.M (Fin.castLE C.hrle) id (Equiv.refl _) finSumFinEquiv]
+    erw [← Matrix.reindex_apply (Equiv.refl _).symm (finSumFinEquiv).symm]
+    rw [Matrix.rank, Matrix.mulVecLin_reindex, LinearMap.range_comp, LinearMap.range_comp,
+      LinearEquiv.range, Submodule.map_top, LinearEquiv.finrank_map_eq, ← Matrix.rank]
+    refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.Minv)
+    rw [C.hInv]
+    simp only [Fintype.card_fin, Matrix.rank_one]
+
+
+lemma units_of_pMaximailUnitsCertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p : ℕ}
+  [IsCyclic (CommGroup.torsion Oˣ)] (C : pMaximailUnitsCertificateDvdT O p) (w : Oˣ) :
+  ∃ (e' : (Fin C.r) ⊕ (Fin 1) → ℤ), (∃ (t : Oˣ) , w = (∏ (i : (Fin C.r) ⊕ (Fin 1)),
+    (Sum.elim (fun i => (C.hu i).unit)
+    (fun _ => (IsUnit.of_pow_eq_one C.hmv C.hm).unit) i) ^ (e' i)) * t ^ p) := by
+  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  refine units_up_to_p_power_dvd_torsion_of_full_rank (hF := fun i : Fin (C.r + 1) => C.hqP (Fin.castLE C.hrle i))
+    (fun i => C.hcard (Fin.castLE C.hrle i)) (fun i => C.hr (Fin.castLE C.hrle i))
+      C.u C.hu (fun i => C.hdvd (Fin.castLE C.hrle i))
+      (fun (i : Fin 1) => C.v) _ ?_ ?_ ?_ w
+  · intro w' hwmem'
+    obtain ⟨a, t, htmem, hat⟩ := torsion_of_pMaximailUnitsCertificateDvdT C w' hwmem'
+    use a, t, htmem
+    rw [hat]
+    simp
+  rw [← matrix_of_pMaximailUnitsCertificateDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    simp only [Fintype.card_fin, Fintype.card_unique, Fintype.card_sum]
+    exact strongRankCondition_of_orzechProperty (ZMod p)
+  · simp only [Fintype.card_fin, Fintype.card_unique, Equiv.toFun_as_coe, CompTriple.comp_eq]
+    erw [← Matrix.submatrix_submatrix C.M (Fin.castLE C.hrle) id (Equiv.refl _) finSumFinEquiv]
+    erw [← Matrix.reindex_apply (Equiv.refl _).symm (finSumFinEquiv).symm]
+    rw [Matrix.rank, Matrix.mulVecLin_reindex, LinearMap.range_comp, LinearMap.range_comp,
+      LinearEquiv.range, Submodule.map_top, LinearEquiv.finrank_map_eq, ← Matrix.rank]
+    refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.Minv)
+    rw [C.hInv]
+    simp only [Fintype.card_fin, Matrix.rank_one]
+  · simp [C.huc]
+
+
+
+structure pSaturatedClassGroupCertificateNDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [IsIntegrallyClosed O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] (p : ℕ) {c : ℕ} (J : Fin c → Ideal O) (n : Fin c → ℕ) extends pMaximailUnitsCertificateNDvdT O p where
+ a : Fin c → O
+ γ : ℕ -- Number of indices where p divides n i.
+ hc : t = r + γ  -- The resulting matrix will be square
+ ψ : Fin γ → Fin c -- Gives the indices for the n_i such that p divides n_i
+ iψ : Fin c → Fin γ -- This is the left inverse, we fill dummy values
+ hψ : ∀ i, p ∣ n i → ψ (iψ i) = i
+ hψn : ∀ i, ¬ p ∣ n i → a i ≠ 0
+ h : ∀ i, (J i) ^ (n i) = Ideal.span {a i}
+ N : Matrix (Fin t) (Fin γ) (ZMod p)
+ hM2 : ∀ i , ∀ j,  DiscreteLogCertificate (hcard i) (hr i) p (a (ψ j)) (N i j) -- Last column of the matrix. The certificate contains discrete log info.
+ hDl : ∀ i, ∀ j, ((hM2 i j).m : ZMod (q i)) ≠ 0
+ NInv : Matrix (Fin t) (Fin t) (ZMod p)
+ hN : ((Matrix.of (fun i => Sum.elim (M i) (N i))).reindex (Equiv.refl _) (finSumFinEquiv.trans (finCongr hc.symm))) * NInv = 1
+
+
+lemma matrix_of_NonPrincipalCertificateNDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [IsIntegrallyClosed O]  [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {c p : ℕ} {J : Fin c → Ideal O} {n : Fin c → ℕ}
+  (C : pSaturatedClassGroupCertificateNDvdT p J n) :
+  Matrix.of (fun i => Sum.elim (C.M i) (C.N i)) =
+    (MatrixLogZMod p (hF := C.hqP) C.hcard (Sum.elim (fun i => C.u i) (fun j => C.a (C.ψ j))) C.hr) := by
+    ext i j
+    rcases j with j | k
+    · simp [MatrixLog_eq, MatrixLogZMod]
+      exact C.hM1 i j
+    · simp only [Matrix.of_apply, Sum.elim_inr, MatrixLogZMod]
+      haveI : Fact $ Nat.Prime (C.q i) := C.hqP i
+      rw [eq_of_DiscreteLogCertificate (C.hM2 i k)]
+
+
+lemma pSaturated_of_CertificateNDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [IsIntegrallyClosed O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p c : ℕ} {J : Fin c → Ideal O} {n : Fin c → ℕ}
+  (C : pSaturatedClassGroupCertificateNDvdT p J n) :
+  ∀ r : Fin c → ℕ, ∀ b : O, ∏ i, (J i) ^ (r i) = Ideal.span {b} → (∀ i, n i ∣ p * (r i)) → ∀ i, n i ∣ r i := by
+intro r b hrb hib
+haveI : Fact $ Nat.Prime p := {out := C.hp}
+refine pSaturated_of_full_rank_matrixLogZMod (hF := C.hqP) C.hcard C.hr C.u C.hu
+  ?_ C.hdvd J C.a n C.ψ ?_ ?_ ?_ C.h ?_ r b hrb hib
+· intro w
+  obtain ⟨e, t, h1⟩ := units_of_pMaximailUnitsCertificateNDvdT C.topMaximailUnitsCertificateNDvdT w
+  obtain ⟨e',h1, t', h2 ⟩ := (nat_up_to_power_of_int_up_to_power C.hu (Ne.symm (NeZero.ne' p)) e t h1)
+  use e' , t'
+· intro i hi
+  use C.iψ i
+  exact C.hψ i hi
+· intro i j
+  rw [apply_map_ZMod (hq := C.hqP i) (C.hM2 i j)]
+  exact C.hDl i j
+· intro j hj
+  refine C.hψn j ?_
+  by_contra hc
+  simp only [Finset.mem_compl, Finset.mem_image, Finset.mem_univ, true_and, not_exists] at hj
+  exact  hj (C.iψ j) (C.hψ j hc)
+· rw [← matrix_of_NonPrincipalCertificateNDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    simp only [Fintype.card_sum, Fintype.card_fin, Fintype.card_unique]
+    exact strongRankCondition_of_orzechProperty (ZMod p)
+  · rw [← Matrix.rank_reindex (Equiv.refl _) ((finSumFinEquiv.trans (finCongr C.hc.symm))) ]
+    refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.NInv)
+    rw [C.hN]
+    simp only [Fintype.card_fin, Matrix.rank_one, C.hc]
+
+
+structure pSaturatedClassGroupCertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [IsIntegrallyClosed O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] (p : ℕ) {c : ℕ} (J : Fin c → Ideal O) (n : Fin c → ℕ) extends pMaximailUnitsCertificateDvdT O p where
+ a : Fin c → O
+ γ : ℕ -- Number of indices where p divides n i.
+ hc : t = (r + 1) + γ  -- The resulting matrix will be square
+ ψ : Fin γ → Fin c -- Gives the indices for the n_i such that p divides n_i
+ iψ : Fin c → Fin γ -- This is the left inverse, we fill dummy values
+ hψ : ∀ i, p ∣ n i → ψ (iψ i) = i
+ hψn : ∀ i, ¬ p ∣ n i → a i ≠ 0
+ h : ∀ i, (J i) ^ (n i) = Ideal.span {a i}
+ N : Matrix (Fin t) (Fin γ) (ZMod p)
+ hM3 : ∀ i , ∀ j,  DiscreteLogCertificate (hcard i) (hr i) p (a (ψ j)) (N i j) -- Last column of the matrix. The certificate contains discrete log info.
+ hDl : ∀ i, ∀ j, ((hM3 i j).m : ZMod (q i)) ≠ 0
+ NInv : Matrix (Fin t) (Fin t) (ZMod p)
+ hN : ((Matrix.of (fun i => Sum.elim (M i) (N i))).reindex (Equiv.refl _) (finSumFinEquiv.trans (finCongr hc.symm))) * NInv = 1
+
+
+lemma matrix_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [IsIntegrallyClosed O]  [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {c p : ℕ} {J : Fin c → Ideal O} {n : Fin c → ℕ}
+  (C : pSaturatedClassGroupCertificateDvdT p J n) :
+  (Matrix.of (fun i => Sum.elim (C.M i) (C.N i))).reindex  (Equiv.refl (Fin C.t)) (Equiv.sumCongr (finSumFinEquiv (m := C.r) (n := 1)).symm (Equiv.refl (Fin C.γ))) =
+    (MatrixLogZMod p (hF := C.hqP) C.hcard (Sum.elim (Sum.elim (C.u) (fun (_ : Fin 1) => C.v)) (fun j => C.a (C.ψ j))) C.hr) := by
+    ext i j
+    rcases j with (j | j') | k
+    · simp only [Matrix.reindex_apply, Equiv.refl_symm, Equiv.coe_refl, Equiv.sumCongr_symm,
+      Equiv.symm_symm, Matrix.submatrix_apply, id_eq, Equiv.sumCongr_apply, Sum.map_inl,
+      finSumFinEquiv_apply_left, Matrix.of_apply, Sum.elim_inl, MatrixLogZMod]
+      convert C.hM1 i j.2
+      simp only [Fin.coe_eq_castSucc]
+      rfl
+    · simp [MatrixLog_eq, MatrixLogZMod]
+      convert C.hM2 i
+      rw [← Fin.val_inj]
+      simp only [Fin.coe_natAdd, Fin.val_eq_zero, add_zero, Fin.natCast_eq_last, Fin.val_last]
+    · simp only [Matrix.reindex_apply, Equiv.refl_symm, Equiv.coe_refl, Equiv.sumCongr_symm,
+      Equiv.symm_symm, Matrix.submatrix_apply, id_eq, Equiv.sumCongr_apply, Sum.map_inr,
+      Matrix.of_apply, Sum.elim_inr, MatrixLogZMod]
+      haveI : Fact $ Nat.Prime (C.q i) := C.hqP i
+      rw [eq_of_DiscreteLogCertificate (C.hM3 i k)]
+
+
+
+lemma pSaturated_of_CertificateDvdT {O : Type*} [CommRing O]
+  [IsDomain O] [IsIntegrallyClosed O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] [IsCyclic (CommGroup.torsion Oˣ)]
+  {p c : ℕ} {J : Fin c → Ideal O} {n : Fin c → ℕ} (C : pSaturatedClassGroupCertificateDvdT p J n) :
+  ∀ r : Fin c → ℕ, ∀ b : O, ∏ i, (J i) ^ (r i) = Ideal.span {b} → (∀ i, n i ∣ p * (r i)) → ∀ i, n i ∣ r i := by
+intro r b hrb hib
+haveI : Fact $ Nat.Prime p := {out := C.hp}
+have aux : ∀ (i : Fin C.r ⊕ Fin 1), IsUnit (Sum.elim C.u (fun x ↦ C.v) i) := by
+    intro i
+    rcases i with i | j
+    · simp [C.hu]
+    · exact IsUnit.of_pow_eq_one C.hmv C.hm
+refine pSaturated_of_full_rank_matrixLogZMod (hF := C.hqP) C.hcard C.hr (Sum.elim C.u (fun (_ : Fin 1) => C.v)) aux
+  ?_ C.hdvd J C.a n C.ψ ?_ ?_ ?_ C.h ?_ r b hrb hib
+· intro w
+  obtain ⟨e, t, h1⟩ := units_of_pMaximailUnitsCertificateDvdT C.topMaximailUnitsCertificateDvdT w
+  obtain ⟨e',h1, t', h2 ⟩ := (nat_up_to_power_of_int_up_to_power (w := w) aux
+    (Ne.symm (NeZero.ne' p)) e t (by rw [h1]; simp))
+  use e' , t'
+· intro i hi
+  use C.iψ i
+  exact C.hψ i hi
+· intro i j
+  rw [apply_map_ZMod (hq := C.hqP i) _]
+  exact C.hDl i j
+· intro j hj
+  refine C.hψn j ?_
+  by_contra hc
+  simp only [Finset.mem_compl, Finset.mem_image, Finset.mem_univ, true_and, not_exists] at hj
+  exact  hj (C.iψ j) (C.hψ j hc)
+· rw [← matrix_of_NonPrincipalCertificateDvdT C]
+  refine le_antisymm ?_ ?_
+  · convert (Matrix.rank_le_card_width) _
+    simp only [Fintype.card_sum, Fintype.card_fin, Fintype.card_unique]
+    exact strongRankCondition_of_orzechProperty (ZMod p)
+  · rw [Matrix.rank_reindex ]
+    rw [← Matrix.rank_reindex (Equiv.refl _) ((finSumFinEquiv.trans (finCongr C.hc.symm)))]
+    refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.NInv)
+    rw [C.hN]
+    simp only [Fintype.card_fin, Matrix.rank_one, C.hc]
+    simp only [Fintype.card_sum, Fintype.card_fin, Fintype.card_unique, Nat.add_left_cancel_iff]
+
+
+
+noncomputable def ClassGroup_equiv_of_pSaturatedCertificate  {O : Type*} [CommRing O]
+  [IsDomain O] [IsDedekindDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+  [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] [IsCyclic (CommGroup.torsion Oˣ)]
+  {c : ℕ} {J : Fin c → Ideal O} {n : Fin c → ℕ} [∀ i, NeZero (n i)]
+  {J' : Fin c → nonZeroDivisors (Ideal O)} (hJ' : ∀ i, ↑(J' i) = J i)
+  {a : Fin c → O} (h : ∀ i, (J i) ^ (n i) = Ideal.span {a i}) -- Note that this is already included in the certificates for p (but n might be 1, so no p-certificate).
+  (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (J' i))) = ⊤)
+  (C : ∀ (p : { p  // Nat.Prime p ∧ p ∣ ∏ i, n i}) , (pSaturatedClassGroupCertificateDvdT p J n) ⊕ (pSaturatedClassGroupCertificateNDvdT p J n) ) :
+  (∀ i : Fin c , (ZMod (n i))) ≃+ Additive (ClassGroup O) := by
+  refine equivClassGroupOfSaturated hJ' h hgen ?_
+  intro p hp hpdvd r b hr hdvd
+  let C' := C ⟨p, ⟨hp, hpdvd⟩⟩
+  cases C' with
+  | inl C => exact pSaturated_of_CertificateDvdT C r b hr hdvd
+  | inr C => exact pSaturated_of_CertificateNDvdT C r b hr hdvd
+
+
+
+
+
+#exit
+
+
 
 
 -- Dirichlet Unit theorem applies to orders of K, so we make this
@@ -402,7 +852,7 @@ lemma torsion_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
       rw [Matrix.mul_eq_one_comm.1 C.hInv]
       simp only [Matrix.one_apply_eq]
     rw [Matrix.mul_apply] at this
-    simp [h] at this
+    simp only [h, mul_zero, Finset.sum_const_zero, zero_ne_one] at this
   have hC : IsCoprime ↑C.p t := by
     rw [Prime.coprime_iff_not_dvd (Nat.prime_iff_prime_int.mp C.hp)]
     rintro ⟨k, hk⟩

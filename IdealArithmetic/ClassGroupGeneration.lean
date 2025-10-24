@@ -472,6 +472,8 @@ noncomputable def FractionalIdeal.mapOfInjective {R S P : Type*} [CommRing R] [N
   exact zero_not_mem_nonZeroDivisors ha1
 
 -- I need these algebra instances for the fraction ring statements
+
+
 noncomputable def FractionalIdeal.mapOfInjective' {R S : Type*} (F K : Type*) [CommRing R] [Nontrivial R]
     [CommRing S] [IsDomain S] [CommRing F] [CommRing K] [Algebra R F] [Algebra S K] [Algebra R S]
     (hinj : Function.Injective (algebraMap R S)) [IsFractionRing R F] [IsFractionRing S K] :
@@ -952,6 +954,230 @@ structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] (B
   Il : Fin m → List (Ideal S) -- List of ideals over the i-th prime, with norm less than B
   hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B) (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
 
+/-- Collects the prime ideals above the primes in the interval (A, B] but that have norm less than C -/
+structure PrimesBelowBoundCertificateInterval (S : Type*) [CommRing S] [Nontrivial S] (A B : ℕ) (C : ℕ) where
+  m : ℕ
+  g : Fin m → ℕ
+  P : Fin m → ℕ
+  hP : ∀ p, p ∈ Set.range P ↔ Nat.Prime p ∧ A < p ∧ p ≤ B
+  I : Π i,  Fin (g i) → (Ideal S) -- Factorization for the i-th prime.
+  hC : ∀ i : Fin m, PrimesBelowPCertificate (P i) (I i)
+  N :  Π i,  Fin (g i) → ℕ -- Norms corresponding to the factorization of the i-th prime.
+  hN : ∀ i, ∀ j, Nat.card (S ⧸ I i j) = N i j
+  Il : Fin m → List (Ideal S) -- List of ideals over the i-th prime, with norm less than B
+  hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < C) (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
+
+
+
+def Fin.addCasesIter {α : Type*} {r : ℕ} (e : Fin r → ℕ) (g : ∀ i, Fin (e i) → α) :
+  Fin (∑ i, e i) → α := by
+  revert e
+  induction' r with r hr
+  · exact fun e he =>  Fin.elim0
+  · intro e g
+    exact (Fin.addCases ((hr (fun i => e i.castSucc) (fun i => g i.castSucc)) ) (g (last r))) ∘ (Fin.cast (Fin.sum_univ_castSucc e))
+
+lemma List.ofFn_addCases {n m} {α} (left : Fin m → α) (right : Fin n → α) :
+  List.ofFn (Fin.addCases left right) = List.ofFn left ++ List.ofFn right := by
+  simp_rw [List.ofFn_add, Fin.addCases_left, Fin.addCases_right]
+
+lemma List.addCases_comp {n m} {α} (f : Fin m → α)  (eq : n = m) :
+  List.ofFn (f ∘ (Fin.cast eq))  = List.ofFn f := by
+  refine ofFn_inj'.mpr ?_
+  ext
+  · exact eq
+  · exact (Fin.heq_fun_iff eq).mpr (congrFun rfl)
+
+lemma List.ofFn_addCasesIter {α : Type*} {r : ℕ} (e : Fin (r + 1) → ℕ) (g : ∀ i, Fin (e i) → α) :
+  List.ofFn (Fin.addCasesIter e g) =
+    List.ofFn (Fin.addCasesIter (fun i => e i.castSucc) (fun (i : Fin r) => g i.castSucc)) ++ List.ofFn (g (Fin.last r)) := by
+  match r with
+  | 0 =>
+    simp [Fin.addCasesIter, Fin.addCases]
+    rfl
+  | r =>
+    unfold Fin.addCasesIter
+    simp_rw [List.addCases_comp, List.ofFn_addCases]
+    rfl
+
+
+def indexPair {r : ℕ} (e : Fin r → ℕ) (j : Fin (∑ i, e i)) : Σ (i : Fin r), Fin (e i) := by
+  revert e
+  induction' r with r hr
+  · intro e j
+    exact ⟨j, IsEmpty.elim (α := Fin 0) (p := fun (i : Fin 0) => Fin (e i)) (Fin.isEmpty') j⟩
+  · intro e j
+    let e' : Fin r → ℕ := fun i => e i.castSucc
+    by_cases h : j < ∑ (i : Fin r), e i.castSucc
+    · obtain ⟨i, hi⟩ := hr e' ⟨↑j, h⟩
+      exact ⟨i.castSucc, hi⟩
+    · let j' := Fin.subNat (∑ (i : Fin r), e i.castSucc) (Fin.cast (show ( ∑ i, e i = e (Fin.last r) + ∑ (i : Fin r), e i.castSucc ) by rw [Fin.sum_univ_castSucc, add_comm]) j)
+      refine ⟨Fin.last r, ?_⟩
+      refine j' ?_
+      simp only [Fin.coe_cast]
+      omega
+
+
+lemma indexPair_left_aux {r : ℕ} {e : Fin (r + 1) → ℕ} {j : Fin (∑ i, e i)} (h : j < ∑ (i : Fin r), e i.castSucc) :
+  indexPair e j = ⟨Fin.castSucc (indexPair (fun (i : Fin r) => e i.castSucc) ⟨↑j, h⟩).1,  (indexPair (fun (i : Fin r) => e i.castSucc) ⟨↑j, h⟩).2 ⟩ := by
+  unfold indexPair
+  unfold Nat.recAux
+  simp only [h, ↓reduceDIte, Fin.coe_cast]
+
+lemma indexPair_right_aux {r : ℕ} {e : Fin (r + 1) → ℕ} {j : Fin (∑ i, e i)} (h : ¬ j < ∑ (i : Fin r), e i.castSucc) :
+  indexPair e j = ⟨Fin.last r, Fin.subNat (∑ (i : Fin r), e i.castSucc)
+    (Fin.cast (show ( ∑ i, e i = e (Fin.last r) + ∑ (i : Fin r), e i.castSucc ) by rw [Fin.sum_univ_castSucc, add_comm]) j) (by simp only [Fin.coe_cast] ;  omega)⟩ := by
+  unfold indexPair
+  unfold Nat.recAux
+  simp only [h, ↓reduceDIte, Fin.coe_cast]
+
+noncomputable def indexPairEquiv {r : ℕ} (e : Fin r → ℕ) : Fin (∑ i, e i) ≃  Σ (i : Fin r), Fin (e i) := by
+  apply Equiv.ofBijective (indexPair e)
+  rw [Nat.bijective_iff_injective_and_card]
+  constructor
+  · revert e
+    induction' r with r hr
+    · simp only [Fin.forall_fin_zero_pi]
+      unfold indexPair ; dsimp
+      intro x y
+      simp only [Sigma.mk.injEq, heq_eq_eq, and_imp]
+      exact fun hx hxy => hx
+    · intro e
+      intro x y hxy
+      by_cases h1 : x < ∑ (i : Fin r), e i.castSucc
+      · by_cases h2 : y < ∑ (i : Fin r), e i.castSucc
+        · rw [indexPair_left_aux h1, indexPair_left_aux h2] at hxy
+          simp at hxy
+          have := (Function.Injective.eq_iff (hr (fun i ↦ e i.castSucc)) (a := ⟨x, h1⟩) (b := ⟨y, h2⟩)).1 (Sigma.ext_iff.mpr hxy)
+          simp only [Fin.mk.injEq] at this
+          exact Fin.eq_of_val_eq this
+        · rw [indexPair_left_aux h1, indexPair_right_aux h2] at hxy
+          simp only [Sigma.mk.injEq, Fin.castSucc_ne_last, false_and] at hxy
+      · by_cases h2 : y < ∑ (i : Fin r), e i.castSucc
+        · rw [indexPair_right_aux h1, indexPair_left_aux h2, Eq.comm] at hxy
+          simp only [Sigma.mk.injEq, Fin.castSucc_ne_last, false_and] at hxy
+        · rw [indexPair_right_aux h1, indexPair_right_aux h2] at hxy
+          simp only [Sigma.mk.injEq, heq_eq_eq, true_and] at hxy
+          rw [Fin.subNat_mk, Fin.subNat_mk] at hxy
+          simp only [Fin.coe_cast, Fin.mk.injEq] at hxy
+          omega
+  · simp only [Nat.card_eq_fintype_card, Fintype.card_fin, Fintype.card_sigma]
+
+
+lemma addCasesIter_apply {α : Type*} {r : ℕ} (e : Fin r → ℕ) (g : ∀ i, Fin (e i) → α) (j : Fin (∑ i, e i)) :
+    Fin.addCasesIter e g j = g (indexPair e j).1 (indexPair e j).2 := by
+  revert e
+  induction' r with r hr
+  · intro e g j
+    simp only [Finset.univ_eq_empty, Finset.sum_empty] at j
+    exfalso
+    exact Fin.isEmpty'.false j
+  · intro e g j
+    let e' := (fun (i : Fin r) => e i.castSucc)
+    let g' := (fun (i : Fin r) => g i.castSucc)
+    let f :=  Fin.addCasesIter e' g'
+    have : Fin.addCasesIter e g = (Fin.addCases f (g (Fin.last r))) ∘ (Fin.cast (Fin.sum_univ_castSucc e))  := rfl
+    rw [this, Function.comp_apply]
+    let t := g (Fin.last r)
+    by_cases h : j < ∑ (i : Fin r), e i.castSucc
+    · have : (Fin.cast (Fin.sum_univ_castSucc e) j) = (Fin.castAdd (e (Fin.last r)) (⟨j, h⟩ )) := by rfl
+      rw [this, Fin.addCases_left]
+      simp only [hr e' g' ⟨j, h⟩, f, e', g']
+      rw [indexPair_left_aux]
+    · have : (Fin.cast (Fin.sum_univ_castSucc e) j) =
+        (Fin.natAdd (∑ (i : Fin r), e i.castSucc) (Fin.subNat (∑ (i : Fin r), e i.castSucc)
+        (Fin.cast (show ( ∑ i, e i = e (Fin.last r) + ∑ (i : Fin r), e i.castSucc )
+        by rw [Fin.sum_univ_castSucc, add_comm]) j) (by simp only [Fin.coe_cast] ;  omega))) := by
+        erw [Fin.natAdd_subNat_cast (i := Fin.cast (Fin.sum_univ_castSucc e) j )]
+      rw [this, Fin.addCases_right, indexPair_right_aux h]
+
+
+
+-- Tried defining e with lists, but again, for indexing is easier to do it as Fin r → ℕ.
+-- Specially true for indexing to range over the certificates.
+--(hn : e ≠ [])
+ --(he : List.Sorted (fun x y => x < y) e)
+ --(h0 : e[0]'(List.length_pos_iff.2 hn) = 1)
+ --(hl : e.getLast hn = B)
+def primesBelowBoundCertificate_of_Interval (S : Type*) [CommRing S] [Nontrivial S]
+  {r : ℕ} (e : Fin (r + 1) → ℕ) (B : ℕ) (h0 : e 0 = 1) (hr : e (Fin.last r) = B)
+  (hl : ∀ (i : Fin r), e i.castSucc  < e (i.castSucc + 1))
+  (hC : ∀ (i : Fin r), PrimesBelowBoundCertificateInterval S (e i.castSucc) (e (i.castSucc + 1)) (B + 1)) :
+    PrimesBelowBoundCertificate S (B + 1) where
+ m := ∑ (i : Fin r), (hC i).m
+ g := Fin.addCasesIter (fun (i : Fin r) => (hC i).m) (fun i => (hC i).g)
+ P := Fin.addCasesIter (fun (i : Fin r) => (hC i).m) (fun i => (hC i).P)
+ hP := by
+  ext p
+  simp only [Set.mem_range, Finset.mem_coe, Nat.mem_primesBelow]
+  have auxe : ∀ k, e k < B + 1 := by
+    intro k
+    refine Fin.reverseInduction ?_ ?_ k
+    · simp only [hr, lt_add_iff_pos_right, Nat.lt_one_iff, pos_of_gt]
+    · intro i hr
+      refine lt_trans (hl i ) ?_
+      simp only [Fin.coeSucc_eq_succ, hr]
+  constructor
+  · rintro ⟨y, hy⟩
+    rw [addCasesIter_apply] at hy
+    have := (hC ((indexPair (fun i ↦ (hC i).m) y).fst)).hP p
+    simp at this
+    obtain ⟨hp, hl1,hl2⟩  := this.1 ⟨(indexPair (fun i ↦ (hC i).m) y).2, hy⟩
+    refine ⟨lt_of_le_of_lt hl2 (auxe _) , hp⟩
+  · rintro ⟨hpB, hp⟩
+    have : ∃ (k : Fin r), e k.castSucc < p ∧ p ≤ e (k.castSucc + 1) := by
+      by_contra! hc
+      have : ∀ k, e k < p := by
+        refine Fin.induction ?_ ?_
+        · rw [h0]
+          exact Nat.Prime.one_lt hp
+        · convert hc
+          simp only [Fin.coeSucc_eq_succ]
+      specialize this (Fin.last r)
+      rw [hr] at this
+      linarith
+    obtain ⟨k, hk⟩ := this
+    have := ((hC k).hP p ).2 ⟨hp, hk⟩
+    simp at this
+    obtain ⟨j, hj⟩ := this
+    use (indexPairEquiv ((fun (i : Fin r) => (hC i).m))).symm ⟨k, j⟩
+    rw [addCasesIter_apply]
+    have : (indexPair (fun i ↦ (hC i).m) ((indexPairEquiv fun i ↦ (hC i).m).symm ⟨k, j⟩)).fst = k := by
+      unfold indexPairEquiv ; simp_rw [Equiv.ofBijective_apply_symm_apply]
+    convert hj
+    refine (Fin.heq_ext_iff ?_).mpr ?_
+    congr
+    unfold indexPairEquiv
+    rw [Equiv.ofBijective_apply_symm_apply (indexPair (fun i ↦ (hC i).m) ) _ ⟨k, j⟩]
+ I := by
+  intro k
+  exact (hC ((indexPair (fun i ↦ (hC i).m) k).1)).I ((indexPair (fun i ↦ (hC i).m) k).2) ∘ (Fin.cast (addCasesIter_apply _ _ _))
+ hC := by
+  intro k
+  simp_rw [addCasesIter_apply]
+  convert (hC (indexPair (fun i ↦ (hC i).m) k).1).hC (indexPair (fun i ↦ (hC i).m) k).2
+  rw [addCasesIter_apply]
+  (expose_names; exact (Fin.heq_fun_iff e_4).mpr (congrFun rfl))
+ N := by
+  intro k
+  exact (hC ((indexPair (fun i ↦ (hC i).m) k).1)).N ((indexPair (fun i ↦ (hC i).m) k).2) ∘ (Fin.cast (addCasesIter_apply _ _ _))
+ hN := by
+  intro k l
+  exact (hC (indexPair (fun i ↦ (hC i).m) k).1).hN (indexPair (fun i ↦ (hC i).m) k).2 ((Fin.cast (addCasesIter_apply _ _ k)) l)
+ Il := Fin.addCasesIter (fun (i : Fin r) => (hC i).m) (fun i => (hC i).Il)
+ hIl := by
+  intro k
+  conv => right ; rw [addCasesIter_apply]
+  convert (hC (indexPair (fun i ↦ (hC i).m) k).1).hIl (indexPair (fun i ↦ (hC i).m) k).2
+  · rw [addCasesIter_apply]
+  · (expose_names; exact (Fin.heq_fun_iff e_2).mpr (congrFun rfl))
+  · exact addCasesIter_apply (fun i ↦ (hC i).m) (fun i ↦ (hC i).g) k
+  · (expose_names; exact (Fin.heq_fun_iff e_2).mpr (congrFun rfl))
+
+
+
+
+
 /- structure PrimesBelowPCertificate {S : Type*} [CommRing S] (p : ℕ) (F : List (Ideal S)) where
   Ip : ∀ I ∈ F , I.IsPrime
   hPprod : F.prod = Ideal.span {↑p}
@@ -1135,7 +1361,7 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate' {O : Subalgebra ℤ 
 
 lemma addOrderOf_ne_eq_addSubgroup {ι : Type*} (n : ι → ℕ) [∀ i, NeZero (n i)]
     {p : ℕ} (hpos : 1 < p) (H : AddSubgroup (∀ i : ι , (ZMod (n i))))
-    (hdvd : ∀ a : ι → ℕ, (fun i => ↑(a i)) ∈ H →  ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+    (hdvd : ∀ a : ι → ℕ, (fun i => ↑(a i)) ∈ H →  (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     ∀ b ∈ H , addOrderOf b ≠ p := by
   by_contra! hc
   obtain ⟨b, hb1, hb2⟩ := hc
@@ -1150,10 +1376,11 @@ lemma addOrderOf_ne_eq_addSubgroup {ι : Type*} (n : ι → ℕ) [∀ i, NeZero 
   ext i
   dsimp
   rw [← ZMod.natCast_zmod_val (b i), ZMod.natCast_zmod_eq_zero_iff_dvd]
-  refine hdvd ?_ i ?_ i
+  refine hdvd ?_ ?_ i
   · convert hb1
     exact ZMod.natCast_zmod_val (b _)
-  · rcases hb2 with ⟨hb21, hb22⟩
+  · intro i
+    rcases hb2 with ⟨hb21, hb22⟩
     apply_fun (fun f => f i) at hb21
     simp only [Pi.smul_apply, nsmul_eq_mul, Pi.zero_apply] at hb21
     rw [← ZMod.natCast_zmod_eq_zero_iff_dvd]
@@ -1162,7 +1389,7 @@ lemma addOrderOf_ne_eq_addSubgroup {ι : Type*} (n : ι → ℕ) [∀ i, NeZero 
 lemma addHom_card_ker_dvd_of_dvd {G : Type*} [AddGroup G] {ι : Type*} [Finite ι]
   {n : ι → ℕ} [∀ i, NeZero (n i)] {p : ℕ} [hp: Fact $ Nat.Prime p]
   (φ : (∀ i : ι , (ZMod (n i))) →+ G)
-  (hdvd : ∀ a : ι → ℕ, φ (fun i => a i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+  (hdvd : ∀ a : ι → ℕ, φ (fun i => a i) = 0 → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     ¬ p ∣ Nat.card (φ.ker) := by
   intro hc
   haveI : Fintype (φ.ker) := Fintype.ofFinite ↥φ.ker
@@ -1178,7 +1405,7 @@ lemma addHom_injective_of_dvd {G : Type*} [AddGroup G] {ι : Type*} [Fintype ι]
     {n : ι → ℕ} [∀ i, NeZero (n i)]
     (φ : (∀ i : ι , (ZMod (n i))) →+ G)
     (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, φ (fun i => a i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, φ (fun i => a i) = 0 → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     Function.Injective φ := by
   refine (AddMonoidHom.ker_eq_bot_iff φ).mp ?_
   rw [← AddSubgroup.card_eq_one, Nat.eq_one_iff_not_exists_prime_dvd]
@@ -1197,7 +1424,7 @@ noncomputable def EquivOfSurjectiveOfDvd {G : Type*} [AddGroup G] {ι : Type*} [
     {n : ι → ℕ} [∀ i, NeZero (n i)]
     (φ : (∀ i : ι , (ZMod (n i))) →+ G) (hs : Function.Surjective φ)
     (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, φ (fun i => a i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, φ (fun i => a i) = 0 → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     (∀ i : ι , (ZMod (n i))) ≃+ G := by
   apply AddEquiv.ofBijective φ
   constructor
@@ -1250,7 +1477,7 @@ noncomputable def AddEquivOfGenerators {G : Type*} [AddCommGroup G] {ι : Type*}
     {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (n i) • (g i) = 0)
     (hgen : AddSubgroup.closure (Set.range g) = ⊤)
     (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, ∑ i, (a i) • (g i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, ∑ i, (a i) • (g i) = 0 →(∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     (∀ i : ι , (ZMod (n i))) ≃+ G := by
   refine EquivOfSurjectiveOfDvd (AddHomOfGenerators h) (AddHomOfGenerators_surjective h hgen) ?_
   intro p hp hpdvd a ha
@@ -1268,7 +1495,7 @@ lemma AddEquivOfGenerators_apply {G : Type*} [AddCommGroup G] {ι : Type*} [Fint
     {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (n i) • (g i) = 0)
     (hgen : AddSubgroup.closure (Set.range g) = ⊤)
     (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, ∑ i, (a i) • (g i) = 0 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i)
+      ∀ a : ι → ℕ, ∑ i, (a i) • (g i) = 0 → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i)
     (x : ∀ i : ι , (ZMod (n i))) :
     AddEquivOfGenerators h hgen hdvd x = ∑ i, (x i).val • (g i) := by rfl
 
@@ -1276,7 +1503,7 @@ noncomputable def AddEquivOfGeneratorsMult {G : Type*} [CommGroup G] {ι : Type*
     {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (g i) ^ (n i) = 1)
     (hgen : Subgroup.closure (Set.range g) = ⊤)
     (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, ∏ i, (g i) ^ (a i) = 1 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, ∏ i, (g i) ^ (a i) = 1 → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     (∀ i : ι , (ZMod (n i))) ≃+ Additive G := by
     refine AddEquivOfGenerators (g := g) (n := n) (G := Additive G) h ?_ hdvd
     · apply_fun Subgroup.toAddSubgroup at hgen
@@ -1289,7 +1516,7 @@ lemma card_of_generators_saturated {G : Type*} [CommGroup G] {ι : Type*} [Finty
     {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)] (h : ∀ i, (g i) ^ (n i) = 1)
     (hgen : Subgroup.closure (Set.range g) = ⊤)
     (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, ∏ i, (g i) ^ (a i) = 1 → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, ∏ i, (g i) ^ (a i) = 1 → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     Nat.card G = ∏ i, n i := by
   rw [← Nat.card_congr (Additive.toMul (α := G)),
     Nat.card_congr (AddEquivOfGeneratorsMult h hgen hdvd).symm.toEquiv , Nat.card_pi]
@@ -1301,7 +1528,7 @@ noncomputable def equivClassGroupOfSaturated {S : Type*} [CommRing S] [IsDomain 
   (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
   (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (I' i))) = ⊤)
   (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
   (∀ i : ι , (ZMod (n i))) ≃+ Additive (ClassGroup S) := by
 refine AddEquivOfGeneratorsMult (G := ClassGroup S) (g := (fun i => ClassGroup.mk0 (I' i)))
   (n := n) ?_ hgen ?_
@@ -1327,7 +1554,7 @@ lemma equivClassGroupOfSaturated_apply {S : Type*} [CommRing S] [IsDomain S] [Is
     (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
     (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (I' i))) = ⊤)
     (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-        ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i)
+        ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i)
     (x : ∀ i : ι , (ZMod (n i))) :
     Additive.toMul (equivClassGroupOfSaturated hI' h hgen hdvd x) =
       ∏ i, ClassGroup.mk0 (I' i) ^ (x i).val := rfl
@@ -1339,7 +1566,7 @@ lemma class_number_of_saturated {S : Subalgebra ℤ K} [IsDedekindDomain S]
   (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
   (hgen : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (I' i))) = ⊤)
   (hdvd : ∀ p, Nat.Prime p → p ∣ ∏ i, n i →
-      ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → ∀ i, n i ∣ p * (a i) → ∀ i, n i ∣ a i) :
+      ∀ a : ι → ℕ, ∀ b : S, ∏ i, (I i) ^ (a i) = Ideal.span {b} → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
   NumberField.classNumber K =  ∏ i, n i := by
     unfold NumberField.classNumber
     have : ClassGroup S ≃* ClassGroup Oκ := ClassGroup.congr (Subalgebra.equivOfEq _ _ heq).toRingEquiv
@@ -1384,9 +1611,7 @@ noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsD
     have : (ClassGroup.mk0 I') ^ (a 0) = 1 := by
        rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI']
        exact ⟨b, heq⟩
-    intro i
     dsimp
-    rw [Fin.fin_one_eq_zero i]
     convert orderOf_dvd_of_pow_eq_one this
     exact (class_order_of_not_principal hI' h hdvd).symm
 
@@ -1429,17 +1654,3 @@ lemma foo (G : Type*) [AddGroup G] {ι : Type*} (n : ι → ℕ) [∀ i, NeZero 
     ∀ b ∈ φ.ker , addOrderOf b ≠ p := by
 
 -/
-
-
-
-
-
-
-example : integralClosure ℤ K = {x : K | IsIntegral ℤ x} := by  rfl
-
-
-
-
-variable (x : K)
-
-example : IsIntegral ℤ x = ∃ (p : Polynomial ℤ), p.Monic ∧ Polynomial.eval₂ (algebraMap ℤ K) x p = 0 := by rfl
