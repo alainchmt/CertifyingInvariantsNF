@@ -14,25 +14,31 @@ open Polynomial
 # Sturm's Theorem
 
 In this file, we develop some theory about real closed fields and prove a version of Sturm's theorem to
-count the roots of a polynomial.
+count the roots of a polynomial in an interval.
 
 ## Main Definitions:
 - `IsRealClosed`: A totally ordered field is a real closed field if it satisfies
   the intermediate value theorem for polynomial functions.
 - `signChanges` : The number of sign changes in a sequence.
-- `SturmBuilderOfList`: a structure parametrized by a polynomial, with a sturm sequence as
-  data together with the corresponding proofs.
+- `IsSturmSequence` : A predicate on a list of polynomials, stating that it is a sturm sequence.
+- `SturmBuilderOfList`: a structure that builds a sturm sequence in a computable way.
 
 ## Main Results:
 - `mean_value_theorem` : the mean value theorem for polynomial functions in real closed fields.
-- `sturm_theorem` : given a sturm sequence, the number of roots of the polynomial in an interval
-  `[a,b]` is given by the difference of sign changes in the sequence evaluated at `a` and `b`.
-    * We assume that none of the polynomials in the sequence vanish at `a` nor `b`. This is to avoid the
+- `sturm_theorem` : given a sturm sequence starting with `f` and `derivative f`,
+  the number of roots of the polynomial in an interval `[a,b]` is given by the difference of
+  sign changes in the sequence evaluated at `a` and `b`.
+  * We assume that none of the polynomials in the sequence vanish at `a` nor `b`. This is to avoid the
     technical difficulties of working with the sign changes of lists with zeros.
 - `sturm_theorem_total` : Sturm's theorem for the interval `(-∞, ∞)`.
 - `sturm_theorem_map`: if the polynomial is defined over a subring of a real closed field, then this result allows
   us to perform all of the computations in this subring. This is useful for polynomials over `ℤ` as
-  we do not want to compute in `ℝ`where we do not have decidable equality.
+  we do not want to compute in `ℝ` where we do not have decidable equality.
+
+## Examples:
+- `real_roots1`: the polynomial `X ^ 5 - 3 * X ^ 3 + 9 * X - 8` has `1` real root in `(-∞, ∞)`.
+- `real_roots2`: the polynomial `X ^ 8 - X ^ 7 - 3 * X ^ 6 + 3 * X ^ 5 + 3 * X ^ 4 - 6 * X ^ 3 - 2 * X ^ 2 + 3 * X + 1`
+    has `4` real root in `(-∞, ∞)`.
 
 
 ## Related work:
@@ -1690,8 +1696,7 @@ lemma sturm_theorem_induction_aux [Field F] [IsStrictOrderedRing F]
       rw [add_assoc]
 
 
-/-- `Sturm Theorem` for intervals
-  (we assume that none of the polynomials in the sequence
+/-- `Sturm Theorem` for intervals (we assume that none of the polynomials in the sequence
   have zeros at the extremes of the interval.)-/
 theorem sturm_theorem [Field F] [IsStrictOrderedRing F] (hc : IsRealClosed F) {a b : F} (hab : a < b)
     {P : List F[X]} {p : F[X]} (hs : IsSturmSequence P p (derivative p))
@@ -2091,7 +2096,7 @@ lemma sturm_theorem_total_map_ofList {R : Type*} [Field F] [IsStrictOrderedRing 
   · rw [← ofList_derivative_eq_derivative, ← ofList_dropTrailingZeros_eq_ofList p.derivative]
     exact SturmBuilderOfList_isSturm h
 
-#exit
+
 
 /-- EXAMPLE 1:  `X ^ 5 - 3 * X ^ 3 + 9 * X - 8` -/
 

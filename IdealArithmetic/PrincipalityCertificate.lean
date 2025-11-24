@@ -543,6 +543,7 @@ refine pSaturated_of_full_rank_matrixLogZMod (hF := C.hqP) C.hcard C.hr C.u C.hu
     simp only [Fintype.card_fin, Matrix.rank_one, C.hc]
 
 
+
 structure pSaturatedClassGroupCertificateDvdT {O : Type*} [CommRing O]
   [IsDomain O] [IsIntegrallyClosed O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
   [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] (p : ℕ) {c : ℕ} (J : Fin c → Ideal O) (n : Fin c → ℕ) extends pMaximailUnitsCertificateDvdT O p where
@@ -648,6 +649,62 @@ noncomputable def ClassGroup_equiv_of_pSaturatedCertificate  {O : Type*} [CommRi
   | inr C => exact pSaturated_of_CertificateNDvdT C r b hr hdvd
 
 
+open Polynomial
+
+structure RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+  (O : Subalgebra ℤ K) where
+  f : ℤ[X]
+  l : List ℤ
+  hl : ofList l = f
+  hlz : l = l.dropTrailingZeros'
+  hz : l ≠ []
+  hAdj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) f)
+  heq : O = integralClosure ℤ K
+  P : List (List ℤ)
+  SB : SturmBuilderOfList P l (List.derivative l).dropTrailingZeros
+  k : ℕ
+  r : ℕ
+  hr : signChangesNInftyOfList P - signChangesInftyOfList P = k
+  hreq : (k + (l.length - 1)) / 2 = r
+
+open NumberField
+
+lemma card_infinitePlace_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) : Fintype.card (InfinitePlace K) = C.r := by
+  rw [card_infinite_place_adjoin_root K _ ?_ C.hAdj, ← C.hl, Polynomial.map_map]
+  erw [sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono) C.SB]
+  rw [C.hr, Polynomial.natDegree_map_eq_of_injective]
+  convert C.hreq
+  rw [← natDegree_ofList C.l (C.hz), add_tsub_cancel_right]
+  · rw [dropTrailingZeros_eq_dropTrailingZeros']
+    exact C.hlz
+  · exact RingHom.injective_int (algebraMap ℤ ℚ)
+  · rw [Polynomial.map_ne_zero_iff (RingHom.injective_int (algebraMap ℤ ℚ)), ← C.hl ]
+    intro hc
+    exact (C.hz) (nil_of_ofList_eq_zero C.l ((dropTrailingZeros_eq_dropTrailingZeros' C.l ).symm ▸ C.hlz) hc)
+
+lemma units_finrank_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) :
+  Module.finrank ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ))) = C.r - 1  := by
+  conv =>
+    left
+    erw [C.heq, NumberField.Units.rank_modTorsion]
+  unfold NumberField.Units.rank
+  rw [card_infinitePlace_of_RankUnitsCertificate C]
+
+lemma nrComplexPlaces_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) :
+    InfinitePlace.nrComplexPlaces K = C.r - C.k := by
+  rw [← card_infinitePlace_of_RankUnitsCertificate C,
+    NumberField.InfinitePlace.card_eq_nrRealPlaces_add_nrComplexPlaces, ← C.hr,
+      ← sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono) C.SB,
+     nrRealPlaces_eq_nr_real_roots K _ C.hAdj, add_comm, Polynomial.map_map]
+  have : (algebraMap ℚ ℝ).comp (algebraMap ℤ ℚ) = algebraMap ℤ ℝ := by rfl
+  rw [this, C.hl]
+  simp only [algebraMap_int_eq, add_tsub_cancel_right]
+  · rw [Polynomial.map_ne_zero_iff (RingHom.injective_int (algebraMap ℤ ℚ)), ← C.hl ]
+    intro hc
+    exact (C.hz) (nil_of_ofList_eq_zero C.l ((dropTrailingZeros_eq_dropTrailingZeros' C.l ).symm ▸ C.hlz) hc)
 
 
 
@@ -1025,60 +1082,3 @@ lemma not_principal_of_NonPrincipalCertificateDvdT  {O : Type*} [CommRing O]
       refine le_of_eq_of_le ?_ (Matrix.rank_mul_le_left _ C.Minv)
       rw [C.hInv]
       simp only [Fintype.card_sum, Fintype.card_fin, Fintype.card_unique, Matrix.rank_one]
-
-open Polynomial
-
-structure RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
-  (O : Subalgebra ℤ K) where
-  f : ℤ[X]
-  l : List ℤ
-  hl : ofList l = f
-  hlz : l = l.dropTrailingZeros'
-  hz : l ≠ []
-  hAdj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) f)
-  heq : O = integralClosure ℤ K
-  P : List (List ℤ)
-  SB : SturmBuilderOfList P l (List.derivative l).dropTrailingZeros
-  k : ℕ
-  r : ℕ
-  hr : signChangesNInftyOfList P - signChangesInftyOfList P = k
-  hreq : (k + (l.length - 1)) / 2 = r
-
-open NumberField
-
-lemma card_infinitePlace_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
-  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) : Fintype.card (InfinitePlace K) = C.r := by
-  rw [card_infinite_place_adjoin_root K _ ?_ C.hAdj, ← C.hl, Polynomial.map_map]
-  erw [sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono) C.SB]
-  rw [C.hr, Polynomial.natDegree_map_eq_of_injective]
-  convert C.hreq
-  rw [← natDegree_ofList C.l (C.hz), add_tsub_cancel_right]
-  · rw [dropTrailingZeros_eq_dropTrailingZeros']
-    exact C.hlz
-  · exact RingHom.injective_int (algebraMap ℤ ℚ)
-  · rw [Polynomial.map_ne_zero_iff (RingHom.injective_int (algebraMap ℤ ℚ)), ← C.hl ]
-    intro hc
-    exact (C.hz) (nil_of_ofList_eq_zero C.l ((dropTrailingZeros_eq_dropTrailingZeros' C.l ).symm ▸ C.hlz) hc)
-
-lemma units_finrank_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
-  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) :
-  Module.finrank ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ))) = C.r - 1  := by
-  conv =>
-    left
-    erw [C.heq, NumberField.Units.rank_modTorsion]
-  unfold NumberField.Units.rank
-  rw [card_infinitePlace_of_RankUnitsCertificate C]
-
-lemma nrComplexPlaces_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
-  {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) :
-    InfinitePlace.nrComplexPlaces K = C.r - C.k := by
-  rw [← card_infinitePlace_of_RankUnitsCertificate C,
-    NumberField.InfinitePlace.card_eq_nrRealPlaces_add_nrComplexPlaces, ← C.hr,
-      ← sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono) C.SB,
-     nrRealPlaces_eq_nr_real_roots K _ C.hAdj, add_comm, Polynomial.map_map]
-  have : (algebraMap ℚ ℝ).comp (algebraMap ℤ ℚ) = algebraMap ℤ ℝ := by rfl
-  rw [this, C.hl]
-  simp only [algebraMap_int_eq, add_tsub_cancel_right]
-  · rw [Polynomial.map_ne_zero_iff (RingHom.injective_int (algebraMap ℤ ℚ)), ← C.hl ]
-    intro hc
-    exact (C.hz) (nil_of_ofList_eq_zero C.l ((dropTrailingZeros_eq_dropTrailingZeros' C.l ).symm ▸ C.hlz) hc)

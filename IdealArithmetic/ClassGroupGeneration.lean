@@ -316,7 +316,7 @@ lemma subgroup_closure_eq_classGroup {m n r : Type} {b : ℕ}
   · rw [← htop]
     simp only [Subgroup.mem_top, implies_true]
 
-lemma subgroup_closure_eq_classGroup' {m n r : Type} {b : ℕ}
+lemma subgroup_closure_eq_classGroup' {m n : Type} {b : ℕ}
     [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
     {g : m → Ideal Oκ} {g' : m → nonZeroDivisors (Ideal (Oκ))}
     {x : n → Ideal Oκ} {x' : n → nonZeroDivisors (Ideal (Oκ))}
@@ -849,7 +849,7 @@ lemma primes_below_bound_of_equiv {m} {R S : Type*} [CommRing R] [CommRing S]
 
 
 -- This is useful when the subalgebra O is not definitionally equal to Oκ
-lemma subgroup_closure_eq_classGroup'' {m n r : Type} {b : ℕ}
+lemma subgroup_closure_eq_classGroup'' {m n : Type} {b : ℕ}
     [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
     {O : Subalgebra ℤ K} [IsDedekindDomain ↥O] [Module.Free ℤ ↥O]
     ( φ : O ≃+* Oκ)
