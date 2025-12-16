@@ -317,7 +317,7 @@ lemma subgroup_closure_eq_classGroup {m n r : Type} {b : ℕ}
     simp only [Subgroup.mem_top, implies_true]
 
 lemma subgroup_closure_eq_classGroup' {m n : Type} {b : ℕ}
-    [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
+    [hn : Fintype n] [hm : Fintype m] [DecidableEq m]
     {g : m → Ideal Oκ} {g' : m → nonZeroDivisors (Ideal (Oκ))}
     {x : n → Ideal Oκ} {x' : n → nonZeroDivisors (Ideal (Oκ))}
     (hg' : ∀ i, ↑(g' i) = g i) (hx' : ∀ i, ↑(x' i) = x i)
@@ -850,7 +850,7 @@ lemma primes_below_bound_of_equiv {m} {R S : Type*} [CommRing R] [CommRing S]
 
 -- This is useful when the subalgebra O is not definitionally equal to Oκ
 lemma subgroup_closure_eq_classGroup'' {m n : Type} {b : ℕ}
-    [hn : Fintype n] [hm : Fintype m] [Fintype r] [DecidableEq m]
+    [hn : Fintype n] [hm : Fintype m] [DecidableEq m]
     {O : Subalgebra ℤ K} [IsDedekindDomain ↥O] [Module.Free ℤ ↥O]
     ( φ : O ≃+* Oκ)
     {g : m → Ideal O} {g' : m → nonZeroDivisors (Ideal (O))}
@@ -884,7 +884,7 @@ lemma subgroup_closure_eq_classGroup'' {m n : Type} {b : ℕ}
   · rw [Subgroup.map_top_of_surjective _ (by exact EquivLike.surjective E)]
     rw [MonoidHom.map_closure]
     convert subgroup_closure_eq_classGroup' (K := K) (m := m) (n := n)
-      (r := r) (b := b) (g := gg) (x := xx) (g' := gg') (x' := xx') ?_ ?_ hB ?_ B ?_
+       (b := b) (g := gg) (x := xx) (g' := gg') (x' := xx') ?_ ?_ hB ?_ B ?_
     · rw [← Set.range_comp]
       refine (congr_arg _ ?_)
       ext i
@@ -935,9 +935,6 @@ Fn's.
 structure PrimesBelowPCertificate {S : Type*} [CommRing S] (p : ℕ) {g : ℕ} (F : Fin g → Ideal S) where
   Ip : ∀ i, (F i).IsPrime
   hPprod : ∏ i, F i = Ideal.span {↑p}
-
-#eval Nat.primesBelow 100
-
 
 -- Turns out it's better to use lists to encode the factorizations. Because pattern matching with large n
 -- is annoying? Still not sure about this.
