@@ -5,15 +5,17 @@ import IdealArithmetic.Sturm
 open Polynomial
 
 lemma resultant_pseudoremainder_of_split_monic {K : Type*} [Field K]
-  {ι κ τ : Type*} [DecidableEq ι] [DecidableEq κ] [DecidableEq τ] {s₁ : Finset ι} {t₁ : ι → K}
-  {s₂ : Finset κ} {t₂ : κ → K} {s₃ : Finset τ} {t₃ : τ → K}
-  {Q : K[X]} {e f : K} (he : e ≠ 0)
-  (heq : C e * ( ∏ i ∈ s₁, (X - C (t₁ i))) = Q * (∏ i ∈ s₂, (X - C (t₂ i)))  - C f * (∏ i ∈ s₃, (X - C (t₃ i)) )):
+    {ι κ τ : Type*} [DecidableEq ι] [DecidableEq κ] [DecidableEq τ] {s₁ : Finset ι} {t₁ : ι → K}
+    {s₂ : Finset κ} {t₂ : κ → K} {s₃ : Finset τ} {t₃ : τ → K}
+    {Q : K[X]} {e f : K} (he : e ≠ 0)
+    (heq : C e * ( ∏ i ∈ s₁, (X - C (t₁ i))) =
+      Q * (∏ i ∈ s₂, (X - C (t₂ i)))  - C f * (∏ i ∈ s₃, (X - C (t₃ i)) )) :
     resultant (∏ i ∈ s₁, (X - C (t₁ i))) (∏ i ∈ s₂, (X - C (t₂ i))) =
-    (-1) ^ ((s₁.card + 1) * (s₂.card)) * (f / e) ^ (s₂.card) *
-    (resultant (∏ i ∈ s₂, (X - C (t₂ i))) (∏ i ∈ s₃, (X - C (t₃ i)) )) := by
+      (-1) ^ ((s₁.card + 1) * (s₂.card)) * (f / e) ^ (s₂.card) *
+      (resultant (∏ i ∈ s₂, (X - C (t₂ i))) (∏ i ∈ s₃, (X - C (t₃ i)) )) := by
   rw [resultant_prod_X_sub_C]
-  have :  ∀ i ∈ s₂, eval (t₂ i) (∏ i ∈ s₁, (X - C (t₁ i))) = - (f / e) * eval (t₂ i) (∏ i ∈ s₃, (X - C (t₃ i))) := by
+  have :  ∀ i ∈ s₂, eval (t₂ i) (∏ i ∈ s₁, (X - C (t₁ i))) =
+    - (f / e) * eval (t₂ i) (∏ i ∈ s₃, (X - C (t₃ i))) := by
     intro i hi
     apply_fun (fun x => eval (t₂ i) x) at heq
     simp only [eval_mul, eval_C, eval_sub] at heq
@@ -24,39 +26,39 @@ lemma resultant_pseudoremainder_of_split_monic {K : Type*} [Field K]
     simp only [eval_sub, eval_X, eval_C, sub_self]
   simp_rw [Finset.prod_congr rfl this]
   -- ← smul_eq_mul (-(f / e)) _
-  rw [← Finset.pow_card_mul_prod, prod_X_sub_C_resultant, ← neg_one_mul (f / e), mul_pow, natDegree_finset_prod_X_sub_C_eq_card]
+  rw [← Finset.pow_card_mul_prod, prod_X_sub_C_resultant,
+    ← neg_one_mul (f / e), mul_pow, natDegree_finset_prod_X_sub_C_eq_card]
   ring
 
 
-#check C_mul_resultant_of_not_eq_zero
-
 lemma resultant_pseudoremainder_of_split {K : Type*} [Field K]
-  {ι κ τ : Type*} [DecidableEq ι] [DecidableEq κ] [DecidableEq τ] {s₁ : Finset ι} {t₁ : ι → K}
-  {s₂ : Finset κ} {t₂ : κ → K} {s₃ : Finset τ} {t₃ : τ → K}
-  {Q : K[X]} {e f x₁ x₂ x₃ : K} (hx1 : x₁ ≠ 0) (hx2 : x₂ ≠ 0) (hx3 : x₃ ≠ 0) (he : e ≠ 0)
-  (heq : C e * (C x₁ * ∏ i ∈ s₁, (X - C (t₁ i))) = Q * (C x₂ * ∏ i ∈ s₂, (X - C (t₂ i)))  - C f * (C x₃ * ∏ i ∈ s₃, (X - C (t₃ i)) )):
-    resultant (C x₁ * ∏ i ∈ s₁, (X - C (t₁ i))) (C x₂ * ∏ i ∈ s₂, (X - C (t₂ i))) =
-    (-1) ^ ((s₁.card + 1) * (s₂.card)) * (f / e) ^ (s₂.card) * x₂ ^ (s₁.card - s₃.card : ℤ) *
-    (resultant (C x₂ * ∏ i ∈ s₂, (X - C (t₂ i))) (C x₃ * ∏ i ∈ s₃, (X - C (t₃ i)) )) := by
+    {ι κ τ : Type*} [DecidableEq ι] [DecidableEq κ] [DecidableEq τ] {s₁ : Finset ι} {t₁ : ι → K}
+    {s₂ : Finset κ} {t₂ : κ → K} {s₃ : Finset τ} {t₃ : τ → K}
+    {Q : K[X]} {e f x₁ x₂ x₃ : K} (hx1 : x₁ ≠ 0) (hx2 : x₂ ≠ 0) (hx3 : x₃ ≠ 0) (he : e ≠ 0)
+    (heq : C e * (C x₁ * ∏ i ∈ s₁, (X - C (t₁ i))) =
+      Q * (C x₂ * ∏ i ∈ s₂, (X - C (t₂ i)))  - C f * (C x₃ * ∏ i ∈ s₃, (X - C (t₃ i)) )) :
+      resultant (C x₁ * ∏ i ∈ s₁, (X - C (t₁ i))) (C x₂ * ∏ i ∈ s₂, (X - C (t₂ i))) =
+      (-1) ^ ((s₁.card + 1) * (s₂.card)) * (f / e) ^ (s₂.card) * x₂ ^ (s₁.card - s₃.card : ℤ) *
+      (resultant (C x₂ * ∏ i ∈ s₂, (X - C (t₂ i))) (C x₃ * ∏ i ∈ s₃, (X - C (t₃ i)) )) := by
   rw [← mul_assoc, ← mul_assoc, ← mul_assoc, ← C_mul, ← C_mul] at heq
-  rw [C_mul_resultant_of_not_eq_zero _ hx1, resultant_C_mul_of_not_eq_zero _ hx2, C_mul_resultant_of_not_eq_zero _ hx2, resultant_C_mul_of_not_eq_zero _ hx3,
-    resultant_pseudoremainder_of_split_monic _ heq , natDegree_C_mul hx2, natDegree_C_mul hx3, zpow_sub₀ hx2]
+  rw [C_mul_resultant_of_not_eq_zero _ hx1, resultant_C_mul_of_not_eq_zero _ hx2,
+    C_mul_resultant_of_not_eq_zero _ hx2, resultant_C_mul_of_not_eq_zero _ hx3,
+    resultant_pseudoremainder_of_split_monic _ heq , natDegree_C_mul hx2,
+    natDegree_C_mul hx3, zpow_sub₀ hx2]
   simp only [natDegree_finset_prod_X_sub_C_eq_card]
   field_simp
   ring_nf
   exact (mul_ne_zero_iff_right hx1).mpr he
 
 
---example {S : Multiset α} (f : α → β): (Multiset.map f S).toList = List.map f (S.toList)  := by apply?
 open Classical
 
 lemma resultant_pseudoremainder {K : Type*} [Field K] {P₁ P₂ P₃ Q : K[X]}
-  (hP1 : P₁ ≠ 0) (hP2 : P₂ ≠ 0) (hP3 : P₃ ≠ 0) {e f : K} (he : e ≠ 0)
-  (heq : C e * P₁ = Q * P₂ - C f * P₃) :
-  resultant P₁ P₂ =
-    (-1) ^ ((P₁.natDegree + 1) * P₂.natDegree) * (f / e) ^ (P₂.natDegree)
-      * P₂.leadingCoeff ^ (P₁.natDegree - P₃.natDegree : ℤ) * resultant P₂ P₃ := by
-
+    (hP1 : P₁ ≠ 0) (hP2 : P₂ ≠ 0) (hP3 : P₃ ≠ 0) {e f : K} (he : e ≠ 0)
+    (heq : C e * P₁ = Q * P₂ - C f * P₃) :
+    resultant P₁ P₂ =
+      (-1) ^ ((P₁.natDegree + 1) * P₂.natDegree) * (f / e) ^ (P₂.natDegree)
+        * P₂.leadingCoeff ^ (P₁.natDegree - P₃.natDegree : ℤ) * resultant P₂ P₃ := by
   have aux1 : Splits (algebraMap K (AlgebraicClosure K)) P₁ := (IsAlgClosed.splits_codomain P₁)
   have aux2 : Splits (algebraMap K (AlgebraicClosure K)) P₂ := (IsAlgClosed.splits_codomain P₂)
   have aux3 : Splits (algebraMap K (AlgebraicClosure K)) P₃ := (IsAlgClosed.splits_codomain P₃)
@@ -67,21 +69,27 @@ lemma resultant_pseudoremainder {K : Type*} [Field K] {P₁ P₂ P₃ Q : K[X]}
     Polynomial.map_prod, Polynomial.map_sub, Polynomial.map_X, Polynomial.map_C, map_prod, hom_eval,
     ← Polynomial.eval_map]
   have prod1 := eq_prod_roots_of_splits aux1
-  rw [← Multiset.prod_toList, List.Perm.prod_eq (Multiset.toList_map _ _), ← List.finset_prod_get] at prod1
+  rw [← Multiset.prod_toList, List.Perm.prod_eq (Multiset.toList_map _ _),
+    ← List.finset_prod_get] at prod1
   have prod2 := eq_prod_roots_of_splits aux2
-  rw [← Multiset.prod_toList, List.Perm.prod_eq (Multiset.toList_map _ _), ← List.finset_prod_get] at prod2
+  rw [← Multiset.prod_toList, List.Perm.prod_eq (Multiset.toList_map _ _),
+    ← List.finset_prod_get] at prod2
   have prod3 := eq_prod_roots_of_splits aux3
-  rw [← Multiset.prod_toList, List.Perm.prod_eq (Multiset.toList_map _ _), ← List.finset_prod_get] at prod3
+  rw [← Multiset.prod_toList, List.Perm.prod_eq (Multiset.toList_map _ _),
+    ← List.finset_prod_get] at prod3
   apply_fun map (algebraMap K (AlgebraicClosure K)) at heq
   simp at heq
   rw [prod1, prod2, prod3] at heq ⊢
-  have auxr1 : P₁.natDegree = @Finset.univ.card (Fin (map (algebraMap K (AlgebraicClosure K)) P₁).roots.toList.length)  := by
+  have auxr1 : P₁.natDegree =
+    @Finset.univ.card (Fin (map (algebraMap K (AlgebraicClosure K)) P₁).roots.toList.length)  := by
     simp only [natDegree_eq_card_roots aux1, Finset.card_univ, Multiset.length_toList,
     Fintype.card_fin]
-  have auxr2 : P₂.natDegree = @Finset.univ.card (Fin (map (algebraMap K (AlgebraicClosure K)) P₂).roots.toList.length) := by
+  have auxr2 : P₂.natDegree =
+    @Finset.univ.card (Fin (map (algebraMap K (AlgebraicClosure K)) P₂).roots.toList.length) := by
     simp only [natDegree_eq_card_roots aux2, Finset.card_univ, Multiset.length_toList,
     Fintype.card_fin]
-  have auxr3 : P₃.natDegree = @Finset.univ.card (Fin (map (algebraMap K (AlgebraicClosure K)) P₃).roots.toList.length) := by
+  have auxr3 : P₃.natDegree =
+    @Finset.univ.card (Fin (map (algebraMap K (AlgebraicClosure K)) P₃).roots.toList.length) := by
     simp only [natDegree_eq_card_roots aux3, Finset.card_univ, Multiset.length_toList,
     Fintype.card_fin]
   convert resultant_pseudoremainder_of_split _ _ _ _ heq
@@ -104,7 +112,8 @@ lemma resultant_psuedoremainder' {R : Type*} [CommRing R] [IsDomain R] {P₁ P�
   apply_fun (algebraMap R K)
   rw [map_mul, map_mul, map_mul, map_mul, map_pow, map_pow, map_pow, map_pow ]
   rw [← Polynomial.leadingCoeff_map' auxInj, ← Polynomial.natDegree_map_eq_of_injective auxInj P₁,
-  ← Polynomial.natDegree_map_eq_of_injective auxInj P₂, ← Polynomial.natDegree_map_eq_of_injective auxInj P₃]
+  ← Polynomial.natDegree_map_eq_of_injective auxInj P₂,
+    ← Polynomial.natDegree_map_eq_of_injective auxInj P₃]
   rw [← resultant_map auxInj, ← resultant_map auxInj]
   apply_fun map (algebraMap R K) at heq
   simp only [Polynomial.map_mul, map_C, Polynomial.map_sub] at heq
@@ -115,7 +124,8 @@ lemma resultant_psuedoremainder' {R : Type*} [CommRing R] [IsDomain R] {P₁ P�
   rw [mul_div_cancel_left₀ (a := (algebraMap R K) e ^ (map (algebraMap R K) P₂).natDegree)]
   congr 2
   rw [← zpow_natCast]
-  rw [← Polynomial.natDegree_map_eq_of_injective auxInj P₁, ← Polynomial.natDegree_map_eq_of_injective auxInj P₃] at hmono
+  rw [← Polynomial.natDegree_map_eq_of_injective auxInj P₁,
+     ← Polynomial.natDegree_map_eq_of_injective auxInj P₃] at hmono
   congr
   rw [Nat.cast_sub hmono]
   · simp only [ne_eq, pow_eq_zero_iff', FaithfulSMul.algebraMap_eq_zero_iff, he, false_and,
@@ -124,17 +134,20 @@ lemma resultant_psuedoremainder' {R : Type*} [CommRing R] [IsDomain R] {P₁ P�
 
 
 lemma prod_mul_resultant_of_premainder_sequence_rec {R : Type*} [CommRing R] [IsDomain R]
-  {P : List R[X]}  {p q : R[X]} (hlen : 2 ≤ P.length) (h0 : P[0] = p)
-  (h1 : P[1] = q) (hPz : ∀ i, ∀ h : i < P.length, P[i] ≠ 0)
-  (hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree)
-  {e : List R} (hel : P.length ≤ e.length + 2) (hez : ∀ i, ∀ h : i + 2 < P.length, e[i] ≠ 0)
-  {f : List R} (hfl : P.length ≤ f.length + 2)
-  {Q : List R[X]} (hQl : P.length ≤ Q.length + 2)
-  (hrem : ∀ i, ∀ h2 : i + 2 < P.length , C (e[i]) * P[i] = (Q[i]) * P[i + 1] - C (f[i]) * P[i + 2] )
-  {n : ℕ} (hn : n ≤ P.length - 2) :
-    (∏ (i : Fin n), e[i] ^ P[↑i + 1].natDegree) * resultant p q =
-    (∏ i : Fin n, ((-1) ^ ((P[i].natDegree + 1) * P[↑i + 1].natDegree) * f[i] ^ (P[↑i + 1].natDegree) *
-    P[↑i + 1].leadingCoeff ^ (P[i].natDegree - P[↑i + 2].natDegree))) * resultant P[n] P[n + 1] := by
+    {P : List R[X]}  {p q : R[X]} (hlen : 2 ≤ P.length) (h0 : P[0] = p)
+    (h1 : P[1] = q) (hPz : ∀ i, ∀ h : i < P.length, P[i] ≠ 0)
+    (hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree)
+    {e : List R} (hel : P.length ≤ e.length + 2) (hez : ∀ i, ∀ h : i + 2 < P.length, e[i] ≠ 0)
+    {f : List R} (hfl : P.length ≤ f.length + 2)
+    {Q : List R[X]} (hQl : P.length ≤ Q.length + 2)
+    (hrem : ∀ i, ∀ h2 : i + 2 < P.length , C (e[i]) * P[i] =
+      (Q[i]) * P[i + 1] - C (f[i]) * P[i + 2] )
+    {n : ℕ} (hn : n ≤ P.length - 2) :
+      (∏ (i : Fin n), e[i] ^ P[↑i + 1].natDegree) * resultant p q =
+      (∏ i : Fin n, ((-1) ^ ((P[i].natDegree + 1)
+      * P[↑i + 1].natDegree) * f[i] ^ (P[↑i + 1].natDegree)
+      * P[↑i + 1].leadingCoeff ^ (P[i].natDegree - P[↑i + 2].natDegree)))
+      * resultant P[n] P[n + 1] := by
   induction' n with n hni
   · simp only [Finset.univ_eq_empty, Fin.getElem_fin, Finset.prod_empty, one_mul, Nat.cast_one, h0,
     zero_add, h1]
@@ -142,7 +155,8 @@ lemma prod_mul_resultant_of_premainder_sequence_rec {R : Type*} [CommRing R] [Is
     rw [Fin.prod_univ_castSucc, Fin.prod_univ_castSucc]
     simp
     rw [mul_assoc _ _ (P[n + 1].resultant P[n + 1 + 1]), ← resultant_psuedoremainder' (e := e[n])]
-    · rw [← mul_assoc _ (e[n] ^ P[n + 1].natDegree) _, mul_comm _ (e[n] ^ P[n + 1].natDegree), mul_assoc (e[n] ^ P[n + 1].natDegree) _ _]
+    · rw [← mul_assoc _ (e[n] ^ P[n + 1].natDegree) _, mul_comm _ (e[n] ^ P[n + 1].natDegree),
+        mul_assoc (e[n] ^ P[n + 1].natDegree) _ _]
       rw [mul_comm _ (e[n] ^ P[n + 1].natDegree) , mul_assoc (e[n] ^ P[n + 1].natDegree) _ _]
       congr 1
       convert hni
@@ -155,20 +169,24 @@ lemma prod_mul_resultant_of_premainder_sequence_rec {R : Type*} [CommRing R] [Is
     · refine le_of_lt (lt_trans (hmono (n + 1) (by omega)) (hmono (n) (by omega)))
 
 lemma prod_mul_resultant_of_premainder_sequence {R : Type*} [CommRing R] [IsDomain R]
-  {P : List R[X]}  {p q : R[X]} (hlen : 2 ≤ P.length) (h0 : P[0] = p)
-  (h1 : P[1] = q) {c : R} (hcz : c ≠ 0) (hcl : P.getLastD 0 = C c)
-  (hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree)
-  {e : List R} (hel : P.length ≤ e.length + 2) (hez : ∀ i, ∀ h : i + 2 < P.length, e[i] ≠ 0)
-  {f : List R} (hfl : P.length ≤ f.length + 2)
-  {Q : List R[X]} (hQl : P.length ≤ Q.length + 2)
-  (hrem : ∀ i, ∀ h2 : i + 2 < P.length , C (e[i]) * P[i] = (Q[i]) * P[i + 1] - C (f[i]) * P[i + 2] ) :
-    (∏ (i : Fin (P.length - 2)), e[i] ^ P[↑i + 1].natDegree) * resultant p q =
-    (∏ i : Fin (P.length - 2), ((-1) ^ ((P[i].natDegree + 1) * P[↑i + 1].natDegree) * f[i] ^ (P[↑i + 1].natDegree) *
-    P[↑i + 1].leadingCoeff ^ (P[i].natDegree - P[↑i + 2].natDegree))) * c ^ (P[P.length - 2].natDegree) := by
+    {P : List R[X]}  {p q : R[X]} (hlen : 2 ≤ P.length) (h0 : P[0] = p)
+    (h1 : P[1] = q) {c : R} (hcz : c ≠ 0) (hcl : P.getLastD 0 = C c)
+    (hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree)
+    {e : List R} (hel : P.length ≤ e.length + 2) (hez : ∀ i, ∀ h : i + 2 < P.length, e[i] ≠ 0)
+    {f : List R} (hfl : P.length ≤ f.length + 2)
+    {Q : List R[X]} (hQl : P.length ≤ Q.length + 2)
+    (hrem : ∀ i, ∀ h2 : i + 2 < P.length , C (e[i]) * P[i] =
+      (Q[i]) * P[i + 1] - C (f[i]) * P[i + 2] ) :
+      (∏ (i : Fin (P.length - 2)), e[i] ^ P[↑i + 1].natDegree) * resultant p q =
+      (∏ i : Fin (P.length - 2), ((-1) ^ ((P[i].natDegree + 1)
+        * P[↑i + 1].natDegree) * f[i] ^ (P[↑i + 1].natDegree)
+        * P[↑i + 1].leadingCoeff ^ (P[i].natDegree - P[↑i + 2].natDegree)))
+        * c ^ (P[P.length - 2].natDegree) := by
   have hPz : ∀ i, ∀ h : i < P.length, P[i] ≠ 0 := by
     intro i hi hc
     exact (zero_not_member_of_mono hlen  ⟨c, hcz, hcl⟩ hmono ) (hc ▸ List.getElem_mem hi)
-  rw [prod_mul_resultant_of_premainder_sequence_rec hlen h0 h1 hPz hmono hel hez hfl hQl hrem (by rfl)]
+  rw [prod_mul_resultant_of_premainder_sequence_rec
+    hlen h0 h1 hPz hmono hel hez hfl hQl hrem (by rfl)]
   congr
   convert resultant_C (P[P.length - 2]) c
   have hz : P ≠ [] := by
@@ -180,45 +198,53 @@ lemma prod_mul_resultant_of_premainder_sequence {R : Type*} [CommRing R] [IsDoma
   omega
 
 lemma resultant_eq_div_of_premainder_sequence {R : Type*} [CommRing R] [IsDomain R]
-  [Div R] [MulDivCancelClass R] {P : List R[X]}  {p q : R[X]} (hlen : 2 ≤ P.length) (h0 : P[0] = p)
-  (h1 : P[1] = q) {c : R} (hcz : c ≠ 0) (hcl : P.getLastD 0 = C c)
-  (hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree)
-  {e : List R} (hel : P.length ≤ e.length + 2) (hez : ∀ i, ∀ h : i + 2 < P.length, e[i] ≠ 0)
-  {f : List R} (hfl : P.length ≤ f.length + 2)
-  {Q : List R[X]} (hQl : P.length ≤ Q.length + 2)
-  (hrem : ∀ i, ∀ h2 : i + 2 < P.length , C (e[i]) * P[i] = (Q[i]) * P[i + 1] - C (f[i]) * P[i + 2] ) :
-    resultant p q =
-    ((∏ i : Fin (P.length - 2), ((-1) ^ ((P[i].natDegree + 1) * P[↑i + 1].natDegree) *
-      f[i] ^ (P[↑i + 1].natDegree) * P[↑i + 1].leadingCoeff ^ (P[i].natDegree - P[↑i + 2].natDegree))) *
-      c ^ (P[P.length - 2].natDegree)) / (∏ (i : Fin (P.length - 2)), e[i] ^ P[↑i + 1].natDegree) := by
-  rw [← prod_mul_resultant_of_premainder_sequence hlen h0 h1 hcz hcl hmono hel hez hfl hQl hrem, mul_div_cancel_left₀]
+    [Div R] [MulDivCancelClass R] {P : List R[X]}  {p q : R[X]} (hlen : 2 ≤ P.length)
+    (h0 : P[0] = p) (h1 : P[1] = q) {c : R} (hcz : c ≠ 0) (hcl : P.getLastD 0 = C c)
+    (hmono : ∀ i, ∀ h : i + 1 < P.length , P[i + 1].natDegree < P[i].natDegree)
+    {e : List R} (hel : P.length ≤ e.length + 2) (hez : ∀ i, ∀ h : i + 2 < P.length, e[i] ≠ 0)
+    {f : List R} (hfl : P.length ≤ f.length + 2)
+    {Q : List R[X]} (hQl : P.length ≤ Q.length + 2)
+    (hrem : ∀ i, ∀ h2 : i + 2 < P.length , C (e[i]) * P[i]
+      = (Q[i]) * P[i + 1] - C (f[i]) * P[i + 2] ) :
+      resultant p q =
+      ((∏ i : Fin (P.length - 2), ((-1) ^ ((P[i].natDegree + 1) * P[↑i + 1].natDegree) *
+        f[i] ^ (P[↑i + 1].natDegree)
+          * P[↑i + 1].leadingCoeff ^ (P[i].natDegree - P[↑i + 2].natDegree)))
+          * c ^ (P[P.length - 2].natDegree))
+            / (∏ (i : Fin (P.length - 2)), e[i] ^ P[↑i + 1].natDegree) := by
+  rw [← prod_mul_resultant_of_premainder_sequence
+    hlen h0 h1 hcz hcl hmono hel hez hfl hQl hrem, mul_div_cancel_left₀]
   refine Finset.prod_ne_zero_iff.mpr ?_
   · intro i hi
     refine pow_ne_zero P[↑i + 1].natDegree (hez i (by omega))
 
 def ResultantOfPRemainderCoeff {R : Type*} [CommRing R] (P : List (List R)) (f : List R)
-  (i : ℕ) : R :=
-    if H : i + 2 < P.length ∧ i < f.length then
-      (-1) ^ ((P[i].length) * (P[i + 1].length - 1))  * ((f[i]) ^ ((P[i + 1]).length - 1)) * ((P[i + 1].getLastD 0) ^ (P[i].length  - P[i + 2].length))
-    else 0
+      (i : ℕ) : R :=
+  if H : i + 2 < P.length ∧ i < f.length then
+    (-1) ^ ((P[i].length) * (P[i + 1].length - 1))  *
+      ((f[i]) ^ ((P[i + 1]).length - 1)) *
+      ((P[i + 1].getLastD 0) ^ (P[i].length  - P[i + 2].length))
+  else 0
 
 def ResultantOfPRemainder {R : Type*} [CommRing R] [Div R]  [Inhabited R]
-  (P : List (List R)) (e : List R) (f : List R) :=
-    if hlen : (2 ≤ P.length ∧ P.length ≤ e.length + 2) then
-      (((∏ (i : Fin (P.length - 2)), ResultantOfPRemainderCoeff P f i)) *
-      ((P.getLastD 0).getLastD 0) ^ (P[P.length - 2].length - 1)) / (∏ (i : Fin (P.length - 2)), e[i] ^ ((P[i.val + 1]).length - 1))
-    else 0
+      (P : List (List R)) (e : List R) (f : List R) :=
+  if hlen : (2 ≤ P.length ∧ P.length ≤ e.length + 2) then
+    (((∏ (i : Fin (P.length - 2)), ResultantOfPRemainderCoeff P f i)) *
+    ((P.getLastD 0).getLastD 0) ^ (P[P.length - 2].length - 1)) /
+    (∏ (i : Fin (P.length - 2)), e[i] ^ ((P[i.val + 1]).length - 1))
+  else 0
 
 def DiscriminantOfPRemainder {R : Type*} [CommRing R] [Div R]  [Inhabited R]
-  (P : List (List R)) (e : List R) (f : List R) :=
+    (P : List (List R)) (e : List R) (f : List R) :=
   if hlen : 1 ≤ P.length then
-  ((-1) ^ ((P[0].length - 1) * (P[0].length - 2) / 2) * ResultantOfPRemainder P e f) / (P[0].getLastD 0) else 0
+  ((-1) ^ ((P[0].length - 1) * (P[0].length - 2) / 2) *
+    ResultantOfPRemainder P e f) / (P[0].getLastD 0) else 0
 
 
-theorem resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList {R : Type*} [CommRing R] [IsDomain R]
-  [Div R] [MulDivCancelClass R] [LinearOrder R] [Inhabited R]
-  {P : List (List R)}  {p q : List R} (h : SturmBuilderOfList P p q) :
-    resultant (ofList p) (ofList q) = ResultantOfPRemainder P h.e h.f := by
+theorem resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList {R : Type*} [CommRing R]
+    [IsDomain R] [Div R] [MulDivCancelClass R] [LinearOrder R] [Inhabited R]
+    {P : List (List R)}  {p q : List R} (h : SturmBuilderOfList P p q) :
+      resultant (ofList p) (ofList q) = ResultantOfPRemainder P h.e h.f := by
   obtain ⟨c, hc⟩ := List.length_eq_one_iff.1 h.hlast
   have hPl := h.hlen
   have hcz : c ≠ 0 := by
@@ -328,21 +354,23 @@ theorem resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList {R : Type*} [Co
   /-- Should be able to get rid of the no smul divisors with ℕ. -/
 
 theorem discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList
-  {R : Type*} [CommRing R] [IsDomain R] [Div R] [MulDivCancelClass R]
-  [NoZeroSMulDivisors ℕ R]
-  [LinearOrder R] [Inhabited R] {P : List (List R)} {p : List R}
-  (h : SturmBuilderOfList P p (List.derivative p).dropTrailingZeros) :
-    discriminant (ofList p) = DiscriminantOfPRemainder P h.e h.f := by
+    {R : Type*} [CommRing R] [IsDomain R] [Div R] [MulDivCancelClass R]
+    [NoZeroSMulDivisors ℕ R]
+    [LinearOrder R] [Inhabited R] {P : List (List R)} {p : List R}
+    (h : SturmBuilderOfList P p (List.derivative p).dropTrailingZeros) :
+      discriminant (ofList p) = DiscriminantOfPRemainder P h.e h.f := by
   have := h.hlen
   have hleo : 1 ≤ P.length := by omega
   simp only [DiscriminantOfPRemainder, hleo, ↓reduceDIte, Nat.cast_one]
   rw [getLastD_eq_getLast_of_ne_nil (a := 0) (SturmBuilderOfList_not_mem_nil h _ _),
     ← ofList_leadingCoeff, ← resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList,
       ofList_dropTrailingZeros_eq_ofList, ofList_derivative_eq_derivative]
-  rw [← natDegree_eq_length_sub_one _ (SturmBuilderOfList_not_mem_nil h _ _), ← natDegree_ofList _ (SturmBuilderOfList_not_mem_nil h _ _), h.h0]
+  rw [← natDegree_eq_length_sub_one _ (SturmBuilderOfList_not_mem_nil h _ _),
+    ← natDegree_ofList _ (SturmBuilderOfList_not_mem_nil h _ _), h.h0]
   simp only [Nat.reduceSubDiff]
   rw [← discriminant_def, mul_div_cancel_left₀]
-  · rw [ofList_leadingCoeff _ (h.h0 ▸ (SturmBuilderOfList_not_mem_nil h _ _)), ← eq_dropTrailingZeros_iff_last_entry_ne_zero, dropTrailingZeros_eq_dropTrailingZeros']
+  · rw [ofList_leadingCoeff _ (h.h0 ▸ (SturmBuilderOfList_not_mem_nil h _ _)),
+      ← eq_dropTrailingZeros_iff_last_entry_ne_zero, dropTrailingZeros_eq_dropTrailingZeros']
     exact (h.h0 ▸ h.hdrop 0 (by omega))
     rw [dropTrailingZeros_eq_dropTrailingZeros']
     exact (h.h0 ▸ h.hdrop 0 (by omega))

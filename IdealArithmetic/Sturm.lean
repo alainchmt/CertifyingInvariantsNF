@@ -474,6 +474,19 @@ lemma signChanges_eq_signChanges' (L : List R) (hz : ∀ x ∈ L, x ≠ 0) : sig
 
 end
 
+#eval signChanges' [1,2,-3,4,0,0,-3]
+#eval signChanges [1,2,-3,4,0,0,-3]
+
+--set_option trace.profiler true
+
+#count_heartbeats
+example : SignType.sign (123457738291098765612345773829109876561234577382910987656123457738291098765612345773829109876561234577382910987656 : ℚ)* SignType.sign (-345678998765678912345773829109876561234577382910987656123457738291098765612345773829109876561234577382910987656) < 0 := by decide
+
+unseal Rat.mul
+example : (123457738291098765612345773829109876561234577382910987656123457738291098765612345773829109876561234577382910987656 : ℚ) * (-345678998765678912345773829109876561234577382910987656123457738291098765612345773829109876561234577382910987656) < 0 := by decide
+
+
+
 section
 variable [CommRing R] [LinearOrder R]
 
@@ -1930,6 +1943,7 @@ theorem sturm_theorem_total_map {R : Type*} [Field F] [IsStrictOrderedRing F]
   · rw [signChangesInfty_map f hmono, signChangesNInfty_map f hmono]
 
 
+
 section SturmOfList
 
 variable {R : Type*}  [CommRing R] [LinearOrder R]
@@ -2136,7 +2150,7 @@ theorem real_roots1 :
     #(Multiset.toFinset (X ^ 5 - 3 * X ^ 3 + 9 * X - 8 : ℝ[X]).roots) = 1 := by
   have : (List.derivative [-8, 9, 0, -3, 0, 1]).dropTrailingZeros = [9, 0, -9, 0, 5]:= by decide
   convert sturm_theorem_total_map_ofList ℝ (Real.IsRealClosed) (algebraMap ℤ ℝ) (Int.cast_strictMono)
-    (p := [-8, 9, 0, -3, 0, 1]) (this ▸ SturmBuilderExample1)
+    (this ▸ SturmBuilderExample1)
   · simp ; ring
 
 

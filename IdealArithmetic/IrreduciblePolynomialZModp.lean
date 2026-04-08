@@ -71,7 +71,7 @@ section Morphisms
 
 variable {F : Type*} [Field F] [DecidableEq F] {f : F[X]}
    [Fintype F] (hi : Irreducible f)
-
+-- Now in Mathlib: charP_of_card_eq_prime_pow
 -- Generalization of charP_of_card_eq_prime.
 def charPOfCard (hp: Nat.Prime p) (hcard : Fintype.card F = p ^ n) : CharP F p := by
   have card_pow_ne_zero : n ≠ 0 :=
@@ -127,6 +127,8 @@ noncomputable def algHomOfCardPow (K : Type) {n m p: ℕ} [hp : Fact $ Nat.Prime
   exact (Polynomial.IsSplittingField.splits')
   exact Nat.Prime.ne_zero hp.out
 
+
+
 /- A ring homomorphism between two finite fields· -/
 noncomputable def ringHomOfCardPow (K : Type) {n : ℕ} [Field K][Fintype K]
     (hc : Fintype.card K = (Fintype.card F) ^ n) : F →+* K := by
@@ -144,36 +146,26 @@ end Morphisms
 
 section IrreducibilityTheory
 
-variable {F : Type*} [Field F]  [CharP F p]
+variable {F : Type*} [hf : Field F]  [CharP F p]
  {f : F[X]} (K : Type) [Field K] [Fintype K] [CharP K p] (hd : 0 < f.natDegree)
  (φ : F →+* K)
+
+
+lemma exists_root_of_dvd_X_pow_card_sub_X {f : K[X]} (hd : f.degree ≠ 0)
+  (h : f ∣ X ^ (Fintype.card K) - X) : ∃ a, f.eval a = 0 := by
+  refine Polynomial.exists_root_of_splits (RingHom.id K) ?_ hd
+  refine (Polynomial.splits_of_splits_of_dvd (RingHom.id K)
+    ?_ (Polynomial.IsSplittingField.splits') h)
+  refine FiniteField.X_pow_card_sub_X_ne_zero K (Fintype.one_lt_card)
 
 include hd in
  lemma exists_root_of_X_pow_card_sub_X
     (h : (Polynomial.map φ f : K[X]) ∣ (X ^ (Fintype.card K) - X : Polynomial K)) :
   ∃ a : K, Polynomial.eval₂ φ a f = 0 := by
-  have : Polynomial.Splits (RingHom.id K) (Polynomial.map φ f) := by
-    refine Polynomial.splits_of_splits_of_dvd (RingHom.id K) ?_ (Polynomial.IsSplittingField.splits') h
-    by_contra hc
-    rw [sub_eq_zero, Polynomial.X_pow_eq_monomial, ← pow_one X, Polynomial.X_pow_eq_monomial,
-      Polynomial.monomial_left_inj (one_ne_zero)] at hc
-    exact (lt_self_iff_false 1).mp (lt_of_lt_of_eq (Fintype.one_lt_card (α := K)) hc)
-  rw [Polynomial.splits_iff_card_roots] at this
-  have hdeg : (Polynomial.map φ f).natDegree = f.natDegree := natDegree_map _
-  rw [hdeg] at this
-  rw [← this] at hd
-  obtain ⟨a,ha⟩:= Multiset.card_pos_iff_exists_mem.1 hd
-  use a
-  replace ha := (Polynomial.isRoot_of_mem_roots ha)
-  rw [IsRoot, Polynomial.eval_map] at ha
-  exact ha
-
-noncomputable def algebraAdjoinRootOfDvd
-    (hdvd : (Polynomial.map φ f : K[X]) ∣ (X ^ (Fintype.card K) - X : K[X]) ) :
-    Algebra (AdjoinRoot f) K := by
-  have := exists_root_of_X_pow_card_sub_X K hd φ hdvd
-  choose a ha using this
-  refine RingHom.toAlgebra (AdjoinRoot.lift φ a ha)
+  convert exists_root_of_dvd_X_pow_card_sub_X K ?_ h
+  exact eval₂_eq_eval_map φ
+  simp only [degree_map, ne_eq]
+  exact ne_of_gt (Polynomial.natDegree_pos_iff_degree_pos.1 hd)
 
 include hd in
 lemma natDegree_dvd_of_dvd_X_pow_sub_X {n : ℕ} [Fintype F]
@@ -192,7 +184,8 @@ lemma natDegree_dvd_of_dvd_X_pow_sub_X {n : ℕ} [Fintype F]
   simp only [Polynomial.map_sub, Polynomial.map_pow, map_X] at h
   rw [← hcard'] at h
   have := exists_root_of_X_pow_card_sub_X K hd ψ h
-  letI hal := algebraAdjoinRootOfDvd K hd ψ h
+  choose a ha using this
+  letI hal := RingHom.toAlgebra (AdjoinRoot.lift ψ a ha)
   letI hal2 : Algebra F K := RingHom.toAlgebra
     (RingHom.comp (algebraMap (AdjoinRoot f) K) (algebraMap F (AdjoinRoot f)))
   haveI hfinite: IsScalarTower F (AdjoinRoot f) K := IsScalarTower.of_algebraMap_eq' rfl
@@ -342,7 +335,7 @@ theorem irreducible_iff_dvd_X_pow_sub_X' (f : F[X]) (hd : 0 < f.natDegree) :
 
 end IrreducibilityTheory
 
-
+#exit
 ------------------------------------------------------------------------------------------
 
 section DegreeAnalysisTheory
