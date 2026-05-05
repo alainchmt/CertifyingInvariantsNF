@@ -7,6 +7,14 @@ import IdealArithmetic.TimesTableAsLists
 
 open BigOperators
 
+/- By reflection, we can provide Decidable instances for basic arithmetic operations on a
+ring `S` with a `TimesTable`.
+
+TO DO: Define inductively the expressions composing these operations and give a Decidable
+instance.
+
+Note: We don't use this in our certificates. In the fields that include a proof by computation,
+we usually operate directly with the list representation. -/
 
 variable {n : ℕ} {R : Type*} [Semiring R]
 
@@ -26,7 +34,8 @@ lemma table_add_list_eq_add_iff {S : Type*} [AddCommMonoid S] [Module R S] [Mul 
 
 lemma table_mulPointwise_eq_smul_iff {S : Type*} [AddCommMonoid S] [Module R S] [Mul S]
     (TT : TimesTable (Fin n) R S) (a c : Fin n → R) (d : R) :
-   List.ofFn c = List.mulPointwise d (List.ofFn a) ↔ d • (TT.basis.equivFun.symm a ) = (TT.basis.equivFun.symm c ) := by
+   List.ofFn c = List.mulPointwise d (List.ofFn a) ↔
+    d • (TT.basis.equivFun.symm a ) = (TT.basis.equivFun.symm c ) := by
   constructor
   · intro h
     exact table_mulPointwise_eq_smul TT.basis a c d h

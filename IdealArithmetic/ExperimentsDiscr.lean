@@ -3,6 +3,8 @@ import IdealArithmetic.Discriminant
 import IdealArithmetic.Sturm
 import Mathlib.Tactic.Polyrith
 
+#exit
+
 open Polynomial
 
 #eval sylvesterMatrix (ofList [(1 : ℤ),2,3,4,5]) (ofList (List.derivative [(1 : ℤ),2,3,4,5]))

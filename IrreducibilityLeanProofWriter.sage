@@ -670,7 +670,7 @@ def LeanProofIrreducible(T, doc):
         dmin, lprimes, N = BestCertificate(T, 3, 40) # we look for certificates based on 
         # reductions of at most three primes smaller than 40
     if dmin == T.degree() and flagP == 0: 
-        print(f'''import IdealArithmetic.IrreduciblePolynomialZModp
+        print(f'''import IdealArithmetic.DedekindProject.Polynomial.IrreduciblePolynomialZModp
 import Mathlib.Tactic.NormNum.Prime
 
 open Polynomial
@@ -700,9 +700,9 @@ lemma T_ofList' : T = ofList l := by norm_num ; ring
         print('theorem irreducible_T : Irreducible T := irreducible_of_CertificateIntPolynomial _ _ C ', file = doc)
         doc.close()
     else : 
-        print(f'''import IdealArithmetic.IrreduciblePolynomialZModp
+        print(f'''import IdealArithmetic.DedekindProject.Polynomial.IrreduciblePolynomialZModp
 import Mathlib.Tactic.NormNum.Prime
-import IdealArithmetic.BrillhartIrreducibilityTest
+import IdealArithmetic.DedekindProject.Polynomial.BrillhartIrreducibilityTest
 
 open Polynomial
 
