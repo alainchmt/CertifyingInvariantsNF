@@ -658,7 +658,7 @@ and `n ^ 2` identities in `O` :
 - `ab_ind` : indices to check for linear independence of
   the matrices representing endomorphisms of `Iₚ/pIₚ` -/
 
-structure MaximalOrderCertificateLists {K : Type*} [CommRing K] [NoZeroSMulDivisors ℤ K]
+structure MaximalOrderCertificateLists {K : Type*} [CommRing K]
   (p : ℕ) [hpI : Fact $ Nat.Prime p] (O : Subalgebra ℤ K) (Om : Subalgebra ℤ K) (hm : O ≤ Om) where
   m : ℕ
   n : ℕ
@@ -700,7 +700,7 @@ structure MaximalOrderCertificateLists {K : Type*} [CommRing K] [NoZeroSMulDivis
 
 /-- A shorter certificate for `p`-maximality, which exists if `Iₚ = pO` (i.e· `p` is unramified).
 See `MaximalOrderCertificateLists` for details·  -/
-structure MaximalOrderCertificateOfUnramifiedLists {K : Type*} [CommRing K] [NoZeroSMulDivisors ℤ K]
+structure MaximalOrderCertificateOfUnramifiedLists {K : Type*} [CommRing K]
   (p : ℕ) [hpI : Fact $ Nat.Prime p] (O : Subalgebra ℤ K) (Om : Subalgebra ℤ K) (hm : O ≤ Om) where
   n : ℕ
   t : ℕ
@@ -761,7 +761,7 @@ theorem pMaximal_of_MaximalOrderCertificateLists [Module.Free ℤ Om] [Module.Fi
   - `w1` : the coefficients of the `b1ᵢ's` in the expansion of the witness
   - `w2` : the coefficients of the `(p * b2ᵢ)'s` in the expansion of the witness
   - `ac_indw` : the coefficients to check for linear independence    -/
-structure MaximalOrderCertificateWLists {K : Type*} [CommRing K] [CommRing K] [NoZeroSMulDivisors ℤ K]
+structure MaximalOrderCertificateWLists {K : Type*} [CommRing K] [CommRing K]
   (p : ℕ) [hpI : Fact $ Nat.Prime p] (O : Subalgebra ℤ K) (Om : Subalgebra ℤ K) (hm : O ≤ Om) where
   m : ℕ
   n : ℕ

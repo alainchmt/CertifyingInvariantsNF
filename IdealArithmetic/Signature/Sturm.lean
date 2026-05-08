@@ -16,6 +16,13 @@ open Polynomial
 In this file, we develop some theory about real closed fields and prove a version of Sturm's theorem to
 count the roots of a polynomial in an interval.
 
+## Remark
+Note that an alternative definition `IsRealClosed` now exists in Mathlib by
+Artie Khovanov, which was developed in parallel to this formalization.
+Some of our formalized results, like the proofs leading to `mean_value_theorem`,
+are now part of the repository mantained by Artie Khovanov on real closed fields,
+for an  eventual PR to Mathlib.
+
 ## Main Definitions:
 - `IsRealClosedField`: A totally ordered field is a real closed field if it satisfies
   the intermediate value theorem for polynomial functions.
@@ -40,15 +47,6 @@ count the roots of a polynomial in an interval.
 - `real_roots2`: the polynomial `X ^ 8 - X ^ 7 - 3 * X ^ 6 + 3 * X ^ 5 + 3 * X ^ 4 - 6 * X ^ 3 - 2 * X ^ 2 + 3 * X + 1`
     has `4` real root in `(-∞, ∞)`.
 
-
-## Related work:
-* Verifying accuracy of polynomial approximations in HOl -- `John Harrison` (1997).
-  Sturm's theorem is proven over the real numbers.
-* A Formalisation of Sturm’s Theorem -- `Manuel Eberl` (2014)
-* It has also been formalized by NASA researchers in Langley (2014)
-* `Assia Mahboubi` and `Cyril Cohen` formalized sign changes of pseudo-remainder sequences
- in Coq over real closed fields. Sturm theorem is a corollary of these results.
-
 ## Notes
 - The remark in `sturm_theorem` does not represent a big impediment in applications.
   If one wants to prove that the number of roots of `P` in the interval `[a,b]`
@@ -57,14 +55,17 @@ count the roots of a polynomial in an interval.
   `ε > 0` and count roots in `[a - ε, b + ε ]`and `[a + ε, b - ε ]`.
 - For the proof of Sturm's theorem, we follows a similar path to `John Harrison` proof in HOL.
 - For proving `Rolle's theorem` and the `Mean value theorem` we follow a similar strategy as
-  `Assia Mahboubi` and `Cyril Cohen's`, Formal proofs in real algebraic geometry. -/
+  `Assia Mahboubi` and `Cyril Cohen's`, Formal proofs in real algebraic geometry.
+
+## Related work:
+* Verifying accuracy of polynomial approximations in HOl -- `John Harrison` (1997).
+  Sturm's theorem is proven over the real numbers.
+* A Formalisation of Sturm’s Theorem -- `Manuel Eberl` (2014)
+* It has also been formalized by NASA researchers in Langley (2014)
+* `Assia Mahboubi` and `Cyril Cohen` formalized sign changes of pseudo-remainder sequences
+ in Coq over real closed fields. Sturm theorem is a corollary of these results.-/
 
 
-/- Note that an alternative definition `IsRealClosed` now exists in Mathlib by
-Artie Khovanov, which was developed in parallel to this formalization.
-Some of our formalized results, like the proofs leading to `mean_value_theorem`,
-are now part of the repository mantained by Artie Khovanov on real closed fields,
-for an  eventual PR to Mathlib. -/
 
 def IsRealClosedField (F : Type*) [Field F] [LinearOrder F] [IsStrictOrderedRing F] : Prop :=
     ∀ {a b t : F} , ∀ {P : F[X]},

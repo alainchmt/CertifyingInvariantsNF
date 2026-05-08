@@ -2,6 +2,8 @@ import IdealArithmetic.IdealArithmetic.IdealArithmetic
 import Mathlib.NumberTheory.NumberField.Units.DirichletTheorem
 import IdealArithmetic.Examples.NF2_0_231_1.RI2_0_231_1
 
+set_option linter.all false
+
 open BigOperators Classical Matrix Polynomial Module
 noncomputable section 
 

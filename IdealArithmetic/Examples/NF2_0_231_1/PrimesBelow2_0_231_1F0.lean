@@ -1,8 +1,9 @@
 
 import IdealArithmetic.Examples.NF2_0_231_1.RI2_0_231_1
 import IdealArithmetic.Generation.ClassGroupGeneration
-import IdealArithmetic.IdealArithmetic.IdealArithmetic
-import IdealArithmetic.IdealArithmetic.CertifyPrimeIdeal
+import IdealArithmetic.IdealArithmetic
+
+set_option linter.all false
 
 open Classical Polynomial
 

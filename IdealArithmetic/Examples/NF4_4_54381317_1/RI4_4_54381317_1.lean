@@ -2,15 +2,15 @@
 import IdealArithmetic.DedekindProject.CertifyRingOfIntegers
 import Mathlib.Tactic.NormNum.Prime
 import Mathlib.NumberTheory.NumberField.Basic
-import IdealArithmetic.Examples.NF2_0_231_1.Irreducible2_0_231_1
+import IdealArithmetic.Examples.NF4_4_54381317_1.Irreducible4_4_54381317_1
 import IdealArithmetic.DedekindProject.Discriminant
 
 
 
 open Polynomial Module
 
-noncomputable def T : ℤ[X] := X^2 - X + 58 
-lemma T_def : T = X^2 - X + 58 := rfl
+noncomputable def T : ℤ[X] := X^4 - X^3 - 80*X^2 - 332*X - 383 
+lemma T_def : T = X^4 - X^3 - 80*X^2 - 332*X - 383 := rfl
 
 def K := AdjoinRoot (map (algebraMap ℤ ℚ) T)
 
@@ -22,7 +22,7 @@ noncomputable instance : Algebra ℚ K := by
   unfold K
   exact AdjoinRoot.instAlgebra _ 
 
-local notation "l" => [58, -1, 1]
+local notation "l" => [-383, -332, -80, -1, 1]
 
 noncomputable def Adj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) T) :=
    AdjoinRoot.isAdjoinRoot _
@@ -32,18 +32,20 @@ local notation "θ" => Adj.root
 lemma T_ofList : ofList l = T := by
   rw [T_def] ; norm_num ; ring
 
--- We build the subalgebra with integral basis [1, a] 
+-- We build the subalgebra with integral basis [1, a, a^2, a^3] 
 
-noncomputable def BQ : SubalgebraBuilderLists 2 ℤ  ℚ K T l where
+noncomputable def BQ : SubalgebraBuilderLists 4 ℤ  ℚ K T l where
  d :=  1
  hlen := rfl
  htr := rfl
  hofL := T_ofList.symm
  hm := rfl
- B := ![![1, 0], ![0, 1]]
- a := ![ ![![1, 0],![0, 1]], 
-![![0, 1],![-58, 1]]]
- s := ![![[], []],![[], [-1]]]
+ B := ![![1, 0, 0, 0], ![0, 1, 0, 0], ![0, 0, 1, 0], ![0, 0, 0, 1]]
+ a := ![ ![![1, 0, 0, 0],![0, 1, 0, 0],![0, 0, 1, 0],![0, 0, 0, 1]], 
+![![0, 1, 0, 0],![0, 0, 1, 0],![0, 0, 0, 1],![383, 332, 80, 1]], 
+![![0, 0, 1, 0],![0, 0, 0, 1],![383, 332, 80, 1],![383, 715, 412, 81]], 
+![![0, 0, 0, 1],![383, 332, 80, 1],![383, 715, 412, 81],![31023, 27275, 7195, 493]]]
+ s := ![![[], [], [], []],![[], [], [], [-1]],![[], [], [-1], [-1, -1]],![[], [-1], [-1, -1], [-81, -1, -1]]]
  h := Adj
  honed := by decide
  hd := by norm_num
@@ -52,7 +54,7 @@ noncomputable def BQ : SubalgebraBuilderLists 2 ℤ  ℚ K T l where
  hsymma := by decide
  hc_le := by decide 
 
-lemma T_degree : T.natDegree = 2 := (SubalgebraBuilderOfList T l BQ).hdeg
+lemma T_degree : T.natDegree = 4 := (SubalgebraBuilderOfList T l BQ).hdeg
 
 lemma T_monic : Monic T := by
   rw [← T_ofList]
@@ -66,73 +68,75 @@ noncomputable def O := subalgebraOfBuilderLists T l BQ
 
 def hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
 
-noncomputable def B' : Basis (Fin 2) ℤ Om :=
+noncomputable def B' : Basis (Fin 4) ℤ Om :=
   Basis.reindex (AdjoinRoot.basisIntegralClosure T_monic
     (Irreducible.prime T_irreducible)) (finCongr T_degree)
 
 instance OmFree : Module.Free ℤ Om := Module.Free.of_basis B'
 instance OmFinite : Module.Finite ℤ Om := Module.Finite.of_basis B'
 
-noncomputable def timesTableO : TimesTable (Fin 2) ℤ O :=
+noncomputable def timesTableO : TimesTable (Fin 4) ℤ O :=
   timesTableOfSubalgebraBuilderLists T l BQ 
 
-noncomputable def B : Basis (Fin 2) ℤ O := timesTableO.basis 
+noncomputable def B : Basis (Fin 4) ℤ O := timesTableO.basis 
 
-def Table : Fin 2 → Fin 2 → List ℤ := 
- ![ ![[1, 0], [0, 1]], 
- ![[0, 1], [-58, 1]]]
+def Table : Fin 4 → Fin 4 → List ℤ := 
+ ![ ![[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], 
+ ![[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1], [383, 332, 80, 1]], 
+ ![[0, 0, 1, 0], [0, 0, 0, 1], [383, 332, 80, 1], [383, 715, 412, 81]], 
+ ![[0, 0, 0, 1], [383, 332, 80, 1], [383, 715, 412, 81], [31023, 27275, 7195, 493]]]
 
 lemma timesTableT_eq_Table :  ∀ i j , Table i j = List.ofFn (timesTableO.table i j) := by decide
 
 lemma hroot_mem : θ ∈ O := by
-  refine root_in_subalgebra_lists T l BQ ![0, 1] [] (by decide)
+  refine root_in_subalgebra_lists T l BQ ![0, 1, 0, 0] [] (by decide)
 
-instance hp11: Fact $ Nat.Prime 11 := fact_iff.2 (by norm_num)
-instance hp3: Fact $ Nat.Prime 3 := fact_iff.2 (by norm_num)
-instance hp7: Fact $ Nat.Prime 7 := fact_iff.2 (by norm_num)
+instance hp17: Fact $ Nat.Prime 17 := fact_iff.2 (by norm_num)
+instance hp61: Fact $ Nat.Prime 61 := fact_iff.2 (by norm_num)
+instance hp229: Fact $ Nat.Prime 229 := fact_iff.2 (by norm_num)
 
-def CD3: CertificateDedekindCriterionLists l 3 where
+def CD17: CertificateDedekindCriterionLists l 17 where
  n :=  2
- a' := []
- b' :=  [1]
- k := [1]
- f := [-19, 1]
- g :=  [1, 1]
- h :=  [1, 1]
- a :=  [1]
- b :=  [2]
+ a' := [4]
+ b' :=  [13, 10]
+ k := [13, 2, 1]
+ f := [25, 24, 9, 1]
+ g :=  [6, 10, 9, 1]
+ h :=  [7, 1]
+ a :=  [5, 15, 8]
+ b :=  [2, 2, 9]
  c :=  []
  hdvdpow := rfl
  hcop := rfl
  hf := by rfl
  habc := by rfl 
 
-def CD7: CertificateDedekindCriterionLists l 7 where
+def CD61: CertificateDedekindCriterionLists l 61 where
  n :=  2
- a' := []
- b' :=  [1]
- k := [1]
- f := [-7, 1]
- g :=  [3, 1]
- h :=  [3, 1]
- a :=  [2]
- b :=  [5]
+ a' := [19, 60]
+ b' :=  [35, 8, 41]
+ k := [35, 15, 1]
+ f := [28, 38, 8, 1]
+ g :=  [25, 37, 7, 1]
+ h :=  [53, 1]
+ a :=  [13, 21, 37]
+ b :=  [5, 3, 24]
  c :=  []
  hdvdpow := rfl
  hcop := rfl
  hf := by rfl
  habc := by rfl 
 
-def CD11: CertificateDedekindCriterionLists l 11 where
+def CD229: CertificateDedekindCriterionLists l 229 where
  n :=  2
- a' := []
- b' :=  [1]
+ a' := [42]
+ b' :=  [177, 208]
  k := [1]
- f := [-3, 1]
- g :=  [5, 1]
- h :=  [5, 1]
- a :=  [4]
- b :=  [7]
+ f := [48, 104, 58, 1]
+ g :=  [103, 114, 1]
+ h :=  [103, 114, 1]
+ a :=  [95, 203]
+ b :=  [38, 52, 26]
  c :=  []
  hdvdpow := rfl
  hcop := rfl
@@ -141,24 +145,24 @@ def CD11: CertificateDedekindCriterionLists l 11 where
 
 noncomputable def D : CertificateDedekindAlmostAllLists T l [] where
  n := 3
- p := ![3, 7, 11]
- exp := ![1, 1, 1]
- pdgood := [3, 7, 11]
+ p := ![17, 61, 229]
+ exp := ![1, 1, 2]
+ pdgood := [17, 61, 229]
  hsub := by decide
  hp := by
   intro i ; fin_cases i 
-  exact hp3.out
-  exact hp7.out
-  exact hp11.out
- a := [4]
- b := [1, -2]
+  exact hp17.out
+  exact hp61.out
+  exact hp229.out
+ a := [44221045, 5571112, -1520560]
+ b := [-51177836, -25983943, -1487813, 380140]
  hab := by decide
  hd := by 
   intro p hp 
   fin_cases hp 
-  exact satisfiesDedekindCriterion_of_certificate_lists T l 3 T_ofList CD3
-  exact satisfiesDedekindCriterion_of_certificate_lists T l 7 T_ofList CD7
-  exact satisfiesDedekindCriterion_of_certificate_lists T l 11 T_ofList CD11
+  exact satisfiesDedekindCriterion_of_certificate_lists T l 17 T_ofList CD17
+  exact satisfiesDedekindCriterion_of_certificate_lists T l 61 T_ofList CD61
+  exact satisfiesDedekindCriterion_of_certificate_lists T l 229 T_ofList CD229
 
 
 open BigOperators Classical Matrix Polynomial
@@ -166,7 +170,7 @@ open BigOperators Classical Matrix Polynomial
 lemma B_one : B 0 = 1 := by
   refine basisOfBuilderLists_zero_eq_one _ _ BQ
 
-lemma B_one_repr : B.equivFun.symm ![1, 0] = 1 := by
+lemma B_one_repr : B.equivFun.symm ![1, 0, 0, 0] = 1 := by
   rw [Basis.equivFun_symm_eq_repr_symm']
   apply_fun B.repr
   rw [← B_one]
@@ -175,8 +179,8 @@ lemma B_one_repr : B.equivFun.symm ![1, 0] = 1 := by
   fin_cases i <;> norm_num
   · exact LinearEquiv.injective B.repr 
 
-lemma B_int_repr {n : ℤ} : B.equivFun.symm ![n, 0] = n := by
-  suffices B.equivFun.symm ![n, 0] = n • 1 by convert this ; simp only [zsmul_eq_mul,mul_one]
+lemma B_int_repr {n : ℤ} : B.equivFun.symm ![n, 0,0,0] = n := by
+  suffices B.equivFun.symm ![n, 0,0,0] = n • 1 by convert this ; simp only [zsmul_eq_mul,mul_one]
   rw [← B_one_repr, ← LinearEquiv.map_smul]
   simp only [Basis.equivFun_symm_apply, zsmul_eq_mul, Matrix.smul_cons, smul_eq_mul, mul_one,
     mul_zero, Matrix.smul_empty]

@@ -6,6 +6,8 @@ import IdealArithmetic.Computation.ExponentiationZMod
 import Mathlib.RingTheory.AdjoinRoot
 import IdealArithmetic.Examples.NF2_0_231_1.RI2_0_231_1
 
+set_option linter.all false
+
 open BigOperators Classical Matrix Polynomial
 
 noncomputable section 
