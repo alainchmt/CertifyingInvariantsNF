@@ -1,6 +1,6 @@
 # Formally certifying invariants of number fields in Lean
 This extends the work in [RingOfIntegersProject
-](https://github.com/alainchmt/RingOfIntegersProject). In addition to verifying the ring of integers of number fields, this project aims to certify the discriminant, signature, the class group structure, and class number of number fields.
+](https://github.com/alainchmt/RingOfIntegersProject). In addition to verifying the ring of integers of number fields, this project aims to certify the discriminant, signature, the class group structure, and class number of number fields. We can also certify generators of the group of units modulo $p$-th powers. 
 
 This is work in progress. 
 
