@@ -2,7 +2,7 @@
 This extends the work in [RingOfIntegersProject
 ](https://github.com/alainchmt/RingOfIntegersProject). In addition to verifying the ring of integers of number fields, this project aims to certify the discriminant, signature, the class group structure, and class number of number fields. We can also certify generators of the group of units modulo $p$-th powers. 
 
-This is work in progress. 
+**This is work in progress.**
 
 ## Some examples in Lean
 The following files certify the ring of integers, discriminant, number of complex places, the class group structure, and class number of the corresponding number fields.  
