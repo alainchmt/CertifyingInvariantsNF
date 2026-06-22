@@ -212,6 +212,82 @@ refine le_antisymm ?_ ?_
     exact Nat.Prime.ne_zero (Nat.mem_primesBelow.1 p.2).2 this
   · exact ⟨hP _ _ hp1,  hp2⟩
 
+/-- The set of ideals of norm below `B` equals the union of the sets of ideals above `p`
+with norm less than `B`, where `p` ranges over the prime numbers. -/
+lemma primes_below_bound_of_factorization' (B : ℕ)
+    (F : Nat.primesBelow B → Multiset (Ideal Oκ))
+    (hP : ∀ p, ∀ q ∈ (F p), q.IsPrime)
+    (hnz : ∀ p, ∀ q ∈ (F p), q ≠ ⊥)
+    (hPpord : ∀ p, (F p).prod ≤ Ideal.span {↑p}) :
+    {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < B} =
+      ⋃ (p : Nat.primesBelow B), {q ∈ F p | q.absNorm < B} := by
+refine le_antisymm ?_ ?_
+· intro I hIn
+  rcases hIn with ⟨hIn1, hIn2, hIn3 ⟩
+  let P := Ideal.under ℤ I
+  have hPP: P.IsPrime :=  Ideal.IsPrime.under ℤ P
+  let p := Submodule.IsPrincipal.generator P
+  have hPeq : P = Ideal.span {p} := (Ideal.span_singleton_generator _ ).symm
+  have : I.LiesOver (Ideal.span {p}) := by
+    rw [← hPeq]
+    simp only [Ideal.over_under, P]
+  have hpn : p ≠ 0 := by
+    intro hc
+    erw [hc, Ideal.span_zero] at this
+    have hIaux : I ∈ (⊥ : Ideal ℤ).primesOver Oκ := by
+      exact ⟨hIn2, this ⟩
+    rw [Ideal.primesOver_bot] at hIaux
+    simp only [Set.mem_singleton_iff] at hIaux
+    rw [hIaux] at hIn1
+    simp only [Ideal.absNorm_bot, lt_self_iff_false] at hIn1
+  have hpp : Prime p := by
+    rw [← Ideal.span_singleton_prime, ← (Ideal.span_singleton_generator _ ).symm]
+    exact hPP
+    · exact hpn
+  haveI hpM : Ideal.IsMaximal (Ideal.span {p} ):= by
+    rw [← hPeq]
+    refine IsPrime.to_maximal_ideal ?_
+    rw [hPeq]
+    simp only [ne_eq, Ideal.span_singleton_eq_bot, hpn, not_false_eq_true]
+  simp only [Set.mem_iUnion,  Subtype.exists]
+  use p.natAbs
+  have hlB : p.natAbs < B := by
+    rw [Ideal.absNorm_eq_pow_inertiaDeg I hpp] at hIn3
+    refine lt_of_le_of_lt ?_ hIn3
+    nth_rw 1 [← pow_one (p.natAbs)]
+    refine Nat.pow_le_pow_of_le ?_ ?_
+    · exact Nat.Prime.one_lt (Int.prime_iff_natAbs_prime.1 hpp)
+    · exact (Ideal.inertiaDeg_pos (Ideal.span {p}) I)
+  have hBm : p.natAbs ∈ B.primesBelow := by
+    rw [Nat.mem_primesBelow]
+    exact ⟨hlB, Int.prime_iff_natAbs_prime.1 hpp⟩
+  use hBm
+  constructor
+  · dsimp
+    have hprod : (F ⟨p.natAbs, hBm⟩).prod ≤ I := by
+      refine le_trans (hPpord ⟨p.natAbs, hBm⟩) ?_
+      rw [Ideal.span_singleton_le_iff_mem]
+      convert (Ideal.mem_of_liesOver I (Ideal.span {p}) ↑p.natAbs).1 ?_
+      exact Eq.symm (algebraMap.coe_natCast p.natAbs)
+      simp only [Int.natCast_natAbs, abs_mem_iff]
+      exact Ideal.mem_span_singleton_self p
+    obtain ⟨J, hJ1, hJ2⟩ := (Ideal.IsPrime.multiset_prod_le hIn2).1 hprod
+    have hJp : J.IsPrime := hP _ J hJ1
+    rw [Ring.DimensionLeOne.prime_le_prime_iff_eq ?_] at hJ2
+    rw [← hJ2]
+    exact hJ1
+    · grind
+  · exact hIn3
+· intro I hI
+  simp only [Set.mem_iUnion] at hI
+  obtain ⟨p, hp1, hp2⟩ := hI
+  constructor
+  · refine Nat.pos_of_ne_zero ?_
+    intro hc
+    rw [Ideal.absNorm_eq_zero_iff] at hc
+    grind
+  · exact ⟨hP _ _ hp1,  hp2⟩
+
 -- NOTE: Even though we could use the to_additive attribute in the multiplicative version,
 -- proving the additive version first is easier.
 
@@ -522,6 +598,12 @@ structure IsPrimesAboveP {S : Type*} [CommRing S] (p : ℕ) {g : ℕ} (F : Fin g
   Ip : ∀ i, (F i).IsPrime
   hPprod : ∏ i, F i = Ideal.span {↑p}
 
+structure ContainsPrimesAboveP {S : Type*} [CommRing S] (p : ℕ) {g : ℕ} (F : Fin g → Ideal S) where
+  Ip : ∀ i, (F i).IsPrime
+  hPprod : ∏ i, F i ≤ Ideal.span {↑p}
+  hnZ : ∀ i, F i ≠ ⊥
+
+
 -- pattern matching with large n is annoying?
 
 /-- Certificate for the ideals of norm below a bound `B`. -/
@@ -544,6 +626,26 @@ structure PrimesBelowBoundCertificate (S : Type*) [CommRing S] [Nontrivial S] (B
   hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B)
     (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
 
+/-- Certificate for the ideals of norm below a bound `B`. -/
+structure PrimesBelowBoundCertificate' (S : Type*) [CommRing S] [Nontrivial S] (B : ℕ) where
+  /-- The number of prime numbers below `B`. -/
+  m : ℕ
+  /-- A tuple of arities, where `g i` is the number of prime ideals (with multiplicity) above `pO`-/
+  g : Fin m → ℕ
+  /-- The tuple of prime numbers below `B`-/
+  P : Fin m → ℕ
+  hP : Set.range P = Nat.primesBelow B
+  /-- Factorization tuples for the ideals `i`-th prime number in `O`-/
+  I : Π i,  Fin (g i) → (Ideal S)
+  hC : ∀ i : Fin m, ContainsPrimesAboveP (P i) (I i)
+  /-- Norms corresponding to the factorization of the `i`-th prime in `O`.-/
+  N :  Π i,  Fin (g i) → ℕ
+  hN : ∀ i, ∀ j, Nat.card (S ⧸ I i j) = N i j
+  /-- Lists of ideals over the `i`-th prime, with norm less than `B`-/
+  Il : Fin m → List (Ideal S)
+  hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < B)
+    (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
+
 /-- The interval version of `PrimesBelowBoundCertificate`. Collects the prime ideals above the
   primes in the interval `(A, B]` that have norm less than `C` -/
 structure PrimesBelowBoundCertificateInterval (S : Type*) [CommRing S] [Nontrivial S]
@@ -557,6 +659,27 @@ structure PrimesBelowBoundCertificateInterval (S : Type*) [CommRing S] [Nontrivi
   /-- Factorization tuples for the ideals `i`-th prime number in `O`-/
   I : Π i,  Fin (g i) → (Ideal S)
   hC : ∀ i : Fin m, IsPrimesAboveP (P i) (I i)
+   /-- Norms corresponding to the factorization of the `i`-th prime in `O`.-/
+  N :  Π i,  Fin (g i) → ℕ
+  hN : ∀ i, ∀ j, Nat.card (S ⧸ I i j) = N i j
+  /-- Lists of ideals over the `i`-th prime, with norm less than `B`-/
+  Il : Fin m → List (Ideal S)
+  hIl : ∀ i, List.map (Prod.fst) (List.filter (λ p => p.2 < C)
+    (List.zip (List.ofFn (I i)) (List.ofFn (N i)))) = Il i
+
+/-- The interval version of `PrimesBelowBoundCertificate`. Collects the prime ideals above the
+  primes in the interval `(A, B]` that have norm less than `C` -/
+structure PrimesBelowBoundCertificateInterval' (S : Type*) [CommRing S] [Nontrivial S]
+    (A B : ℕ) (C : ℕ) where
+  /-- The number of prime numbers in `(A, B]`. -/
+  m : ℕ
+  g : Fin m → ℕ
+  /-- The tuple of prime numbers in `(A, B]`-/
+  P : Fin m → ℕ
+  hP : ∀ p, p ∈ Set.range P ↔ Nat.Prime p ∧ A < p ∧ p ≤ B
+  /-- Factorization tuples for the ideals `i`-th prime number in `O`-/
+  I : Π i,  Fin (g i) → (Ideal S)
+  hC : ∀ i : Fin m, ContainsPrimesAboveP (P i) (I i)
    /-- Norms corresponding to the factorization of the `i`-th prime in `O`.-/
   N :  Π i,  Fin (g i) → ℕ
   hN : ∀ i, ∀ j, Nat.card (S ⧸ I i j) = N i j
@@ -647,6 +770,87 @@ def primesBelowBoundCertificate_of_Interval (S : Type*) [CommRing S] [Nontrivial
   · exact addCasesIter_apply (fun i ↦ (hC i).m) (fun i ↦ (hC i).g) k
   · (expose_names; exact (Fin.heq_fun_iff e_2).mpr (congrFun rfl))
 
+/-- Construct `PrimesBelowBoundCertificate` from interval certificates. -/
+def primesBelowBoundCertificate_of_Interval' (S : Type*) [CommRing S] [Nontrivial S]
+    {r : ℕ} (e : Fin (r + 1) → ℕ) (B : ℕ) (h0 : e 0 = 1) (hr : e (Fin.last r) = B)
+    (hl : ∀ (i : Fin r), e i.castSucc  < e (i.castSucc + 1))
+    (hC : ∀ (i : Fin r),
+      PrimesBelowBoundCertificateInterval' S (e i.castSucc) (e (i.castSucc + 1)) (B + 1)) :
+      PrimesBelowBoundCertificate' S (B + 1) where
+ m := ∑ (i : Fin r), (hC i).m
+ g := Fin.addCasesIter (fun (i : Fin r) => (hC i).m) (fun i => (hC i).g)
+ P := Fin.addCasesIter (fun (i : Fin r) => (hC i).m) (fun i => (hC i).P)
+ hP := by
+  ext p
+  simp only [Set.mem_range, Finset.mem_coe, Nat.mem_primesBelow]
+  have auxe : ∀ k, e k < B + 1 := by
+    intro k
+    refine Fin.reverseInduction ?_ ?_ k
+    · simp only [hr, lt_add_iff_pos_right, Nat.lt_one_iff, pos_of_gt]
+    · intro i hr
+      refine lt_trans (hl i ) ?_
+      simp only [Fin.coeSucc_eq_succ, hr]
+  constructor
+  · rintro ⟨y, hy⟩
+    rw [addCasesIter_apply] at hy
+    have := (hC ((indexPair (fun i ↦ (hC i).m) y).fst)).hP p
+    simp at this
+    obtain ⟨hp, hl1,hl2⟩  := this.1 ⟨(indexPair (fun i ↦ (hC i).m) y).2, hy⟩
+    refine ⟨lt_of_le_of_lt hl2 (auxe _) , hp⟩
+  · rintro ⟨hpB, hp⟩
+    have : ∃ (k : Fin r), e k.castSucc < p ∧ p ≤ e (k.castSucc + 1) := by
+      by_contra! hc
+      have : ∀ k, e k < p := by
+        refine Fin.induction ?_ ?_
+        · rw [h0]
+          exact Nat.Prime.one_lt hp
+        · convert hc
+          simp only [Fin.coeSucc_eq_succ]
+      specialize this (Fin.last r)
+      rw [hr] at this
+      linarith
+    obtain ⟨k, hk⟩ := this
+    have := ((hC k).hP p ).2 ⟨hp, hk⟩
+    simp at this
+    obtain ⟨j, hj⟩ := this
+    use (indexPairEquiv ((fun (i : Fin r) => (hC i).m))).symm ⟨k, j⟩
+    rw [addCasesIter_apply]
+    have : (indexPair (fun i ↦ (hC i).m)
+      ((indexPairEquiv fun i ↦ (hC i).m).symm ⟨k, j⟩)).fst = k := by
+      unfold indexPairEquiv ; simp_rw [Equiv.ofLeftInverseOfCardLE_symm_apply,
+        indexPair_right_inverse]
+    convert hj
+    refine (Fin.heq_ext_iff ?_).mpr ?_
+    congr
+    unfold indexPairEquiv
+    rw [Equiv.ofLeftInverseOfCardLE_symm_apply, indexPair_right_inverse]
+ I := by
+  intro k
+  exact (hC ((indexPair (fun i ↦ (hC i).m) k).1)).I ((indexPair (fun i ↦ (hC i).m) k).2) ∘
+    (Fin.cast (addCasesIter_apply _ _ _))
+ hC := by
+  intro k
+  simp_rw [addCasesIter_apply]
+  convert (hC (indexPair (fun i ↦ (hC i).m) k).1).hC (indexPair (fun i ↦ (hC i).m) k).2
+  rw [addCasesIter_apply]
+  (expose_names; exact (Fin.heq_fun_iff e_4).mpr (congrFun rfl))
+ N := by
+  intro k
+  exact (hC ((indexPair (fun i ↦ (hC i).m) k).1)).N ((indexPair (fun i ↦ (hC i).m) k).2) ∘
+    (Fin.cast (addCasesIter_apply _ _ _))
+ hN := by
+  intro k l
+  exact (hC (indexPair (fun i ↦ (hC i).m) k).1).hN (indexPair (fun i ↦ (hC i).m) k).2
+    ((Fin.cast (addCasesIter_apply _ _ k)) l)
+ Il := Fin.addCasesIter (fun (i : Fin r) => (hC i).m) (fun i => (hC i).Il)
+ hIl := by
+  intro k
+  conv => right ; rw [addCasesIter_apply]
+  convert (hC (indexPair (fun i ↦ (hC i).m) k).1).hIl (indexPair (fun i ↦ (hC i).m) k).2
+  · rw [addCasesIter_apply]
+  · (expose_names; exact (Fin.heq_fun_iff e_2).mpr (congrFun rfl))
+  · exact addCasesIter_apply (fun i ↦ (hC i).m) (fun i ↦ (hC i).g) k
+  · (expose_names; exact (Fin.heq_fun_iff e_2).mpr (congrFun rfl))
 
 
 lemma primesBelowBoundCertificate_of_Interval_Il_apply {S : Type*} [CommRing S] [Nontrivial S]
@@ -661,6 +865,21 @@ lemma primesBelowBoundCertificate_of_Interval_Il_apply {S : Type*} [CommRing S] 
   refine funext ?_
   intro y
   simp only [primesBelowBoundCertificate_of_Interval ]
+  rw [addCasesIter_apply, indexPair_right_inverse]
+  rfl
+
+lemma primesBelowBoundCertificate_of_Interval_Il_apply' {S : Type*} [CommRing S] [Nontrivial S]
+  {r : ℕ} {e : Fin (r + 1) → ℕ} {B : ℕ} {h0 : e 0 = 1} {hr : e (Fin.last r) = B}
+  {hl : ∀ (i : Fin r), e i.castSucc  < e (i.castSucc + 1)}
+  {hC : ∀ (i : Fin r),
+    PrimesBelowBoundCertificateInterval' S (e i.castSucc) (e (i.castSucc + 1)) (B + 1)} (i : Fin r)
+  {s : Fin r → ℕ} (hs : ∀ i, s i = (hC i).m) :
+  (fun (x : Fin (s i)) => (primesBelowBoundCertificate_of_Interval' S e B h0 hr hl hC).Il
+    (indexPair_inv (fun j => (hC j).m) ⟨i, finCongr (by simp_rw [hs]) x⟩ ))= ((hC i).Il)
+      ∘ (finCongr (by rw [hs])) := by
+  refine funext ?_
+  intro y
+  simp only [primesBelowBoundCertificate_of_Interval' ]
   rw [addCasesIter_apply, indexPair_right_inverse]
   rfl
 
@@ -695,12 +914,59 @@ lemma zero_ne_mem_of_PrimesBelowCertificate {S : Type*} [CommRing S] [Nontrivial
   rw [this] at haP
   exact Nat.prime_zero_false haP
 
+/-- The ideals stored in `PrimesBelowBoundCertificate'` are nonzero. -/
+lemma zero_ne_mem_of_PrimesBelowCertificate' {S : Type*} [CommRing S] [Nontrivial S]
+    [CharZero S] (B : ℕ)
+    (A : PrimesBelowBoundCertificate' S B) : ¬ ⊥ ∈ List.flatten (List.ofFn A.Il) := by
+  intro hc
+  simp only [List.mem_flatten, List.mem_ofFn, exists_exists_eq_and] at hc
+  obtain ⟨a, ha⟩ := hc
+  have : A.Il a ⊆ (List.ofFn (A.I a)) := by
+    rw [← A.hIl a]
+    intro x hx
+    simp only [List.mem_map, List.mem_filter, decide_eq_true_eq, Prod.exists, exists_and_right,
+      exists_eq_right] at hx
+    obtain ⟨y, hy1, hy2⟩ :=  hx
+    exact (List.of_mem_zip hy1).1
+  have hmem : ⊥ ∈  List.ofFn (A.I a) := this ha
+  rw [List.mem_iff_get] at hmem
+  simp at hmem
+  obtain ⟨i, hi⟩ := hmem
+  set ii : Fin (A.g a):= ⟨↑i, id (Eq.mp (congrArg (LT.lt ↑i) List.length_ofFn) i.isLt)⟩
+  exact (A.hC a).hnZ ii hi
+
+
 
 def Ideal.toNonZeroDivisorOfNeZero {R : Type} [CommRing R] [IsDomain R]
   (I : Ideal R) (hp : I ≠ ⊥) : nonZeroDivisors (Ideal R) := by
   refine ⟨I, ?_⟩
   simp only [mem_nonZeroDivisors_iff_ne_zero, Submodule.zero_eq_bot,
     ne_eq, hp, not_false_eq_true]
+
+@[to_additive]
+lemma Subgroup.ne_bot_of_index_ne_zero {G : Type*} [Group G]
+    [Infinite G] {H : Subgroup G} (h : H.index ≠ 0) : H ≠ ⊥ := by
+  intro hc
+  rw [hc, Subgroup.index_bot] at h
+  exact h (Nat.card_eq_zero_of_infinite)
+
+@[simp]
+lemma toAddSubgroup_eq_bot {R M : Type*} [Ring R] [AddCommGroup M] [Module R M]
+    {p : Submodule R M} : p.toAddSubgroup = ⊥ ↔ p = ⊥ := by
+  exact StrictMono.apply_eq_bot_iff fun a b x ↦ x
+
+lemma Submodule.ne_bot_of_cardQuot_ne_zero
+    {R : Type*} {M : Type*} [Ring R] [AddCommGroup M] [Infinite M] [Module R M]
+    {S : Submodule R M} (h : S.cardQuot ≠ 0) : S ≠ ⊥ := by
+  unfold cardQuot at h
+  convert AddSubgroup.ne_bot_of_index_ne_zero h
+  exact toAddSubgroup_eq_bot.symm
+
+lemma Ideal.ne_bot_of_norm_pos {R : Type} {n : ℕ} [CommRing R] [IsDomain R]
+    [CharZero R] {I : Ideal R} (hp :  Nat.card (R ⧸ I) = n) (hn : n ≠ 0) :
+      I ≠ ⊥ := by
+  rw [← hp] at hn
+  exact Submodule.ne_bot_of_cardQuot_ne_zero hn
 
 def Ideal.toNonZeroDivisorOfNormPos {R : Type} [CommRing R] [IsDomain R] [CharZero R]
   (I : Ideal R) (hp : 0 < Nat.card (R ⧸ I) ) : nonZeroDivisors (Ideal R) := by
@@ -766,6 +1032,65 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate {B r : ℕ}
     congr
     exact @choose_spec (Fin A.m) (fun y ↦ A.P y = ↑p) _
 
+/-- If a tuple `g` of ideals contains the flattening of `A.Il` with
+`A : PrimesBelowBoundCertificate Oκ B`, then `g` contains every prime ideal of norm less than `B`.-/
+lemma le_primes_below_bound_of_PrimesBelowBoundCertificate_lt {B r : ℕ}
+    (g : Fin r → Ideal Oκ) (A : PrimesBelowBoundCertificate' Oκ B)
+    (h : List.flatten (List.ofFn A.Il) ⊆ List.ofFn g) :
+    {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < B} ⊆ Set.range g := by
+  let F : Nat.primesBelow B → Multiset (Ideal Oκ) := by
+    rintro ⟨p, hp1⟩
+    rw [← Finset.mem_coe, ← A.hP] at hp1
+    choose i hi using hp1
+    exact ↑(List.ofFn (A.I i))
+  have : ∀ i , ∀ I, I ∈ List.ofFn (A.I i) ∧ I.absNorm < B → I ∈ A.Il i := by
+    intro i I
+    rw [← A.hIl i]
+    simp only [List.mem_map, List.mem_filter, decide_eq_true_eq, Prod.exists, exists_and_right,
+      exists_eq_right, List.mem_ofFn]
+    have heql : ((List.ofFn (A.I i)).zip (List.ofFn (A.N i))).length = (A.g i) := by
+        rw [List.length_zip]
+        simp only [List.length_ofFn, min_self]
+    · rintro ⟨⟨j, hj⟩, hx⟩
+      use A.N i j
+      rw [List.mem_iff_get]
+      constructor
+      · use finCongr (heql).symm j
+        simp only [finCongr_apply, List.get_eq_getElem, Fin.val_cast, List.getElem_zip,
+          List.getElem_ofFn, Fin.eta, hj]
+      · rw [← A.hN i j, hj]
+        exact hx
+  intro x
+  rw [Set.mem_range, ← List.mem_ofFn]
+  intro hc ; apply h ; revert hc
+  rw [List.mem_flatten, primes_below_bound_of_factorization' B F]
+  simp only [Set.mem_iUnion, Set.mem_setOf_eq, exists_and_right, Subtype.exists, List.mem_ofFn,
+    exists_exists_eq_and, and_imp, forall_exists_index]
+  intro p hpmem hF hn
+  simp only [F, Multiset.mem_coe, List.mem_ofFn] at hF
+  obtain ⟨j, hj⟩ := hF
+  use @choose (Fin A.m) (fun y ↦ A.P y = p) (cast (congrArg (fun _a ↦ p ∈ _a) (Eq.symm A.hP)) hpmem)
+  apply this
+  rw [← hj]
+  simp only [List.mem_ofFn, exists_apply_eq_apply, true_and]
+  rw [hj]
+  exact hn
+  · intro p I hI
+    simp only [F, Multiset.mem_coe, List.mem_ofFn] at hI
+    obtain ⟨j, hj⟩ := hI
+    rw [← hj]
+    exact (A.hC _ ).Ip j
+  · intro p q hq
+    simp only [F, Multiset.mem_coe, List.mem_ofFn] at hq
+    obtain ⟨j, hj⟩ := hq
+    rw [← hj]
+    exact (A.hC _).hnZ j
+  · intro p
+    simp only [F,  Multiset.prod_coe]
+    rw [List.prod_ofFn]
+    convert (A.hC _ ).hPprod
+    grind
+
 -- We don't require definitional equality with the ring of integers.
 
 /-- Version of `le_primes_below_bound_of_PrimesBelowBoundCertificate` using a ring isomorphic
@@ -806,6 +1131,55 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate'{O : Type*} [CommRing
         List.filter_map, ← List.comp_map, ← List.comp_map]
       rfl }
   refine le_primes_below_bound_of_PrimesBelowBoundCertificate _ A' ?_
+  unfold A'
+  dsimp
+  erw [← List.map_ofFn, ← List.map_ofFn (f := g), ← List.map_flatten]
+  refine List.map_subset _ ?_
+  exact h
+
+/-- Version of `le_primes_below_bound_of_PrimesBelowBoundCertificate` using a ring isomorphic
+  to `Oκ`. Useful if we have a computational model for it which is not definitionally equal.   -/
+lemma le_primes_below_bound_of_PrimesBelowBoundCertificate_lt' {O : Type*} [CommRing O]
+    [IsDedekindDomain O] [Module.Free ℤ O]  {B r : ℕ} (φ : O ≃+* Oκ) (g : Fin r → Ideal O)
+    (A : PrimesBelowBoundCertificate' O B)
+    (h : List.flatten (List.ofFn A.Il) ⊆ List.ofFn g) :
+    {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < B} ⊆ Set.range g := by
+  refine primes_below_bound_of_equiv φ B ?_
+  let A' : PrimesBelowBoundCertificate' Oκ B :=
+  { m := A.m
+    g := A.g
+    P := A.P
+    hP := A.hP
+    I := fun i => (Ideal.map φ) ∘ (A.I i)
+    hC := fun i =>
+      { Ip :=  by
+          intro j
+          have := (A.hC i).Ip j
+          exact Ideal.map_isPrime_of_equiv φ (I := (A.I i) j)
+        hPprod := by
+          have := Ideal.map_mono (f := φ) (A.hC i ).hPprod
+          rw [← Ideal.mapHom_apply, ← Ideal.mapHom_apply,
+            map_prod, Ideal.mapHom_apply, Ideal.map_span] at this
+          simp only [Ideal.mapHom_apply, Set.image_singleton, map_natCast] at this
+          exact this
+        hnZ := by
+          intro h
+          rw [Function.comp_apply, ne_eq, Ideal.map_eq_bot_iff_of_injective]
+          exact (A.hC _).hnZ h
+          exact RingEquiv.injective φ }
+    N := A.N
+    hN := by
+      intro i j
+      rw [← A.hN i j]
+      refine Nat.card_congr ?_
+      exact (Ideal.quotientEquiv _ ((A.I i j).map φ) φ rfl).toEquiv.symm
+    Il := fun i => List.map (Ideal.map φ) (A.Il i)
+    hIl := by
+      intro i
+      rw [← A.hIl i, ← List.map_ofFn, List.zip_map_left,
+        List.filter_map, ← List.comp_map, ← List.comp_map]
+      rfl }
+  refine le_primes_below_bound_of_PrimesBelowBoundCertificate_lt _ A' ?_
   unfold A'
   dsimp
   erw [← List.map_ofFn, ← List.map_ofFn (f := g), ← List.map_flatten]

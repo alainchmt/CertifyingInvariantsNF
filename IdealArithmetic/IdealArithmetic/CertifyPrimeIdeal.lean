@@ -1,4 +1,5 @@
 import IdealArithmetic.IdealArithmetic.IdealArithmetic
+import IdealArithmetic.DedekindProject.Polynomial.IrreduciblePolynomialZModp
 
 /-!
 # Certificate for the primality of an ideal
@@ -331,6 +332,85 @@ lemma CertifiedPrimeIdeal.isPrime {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [Co
     refine Ideal.IsMaximal.isPrime ?_
     rw [Ideal.Quotient.maximal_ideal_iff_isField_quotient]
     exact CertifiedPrimeIdeal.residue_field_is_field I
+
+
+/- A purely computational version of `CertifiedPrimeIdeal` -/
+structure CertifiedPrimeIdeal' {r m : ℕ} [NeZero r] {T : Fin r → Fin r → List ℤ}
+  {v : Fin m → Fin r → ℤ} {w : Fin r → Fin r → ℤ} (A : IdealEqSpanCertificate' T v w) (p : ℕ) where
+  n : ℕ
+  hpos : 0 < n
+  hd : ∀ i j, i < j → w i j = 0
+  i : Fin r := 0
+  j : Fin r := 0
+  hij : w i j ≠ 0 -- One of the entries of the ℤ-generators is non-zero.
+  hcard : (∏ i, w i i).natAbs = p ^ n
+  /-- List representing a polynomial-/
+  P : List ℤ
+  {u : ℕ}
+  hu : NeZero u := by infer_instance
+  {t : ℕ}
+  {s : ℕ}
+  hirr : CertificateIrreducibleZModOfList' p u t s (List.map (algebraMap ℤ (ZMod p)) P)
+  hneq : (List.map (algebraMap ℤ (ZMod p)) P).getLastD 0 ≠ 0
+  hlen : P.length = n + 1
+  /-- Coordinates of the lift of an element in `O/I` which is a zero of `f`. -/
+  a : Fin r → ℤ
+  /-- Coordinates of `f a` in `O`. -/
+  c : Fin r → ℤ
+  g : Fin r → ℤ
+  hcmem : List.ofFn c = List.sum (List.ofFn (fun k => List.mulPointwise (g k) (List.ofFn (w k))))
+  /-- Coordinates of the element `1` in `O` (typically ![1,0,....,0]). -/
+  z : Fin r → ℤ
+  hpmem : (p : ℤ) • z = w 0 -- The first element in the provided `ℤ`-basis needs to be `p`.
+  hpol : List.ofFn c = List.sum
+      (List.ofFn (fun (i : Fin (n + 1)) => if i = 0 then List.mulPointwise
+      (P[i]' (by rw [hlen]; exact i.isLt)) (List.ofFn z)
+      else List.mulPointwise (P[i]' (by rw [hlen] ; exact i.isLt ))
+      (nPow_sq_table T (List.ofFn a) i) ))
+
+
+/-- Correctness of `CertifiedPrimeIdeal` . -/
+lemma CertifiedPrimeIdeal'.idealNorm {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O] [IsDomain O]
+  {r m : ℕ} [NeZero r] {TT  : TimesTable (Fin r) ℤ O}
+  {T : Fin r → Fin r → List ℤ}
+  (heq : ∀ i j , T i j = List.ofFn (TT.table i j))
+  {v : Fin m → Fin r → ℤ} {w : Fin r → Fin r → ℤ} {A : IdealEqSpanCertificate' T v w}
+  (C : CertifiedPrimeIdeal' A p)  :
+    Nat.card (O ⧸ Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (v j)))) = p ^ C.n  := by
+  convert ideal_norm_eq_prod' TT.basis _ _ (C.hd) C.i C.j (C.hij) ?_
+  rw [C.hcard]
+  exact ideal_eq_of_IdealEqSpanCertificate' heq rfl A
+
+
+/-- Correctness of `CertifiedPrimeIdeal` . -/
+lemma CertifiedPrimeIdeal'.isPrime {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O] [IsDomain O]
+  {r m : ℕ} [NeZero r] {TT  : TimesTable (Fin r) ℤ O}
+  {T : Fin r → Fin r → List ℤ} (heq : ∀ i j , T i j = List.ofFn (TT.table i j))
+  {v : Fin m → Fin r → ℤ} {w : Fin r → Fin r → ℤ}
+  {I : Ideal O} (hieq : I = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (v j))))
+  {A : IdealEqSpanCertificate' T v w} (C : CertifiedPrimeIdeal' A p)
+  (hBz : TT.basis.equivFun.symm C.z = 1) :  Ideal.IsPrime I := by
+  have : NeZero C.u := C.hu
+  let CC : CertifiedPrimeIdeal O p :=
+    { r := r , n := C.n, hpos := C.hpos, TT := TT
+      T := T, heq := heq
+      I := I, hcard := hieq ▸ CertifiedPrimeIdeal'.idealNorm heq C
+      P := C.P, f := ofList (List.map (algebraMap ℤ (ZMod p)) C.P)
+      hfeq := rfl, hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' C.hirr
+      hneq := C.hneq, hlen := C.hlen, a := C.a, c := C.c
+      hcmem := by
+        refine mem_of_certificate TT.basis I w C.c ?_
+        exact { hieq := ideal_eq_of_IdealEqSpanCertificate' heq hieq A
+                g := C.g
+                hmem := C.hcmem }
+      z := C.z, hBz := hBz
+      hpmem := by
+        erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate' heq hieq A]
+        apply Submodule.subset_span
+        use 0 ; dsimp ; congr ; exact C.hpmem.symm
+      hpol := C.hpol }
+  exact CertifiedPrimeIdeal.isPrime CC
+
 
 /-- The quotient by an ideal of norm equal to a prime `p` is isomorphic to `ZMod p`.  -/
 noncomputable def modIdealEquivZMod {O : Type*} {p : ℕ} (hp : Nat.Prime p)

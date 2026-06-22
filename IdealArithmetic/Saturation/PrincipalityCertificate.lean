@@ -79,10 +79,10 @@ attribute [-instance]  Lean.Omega.IntList.instAdd
 
 /-- Certificate for the value of `LogFiniteZMod` at `x : O`.  -/
 structure DiscreteLogCertificate {O : Type*} [CommRing O] {q ζ : ℕ}
-    [hq : Fact $ Nat.Prime q] {I : Ideal O} (hcard : Nat.card (O ⧸ I) = q)
-    (hr : IsPrimitiveRoot (ζ : ZMod q) (q - 1)) (p : ℕ) (x : O) (l : ZMod p) where
+    {I : Ideal O} (hcard : Nat.card (O ⧸ I) = q) (hr : IsPrimitiveRoot (ζ : ZMod q) (q - 1))
+    (p : ℕ) (x : O) (l : ZMod p) where
   r : ℕ
-  hN : NeZero r
+  hN : NeZero r := by infer_instance
   hpdvd : p ∣ q - 1
   B : Basis (Fin r) ℤ O
   hone : B 0 = 1

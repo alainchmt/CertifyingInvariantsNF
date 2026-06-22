@@ -79,7 +79,7 @@ lemma List.map_maximum {α β: Type*} [LinearOrder α] [LinearOrder β] {l : Lis
 lemma pow_lt_abs_eval {R K : Type*} [CommRing R] [Field K] (m : R) (i : R →+* K)
     (ρ : ℝ) (d : ℕ) (hd : d ≠ 0) (abs : AbsoluteValue K ℝ) (p : Polynomial R)
     (hsplit : Polynomial.Splits (p.map i) ) (hdeg : (p.map i).natDegree = d )
-    (hcoeff : 1 ≤  abs ((p.map i).leadingCoeff ))
+    (hcoeff : 1 ≤ abs ((p.map i).leadingCoeff ))
     (hroots : ∀ x ∈ Polynomial.roots (p.map i), (abs x) ≤ ρ )
     (h : ρ ≤ abs (i m) ) : (abs (i m) - ρ) ^ d ≤ abs (i (p.eval m)) := by
   rw [← Polynomial.eval₂_hom , ← Polynomial.eval_map

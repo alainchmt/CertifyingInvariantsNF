@@ -57,7 +57,7 @@ lemma squareAndMultiply_aux_eq_pow {m b e res} :
       unfold squareAndMultiply_aux
       simp only [ha, hneven, ↓reduceIte, Nat.succ_eq_add_one]
       have : (a + 1) / 2 = e := by show a.succ / 2 = e ; rw [← ha, Nat.bit_div_two]
-      simp only [this, hi, ZMod.natCast_mod, Nat.cast_mul, ← sq, Nat.cast_pow, ← pow_mul]
+      simp only [this, hi, ZMod.natCast_mod, ← sq, Nat.cast_pow, ← pow_mul]
       suffices haux : a + 1 = 2 * e + 1  by
         rw [haux]
         simp only [Nat.mul_eq, Nat.cast_mul]

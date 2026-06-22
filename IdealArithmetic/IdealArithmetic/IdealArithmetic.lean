@@ -22,11 +22,11 @@ import IdealArithmetic.DedekindProject.Auxiliary
 We define certificates for basic ideal operations.
 
 ## Main definition
-- `IdealEqSpanCertificate`: to certify an `R`-spanning set of an ideal.
-- `IdealEqCertificateO` : certifies equality of ideals given `O`-generators.
+- `IdealEqSpanCertificate'`: to certify an `R`-spanning set of an ideal.
+- `IdealEqCertificateO'` : certifies equality of ideals given `O`-generators.
 - `BasisOfEqSpan`: an `R`-basis of an ideal given the right number of `R`-generators.
 - `IdealMemCertificate` : certifies membership in an ideal.
-- `IdealMulEqCertificate`: certifies a multiplication of ideals.
+- `IdealMulEqCertificate'`: certifies a multiplication of ideals.
 - `IsInClass` : expresses that two ideals belong to the same ideal class.
 
 
@@ -196,6 +196,34 @@ lemma ideal_eq_of_IdealEqSpanCertificate [Algebra R O] {r n m : ℕ} [NeZero r]
     refine table_sum_smul TT.basis _ _ _ ?_
     exact A.hle2 i j
 
+
+/-- Purely computational version of `IdealEqSpanCertificate`, with  times table in term of lists. -/
+structure IdealEqSpanCertificate' {r n m : ℕ}
+  (T : Fin r → Fin r → List R) (v : Fin m → Fin r → R)
+  (w : Fin n → Fin r → R)  where
+  f : Fin n → Fin m → Fin r → R
+  g : Fin m → Fin r → Fin n → R
+  M : Fin m → Fin r → Fin r → R -- products (v i) * (B j)
+  hmulB : ∀ i j, table_mul_list T (List.ofFn (v i)) (List.ofFn (fun k => if k = j then 1 else 0 ))
+    = List.ofFn (M i j)
+  hle1 : ∀ k , List.ofFn (w k) = List.sum (List.ofFn (fun i => List.sum
+    (List.ofFn (fun j => List.mulPointwise (f k i j) (List.ofFn (M i j) ) ))))
+  hle2 : ∀ i j, List.ofFn (M i j) =
+    List.sum (List.ofFn (fun k => List.mulPointwise (g i j k) (List.ofFn (w k))))
+
+/-- Proof of correctness of `IdealEqSpanCertificate'`. -/
+lemma ideal_eq_of_IdealEqSpanCertificate' [Algebra R O] {r n m : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {I : Ideal O}
+    {v : Fin m → Fin r → R} {w : Fin n → Fin r → R}
+    (hieq : I = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (v i))))
+    (A : IdealEqSpanCertificate' T v w) :
+    I.carrier = Submodule.span R (Set.range (fun i => (TT.basis).equivFun.symm (w i))) := by
+  refine ideal_eq_of_IdealEqSpanCertificate (TT := TT) (I := I) (v := v) (w := w) ?_
+  exact
+  { T := T ,heq := heq, hieq := hieq, f := A.f, g := A.g, M := A.M
+    hmulB := A.hmulB, hle1 := A.hle1, hle2 := A.hle2 }
+
 /-- Certificate for `I ≤ J` given `R`-generators. -/
 structure IdealLeCertificate [Algebra R O] {r n m : ℕ}
     (B  : Basis (Fin r) R O) (I : Ideal O) (J : Ideal O) (v : Fin m → Fin r → R)
@@ -292,6 +320,41 @@ lemma ideal_eq_of_IdealEqCertificateO [Algebra R O]
   · exact ideal_le_of_IdealLeCertificateO _ TT I J v w A1
   · exact ideal_le_of_IdealLeCertificateO _ TT J I w v A2
 
+/-- Purely computational version of `IdealEqCertificateO`, with  times table in term of lists. -/
+structure IdealEqCertificateO'
+    {r n m : ℕ} (T : Fin r → Fin r → List R)  (v : Fin m → Fin r → R)
+    (w : Fin n → Fin r → R) where
+    g : Fin m → Fin n → Fin r → R
+    h : Fin n → Fin m → Fin r → R
+    hle1 : ∀ i, List.ofFn (v i) =
+      List.sum (List.ofFn (fun k => table_mul_list T  (List.ofFn (g i k)) (List.ofFn (w k))))
+    hle2 : ∀ i, List.ofFn (w i) =
+      List.sum (List.ofFn (fun k => table_mul_list T  (List.ofFn (h i k)) (List.ofFn (v k))))
+
+/-- Proof of correctness of `IdealEqCertificateO'`. -/
+lemma ideal_eq_of_IdealEqCertificateO' [Algebra R O]
+  {r n m : ℕ} {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+  (heq : ∀ i j , T i j = List.ofFn (TT.table i j))
+  {I : Ideal O} {J : Ideal O} {v : Fin m → Fin r → R} {w : Fin n → Fin r → R}
+  (hieq1 : I = Ideal.span (Set.range (fun i => TT.basis.equivFun.symm (v i))))
+  (hieq2 : J = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (w j))))
+   (A : IdealEqCertificateO' T v w) : I = J := by
+  refine ideal_eq_of_IdealEqCertificateO TT I J v w ?_
+  exact { T := T, heq := heq, hieq1 := hieq1, hieq2 := hieq2
+          g := A.g, h := A.h, hle1 :=  A.hle1, hle2 := A.hle2 }
+
+/- Relation describing when two representations define the same ideal.  -/
+def IdealEq {r m n} (T : Fin r → Fin r → List R) (v : Fin m → Fin r → R)
+    (w : Fin n → Fin r → R) : Prop := Nonempty (IdealEqCertificateO' T v w)
+
+lemma ideal_eq_of_IdealEq [Algebra R O]
+  {r n m : ℕ} {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+  (heq : ∀ i j , T i j = List.ofFn (TT.table i j))
+  {I J : Ideal O}{v : Fin m → Fin r → R} {w : Fin n → Fin r → R}
+  (hieq1 : I = Ideal.span (Set.range (fun i => TT.basis.equivFun.symm (v i))))
+  (hieq2 : J = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (w j)))) :
+    IdealEq T v w → I = J := fun ⟨A⟩ => ideal_eq_of_IdealEqCertificateO' heq hieq1 hieq2 A
+
 /-- Certificate for membership `a ∈ I` from `R`-generators. -/
 structure IdealMemCertificate [Algebra R O] {r m : ℕ} (B  : Basis (Fin r) R O)
     (I : Ideal O) (v : Fin m → Fin r → R)  (a : Fin r → R) where
@@ -309,49 +372,12 @@ lemma mem_of_certificate [Algebra R O] {r m : ℕ} (B  : Basis (Fin r) R O)
   symm
   refine table_sum_smul B v a (A.g) (A.hmem)
 
--- MOVE
-/-- If some collection of vectors of the same size as the rank spans the whole
-space, then they are linearly independent. This is a version of
-linearIndependent_of_top_le_span_of_card_eq_finrank which works over domains.
-
-TO DO: Mathlib now contains a verison for rings that satisfy OrzechProperty.   -/
 lemma linear_independent_of_top_le_span_of_card_eq_rank
   {τ : Type*} {M : Type*} [Fintype τ] [IsDomain R]
   [AddCommGroup M] [Module R M] (B : Basis τ R M) {b : τ → M}
   (hmem : ⊤ ≤ Submodule.span R (Set.range b)) : LinearIndependent R b := by
-let Q := FractionRing R
-let B' := Basis.baseChange Q B
-have hle : ⊤ ≤ Submodule.span Q (Set.range (fun i => ( 1 ⊗ₜ (b i) : TensorProduct R Q M))) := by
-  let P : TensorProduct R Q M → Prop := fun x => x ∈ Submodule.span Q
-    (Set.range (fun i => ( 1 ⊗ₜ (b i) : TensorProduct R Q M)))
-  have : ∀ x, P x := by
-    intro z
-    refine TensorProduct.induction_on z ?_ ?_ ?_
-    · simp only [Submodule.zero_mem, P]
-    · intro x y
-      have aux : y ∈ Submodule.span R (Set.range b) := hmem trivial
-      rw [Submodule.mem_span_range_iff_exists_fun] at aux
-      obtain ⟨c, hc⟩ := aux
-      simp only [Submodule.mem_span_range_iff_exists_fun, ← hc, TensorProduct.tmul_sum,
-        TensorProduct.tmul_smul, P]
-      use (fun i => (c i) • x)
-      congr ; ext i
-      rw [smul_assoc, TensorProduct.smul_tmul', smul_eq_mul, mul_one]
-    · intro x y hx hy
-      exact Submodule.add_mem _ hx hy
-  intro x _
-  exact this x
-have := linearIndependent_of_top_le_span_of_card_eq_finrank hle (Eq.symm
-  (Module.finrank_eq_card_basis B'))
-rw [linearIndependent_iff'] at this ⊢
-intro s g hg i his
-rw [← FaithfulSMul.algebraMap_eq_zero_iff R Q]
-specialize this s (fun i => (algebraMap R Q) (g i))
-refine this ?_ i his
-simp_rw [TensorProduct.smul_tmul', smul_eq_mul, mul_one, Algebra.algebraMap_eq_smul_one,
-TensorProduct.smul_tmul, ← TensorProduct.tmul_sum _ _ (fun x => g x • b x), hg,
-TensorProduct.tmul_zero]
-
+  refine linearIndependent_of_top_le_span_of_card_le_finrank hmem ?_
+  rw [Module.finrank_eq_card_basis B]
 
 /-- If `I` is `R`-generated by the collection `v` with the same number of elements
   as the rank of `O`, then this is a basis for `I`. -/
@@ -381,7 +407,6 @@ noncomputable def BasisOfEqSpan {τ : Type*} [Fintype τ] [IsDomain R] [IsPrinci
   refine linearIndependent_of_top_le_span_of_card_eq_finrank hle ?_
   rw [Module.finrank_eq_card_basis (Ideal.selfBasis B I hI) ]
   exact hle
-
 
 lemma BasisOfEqSpan_apply  {τ : Type*} [Fintype τ] [IsDomain R] [IsPrincipalIdealRing R]
     [IsDomain O] [Algebra R O] (B : Basis τ R O) (I : Ideal O) (hI : I ≠ ⊥) (v : τ → O)
@@ -435,11 +460,8 @@ lemma ideal_mul_eq_span {ι τ : Type _} [Fintype ι] [Fintype τ]
     ext x
     simp only [Set.mem_mul, Set.mem_range, exists_exists_eq_and, Prod.exists]
 
-
-
-
-/-- Given `O`-generators for `I` and `J`, it certifies that `I * J = ⟨w⟩`. -/
-structure IdealMulEqCertificate [Algebra R O] {r n m s : ℕ}
+/-- Given `O`-generators for `I` and `J`, it certifies that `I * J ≤ ⟨w⟩` -/
+structure IdealMulLeCertificate [Algebra R O] {r n m s : ℕ}
   (TT  : TimesTable (Fin r) R O) (I₁ I₂ : Ideal O)
   (u : Fin m → Fin r → R) (v : Fin n → Fin r → R) (w : Fin s → Fin r → R) where
   T : Fin r → Fin r → List R
@@ -448,12 +470,41 @@ structure IdealMulEqCertificate [Algebra R O] {r n m s : ℕ}
   hI2 : I₂ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (v i)))
   M : Fin m → Fin n → Fin r → R -- products (u i) * (v j)
   hmul : ∀ i j, table_mul_list T (List.ofFn (u i)) (List.ofFn (v j)) = List.ofFn (M i j)
-  f : Fin s → Fin m → Fin n → Fin r → R
   g : Fin m → Fin n → Fin s → Fin r → R
-  hle1 : ∀ k , List.ofFn (w k) = List.sum (List.ofFn (fun i => List.sum
-    (List.ofFn (fun j => table_mul_list T (List.ofFn (f k i j)) (List.ofFn (M i j) ) ))))
   hle2 : ∀ i j, List.ofFn (M i j) = List.sum (List.ofFn
     (fun k => table_mul_list T (List.ofFn (g i j k)) (List.ofFn (w k))))
+
+/-- Given `O`-generators for `I` and `J`, it certifies that `I * J = ⟨w⟩`. -/
+structure IdealMulEqCertificate [Algebra R O] {r n m s : ℕ}
+  (TT  : TimesTable (Fin r) R O) (I₁ I₂ : Ideal O)
+  (u : Fin m → Fin r → R) (v : Fin n → Fin r → R) (w : Fin s → Fin r → R) extends IdealMulLeCertificate TT I₁ I₂ u v w where
+  f : Fin s → Fin m → Fin n → Fin r → R
+  hle1 : ∀ k , List.ofFn (w k) = List.sum (List.ofFn (fun i => List.sum
+    (List.ofFn (fun j => table_mul_list T (List.ofFn (f k i j)) (List.ofFn (M i j) ) ))))
+
+/-- Correctness of `IdealMulLeCertificate`.  -/
+lemma ideal_eq_mul_of_IdealMulLeCertificate [Algebra R O] {r n m s : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {I₁ I₂ : Ideal O}
+    {u : Fin m → Fin r → R} {v : Fin n → Fin r → R} {w : Fin s → Fin r → R}
+    (A : IdealMulLeCertificate TT I₁ I₂ u v w) :
+    I₁ * I₂ ≤ Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w i))) := by
+  have aux := A.hmul
+  simp_rw [table_mul_eq_table_mul' TT.table A.T A.heq] at aux
+  have hmulaux :=
+    fun i j => table_mul_list_eq_mul TT.table TT.basis _ _ _ TT.basis_mul_basis (aux i j).symm
+  simp_rw [A.hI1, A.hI2, ideal_mul_eq_span, hmulaux]
+  unfold Ideal.span
+  refine (submodule_span_le_span_iff (S := O) (R := O) (O := O) _ _
+      ((Submodule.span O (Set.range fun x
+      ↦ TT.basis.equivFun.symm (w x))).carrier) rfl ?_ ).2 ?_
+  · intro s x hx
+    exact (Submodule.span O (Set.range fun i ↦ TT.basis.equivFun.symm (w i))).smul_mem' s hx
+  · rintro ⟨i,j⟩
+    use (fun k => TT.basis.equivFun.symm (A.g i j k))
+    dsimp
+    refine table_sum_mul TT.table TT.basis TT.basis_mul_basis _ _ _ ?_
+    simp_rw [← table_mul_eq_table_mul' TT.table A.T A.heq]
+    exact (A.hle2 i j)
 
 /-- Correctness of `IdealMulEqCertificate`.  -/
 lemma ideal_eq_mul_of_IdealMulEqCertificate [Algebra R O] {r n m s : ℕ} [NeZero r]
@@ -465,24 +516,16 @@ lemma ideal_eq_mul_of_IdealMulEqCertificate [Algebra R O] {r n m s : ℕ} [NeZer
   simp_rw [table_mul_eq_table_mul' TT.table A.T A.heq] at aux
   have hmulaux :=
     fun i j => table_mul_list_eq_mul TT.table TT.basis _ _ _ TT.basis_mul_basis (aux i j).symm
-  simp_rw [A.hI1, A.hI2, ideal_mul_eq_span, hmulaux]
-  unfold Ideal.span
-  rw [← SetLike.coe_set_eq]
-  refine subset_antisymm ?_ ?_
-  · erw [submodule_span_le_span_iff _ _
-      ((Submodule.span O (Set.range fun i ↦ TT.basis.equivFun.symm (w i))).carrier) ]
-    · rintro ⟨i,j⟩
-      use (fun k => TT.basis.equivFun.symm (A.g i j k))
-      dsimp
-      refine table_sum_mul TT.table TT.basis TT.basis_mul_basis _ _ _ ?_
-      simp_rw [← table_mul_eq_table_mul' TT.table A.T A.heq]
-      exact (A.hle2 i j)
-    · rfl
-    · intro s x hx
-      exact (Submodule.span O (Set.range fun i ↦ TT.basis.equivFun.symm (w i))).smul_mem' s hx
-  · erw [submodule_span_le_span_iff (S := O) _ _
+  refine le_antisymm ?_ ?_
+  · refine ideal_eq_mul_of_IdealMulLeCertificate (u := u) (v := v) (w := w) (TT := TT) ?_
+    exact { T := A.T , heq := A.heq, hI1 := A.hI1 , hI2 := A.hI2
+            M := A.M, hmul := A.hmul , g := A.g , hle2 := A.hle2}
+  · simp_rw [A.hI1, A.hI2, ideal_mul_eq_span, hmulaux]
+    refine (submodule_span_le_span_iff (S := O) _ _
       ((Submodule.span O (Set.range fun (x : Fin m × Fin n)
-         ↦ TT.basis.equivFun.symm (A.M x.1 x.2))).carrier) ]
+         ↦ TT.basis.equivFun.symm (A.M x.1 x.2))).carrier) rfl ?_).2 ?_
+    · intro s x hx
+      exact Submodule.smul_mem' _ s hx
     · intro k
       use (fun ⟨i,j⟩ => TT.basis.equivFun.symm (A.f k i j) )
       dsimp
@@ -500,12 +543,189 @@ lemma ideal_eq_mul_of_IdealMulEqCertificate [Algebra R O] {r n m s : ℕ} [NeZer
       simp_rw [table_mul_eq_table_mul' TT.table A.T A.heq, ← hd] at aux
       simp_rw [hmulaux2]
       exact table_sum_sum TT.basis _ _ aux
-    · rfl
-    · intro s x hx
-      exact Submodule.smul_mem' _ s hx
+
+/- Purely computational version of `IdealMulLeCertificate'`. -/
+structure IdealMulEqCertificate' {r n m s : ℕ} (T : Fin r → Fin r → List R)
+  (u : Fin m → Fin r → R) (v : Fin n → Fin r → R) (w : Fin s → Fin r → R)  where
+  M : Fin m → Fin n → Fin r → R -- products (u i) * (v j)
+  hmul : ∀ i j, table_mul_list T (List.ofFn (u i)) (List.ofFn (v j)) = List.ofFn (M i j)
+  f : Fin s → Fin m → Fin n → Fin r → R
+  g : Fin m → Fin n → Fin s → Fin r → R
+  hle1 : ∀ k , List.ofFn (w k) = List.sum (List.ofFn (fun i => List.sum
+    (List.ofFn (fun j => table_mul_list T (List.ofFn (f k i j)) (List.ofFn (M i j) ) ))))
+  hle2 : ∀ i j, List.ofFn (M i j) = List.sum (List.ofFn
+    (fun k => table_mul_list T (List.ofFn (g i j k)) (List.ofFn (w k))))
+
+/- Purely computational version of `IdealMulEqCertificate'`. -/
+structure IdealMulLeCertificate' {r n m s : ℕ} (T : Fin r → Fin r → List R)
+  (u : Fin m → Fin r → R) (v : Fin n → Fin r → R) (w : Fin s → Fin r → R)  where
+  M : Fin m → Fin n → Fin r → R -- products (u i) * (v j)
+  hmul : ∀ i j, table_mul_list T (List.ofFn (u i)) (List.ofFn (v j)) = List.ofFn (M i j)
+  g : Fin m → Fin n → Fin s → Fin r → R
+  hle2 : ∀ i j, List.ofFn (M i j) = List.sum (List.ofFn
+    (fun k => table_mul_list T (List.ofFn (g i j k)) (List.ofFn (w k))))
+
+/-- Correctness of `IdealMulEqCertificate'`.  -/
+lemma ideal_eq_mul_of_IdealMulLeCertificate' [Algebra R O] {r n m s : ℕ} [NeZero r]
+  {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+  (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {I₁ I₂ I₃ : Ideal O}
+  {u : Fin m → Fin r → R} {v : Fin n → Fin r → R} {w : Fin s → Fin r → R}
+  (hI1 : I₁ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (u i))))
+  (hI2 : I₂ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (v i))))
+  (hI3 : I₃ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w i))))
+  (A : IdealMulLeCertificate' T u v w) : I₁ * I₂ ≤ I₃ := by
+  convert ideal_eq_mul_of_IdealMulLeCertificate (TT := TT) (I₁ := I₁) (I₂ := I₂)
+    (u := u) (v := v) (w := w) ?_
+  exact { T := T, heq := heq, hI1 := hI1
+          hI2 := hI2,  M := A.M, hmul := A.hmul, g := A.g, hle2 := A.hle2 }
+
+/-- Correctness of `IdealMulEqCertificate'`.  -/
+lemma ideal_eq_mul_of_IdealMulEqCertificate' [Algebra R O] {r n m s : ℕ} [NeZero r]
+  {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+  (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {I₁ I₂ I₃ : Ideal O}
+  {u : Fin m → Fin r → R} {v : Fin n → Fin r → R} {w : Fin s → Fin r → R}
+  (hI1 : I₁ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (u i))))
+  (hI2 : I₂ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (v i))))
+  (hI3 : I₃ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w i))))
+  (A : IdealMulEqCertificate' T u v w) : I₁ * I₂ = I₃ := by
+  convert ideal_eq_mul_of_IdealMulEqCertificate TT I₁ I₂ u v w ?_
+  exact { T := T, heq := heq, hI1 := hI1
+          hI2 := hI2,  M := A.M, hmul := A.hmul, f := A.f
+          g := A.g, hle1 := A.hle1, hle2 := A.hle2 }
+
+lemma ideal_eq_prod_IdealMulEqCertificate' [Algebra R O] {r n : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {I : Fin (n + 1) → Ideal O}
+    {m : Fin n → ℕ} {u : (i : Fin n) → Fin (m i) →  Fin r → R}
+    {s : Fin (n + 1) → ℕ} {w : (i : Fin (n + 1)) → Fin (s i) →  Fin r → R}
+    (heq1 : I 0 = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w 0 i))))
+    (heq2 : ∀ (j : Fin n) , I j.succ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (u j i))))
+    (C : ∀ i : Fin n, IdealMulEqCertificate' T (w i.castSucc) (u i) (w (i.succ))) :
+      ∏ j, I j = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w (Fin.last n) i))) := by
+  induction n with
+  | zero =>
+    simp only [Nat.reduceAdd, Finset.univ_unique, Fin.default_eq_zero, Fin.isValue,
+      Finset.prod_singleton, Fin.reduceLast]
+    exact heq1
+  | succ n h =>
+    specialize h (I := fun i => I i.castSucc) (m := fun i => m i.castSucc)
+      (u := fun i => u i.castSucc) (s := fun i => s i.castSucc) (w := fun i => w i.castSucc) heq1
+      (fun i => heq2 i.castSucc) (fun i => C i.castSucc)
+    rw [Fin.prod_univ_castSucc]
+    refine ideal_eq_mul_of_IdealMulEqCertificate' heq h (heq2 (Fin.last n)) rfl (C (Fin.last n))
+
+/- A chain of certificates for multiplications. -/
+inductive IdealMulChainCertificate {R : Type*} [CommRing R] {r m : ℕ}
+  (T : Fin r → Fin r → List R) (u : Fin m → Fin r → R) :
+  {s : ℕ} → (Fin s → Fin r → R) → Type (u_4 + 1)
+  | nil : IdealMulChainCertificate T u u
+  | cons {x : ℕ} {v} {uu : Fin x → Fin r → R} {w} : IdealMulChainCertificate T u v →
+    IdealMulEqCertificate' T v uu w → IdealMulChainCertificate T u w
+
+/- A chain of certificates for containment of multiplications. -/
+inductive IdealMulLeChainCertificate {R : Type*} [CommRing R] {r m : ℕ}
+  (T : Fin r → Fin r → List R) (u : Fin m → Fin r → R) :
+  {s : ℕ} → (Fin s → Fin r → R) → Type (u_4 + 1)
+  | nil : IdealMulLeChainCertificate T u u
+  | cons {x : ℕ} {v} {uu : Fin x → Fin r → R} {w} : IdealMulLeChainCertificate T u v →
+    IdealMulLeCertificate' T v uu w → IdealMulLeChainCertificate T u w
+
+/-- The intermediate ideals corresponding to a chain. -/
+def IdealMulChainCertificate.Ideals [Algebra R O] {r m s : ℕ}
+    (TT  : TimesTable (Fin r) R O)
+    {T : Fin r → Fin r → List R} {u : Fin m → Fin r → R} {w : Fin s → Fin r → R} :
+    (A : IdealMulChainCertificate T u w) → List (Ideal O)
+  | nil => [Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (u i)))]
+  | cons (uu := uu) B _ => (B.Ideals TT) ++ [(Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (uu i))))]
+
+/-- The intermediate ideals corresponding to a chain. -/
+def IdealMulLeChainCertificate.Ideals [Algebra R O] {r m s : ℕ}
+    (TT  : TimesTable (Fin r) R O)
+    {T : Fin r → Fin r → List R} {u : Fin m → Fin r → R} {w : Fin s → Fin r → R} :
+    (A : IdealMulLeChainCertificate T u w) → List (Ideal O)
+  | nil => [Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (u i)))]
+  | cons (uu := uu) B _ => (B.Ideals TT) ++ [(Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (uu i))))]
+
+notation "𝟙" => IdealMulChainCertificate.nil
+infixl:65 " ⊗ " => IdealMulChainCertificate.cons
+
+notation "𝟙'" => IdealMulLeChainCertificate.nil
+infixl:65 " ⊗' " => IdealMulLeChainCertificate.cons
+
+lemma ideal_prod_of_IdealMulChainCertificate [Algebra R O] {r m s : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {u : Fin m → Fin r → R} {w : Fin s → Fin r → R}
+    (A : IdealMulChainCertificate T u w) :
+    List.prod (A.Ideals TT) = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w i))) := by
+  induction A with
+  | nil => simp [IdealMulChainCertificate.Ideals]
+  | cons A B hAB =>
+    unfold IdealMulChainCertificate.Ideals
+    rw [List.prod_append, hAB, List.prod_cons, List.prod_nil, mul_one]
+    refine ideal_eq_mul_of_IdealMulEqCertificate' heq rfl rfl rfl B
+
+lemma ideal_prod_of_IdealMulLeChainCertificate [Algebra R O] {r m s : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {u : Fin m → Fin r → R} {w : Fin s → Fin r → R}
+    (A : IdealMulLeChainCertificate T u w) :
+    List.prod (A.Ideals TT) ≤ Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w i))) := by
+  induction A with
+  | nil => simp [IdealMulLeChainCertificate.Ideals]
+  | cons A B hAB =>
+    unfold IdealMulLeChainCertificate.Ideals
+    rw [List.prod_append]
+    simp only [List.prod_cons, List.prod_nil, Ideal.one_eq_top, Ideal.mul_top]
+    expose_names
+    refine le_trans (b := Ideal.span (Set.range fun i ↦ TT.basis.equivFun.symm (v i))
+      * Ideal.span (Set.range fun i ↦ TT.basis.equivFun.symm (uu i))) ?_ ?_
+    refine Ideal.mul_mono_left hAB
+    refine ideal_eq_mul_of_IdealMulLeCertificate' heq rfl rfl rfl B
+
+lemma ideal_eq_singleton_IdealMulChainCertificate [Algebra R O] {r m : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {u : Fin m → Fin r → R} {z : Fin r → R}
+    {f : Fin 1 → Fin r → R} (hB : TT.basis.equivFun.symm z = 1) (p : ℕ) (hf : f 0 = p • z)
+    (A : IdealMulChainCertificate T u f) :
+      List.prod (A.Ideals TT) = Ideal.span {↑p} := by
+    rw [ideal_prod_of_IdealMulChainCertificate heq A]
+    congr
+    ext j
+    simp only [Set.mem_range, Set.mem_singleton_iff, Fin.exists_fin_one, Fin.isValue]
+    rw [hf, ← Nat.cast_smul_eq_nsmul R p, LinearEquiv.map_smul , hB, Algebra.smul_def, mul_one]
+    simp [eq_comm]
+
+lemma ideal_le_singleton_IdealMulLeChainCertificate [Algebra R O] {r m : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {u : Fin m → Fin r → R} {z : Fin r → R}
+    {f : Fin 1 → Fin r → R} (hB : TT.basis.equivFun.symm z = 1) (p : ℕ) (hf : f 0 = p • z)
+    (A : IdealMulLeChainCertificate T u f) :
+      List.prod (A.Ideals TT) ≤ Ideal.span {↑p} := by
+    convert ideal_prod_of_IdealMulLeChainCertificate heq A
+    ext j
+    simp only [Set.mem_range, Set.mem_singleton_iff, Fin.exists_fin_one, Fin.isValue]
+    rw [hf, ← Nat.cast_smul_eq_nsmul R p, LinearEquiv.map_smul , hB, Algebra.smul_def, mul_one]
+    simp [eq_comm]
+
+lemma ideal_eq_singleton_IdealMulEqCertificate' [Algebra R O] {r n : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j)) {I : Fin (n + 1) → Ideal O}
+    {m : Fin n → ℕ} {u : (i : Fin n) → Fin (m i) →  Fin r → R}
+    {s : Fin (n + 1) → ℕ} [NeZero (s (Fin.last n))] {w : (i : Fin (n + 1)) → Fin (s i) →  Fin r → R}
+    (heq1 : I 0 = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w 0 i))))
+    (heq2 : ∀ (j : Fin n) , I j.succ = Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (u j i))))
+    (C : ∀ i : Fin n, IdealMulEqCertificate' T (w i.castSucc) (u i) (w (i.succ)))
+    {z : Fin r → R} (hB : TT.basis.equivFun.symm z = 1) (p : ℕ)
+    (hp : w (Fin.last n) = fun _ => p • z) :
+      ∏ j, I j = Ideal.span {↑p} := by
+    rw [ideal_eq_prod_IdealMulEqCertificate' heq heq1 heq2 C, hp]
+    congr
+    ext j
+    simp only [Set.mem_range, Set.mem_singleton_iff, exists_const]
+    rw [← Nat.cast_smul_eq_nsmul R p, LinearEquiv.map_smul , hB, Algebra.smul_def, mul_one]
+    simp [eq_comm]
 
 /-- Given `O`-generators for `I` and `a ∈ O`, certifies generators for `⟨a⟩ * I`. -/
-structure IdealMulPrincipalCertificate [Algebra R O] {r m : ℕ} [NeZero r]
+structure IdealMulPrincipalCertificate [Algebra R O] {r m : ℕ}
   (TT  : TimesTable (Fin r) R O) (I : Ideal O)
   (α : Fin r → R) (u : Fin m → Fin r → R) (w : Fin m → Fin r → R) where
   T : Fin r → Fin r → List R
@@ -515,8 +735,8 @@ structure IdealMulPrincipalCertificate [Algebra R O] {r m : ℕ} [NeZero r]
 
 /-- Correctness of  `IdealMulPrincipalCertificate`. -/
 lemma  ideal_eq_principal_mul_of_IdealMulPrincipalCertificate [Algebra R O] {r m : ℕ} [NeZero r]
-    (TT  : TimesTable (Fin r) R O) (I : Ideal O)
-    (α : Fin r → R) (u : Fin m → Fin r → R) (w : Fin m → Fin r → R)
+    {TT  : TimesTable (Fin r) R O} {I : Ideal O}
+    {α : Fin r → R} {u : Fin m → Fin r → R} {w : Fin m → Fin r → R}
     (A : IdealMulPrincipalCertificate TT I α u w) :
       Ideal.span {(TT.basis).equivFun.symm α} * I =
         Ideal.span (Set.range (fun i => (TT.basis).equivFun.symm (w i))) := by
@@ -532,8 +752,6 @@ lemma  ideal_eq_principal_mul_of_IdealMulPrincipalCertificate [Algebra R O] {r m
   ext x
   simp only [Set.mem_mul, Set.mem_range, Set.mem_singleton_iff, Set.mem_range]
   simp only [↓existsAndEq, Basis.equivFun_symm_apply, true_and]
-
-
 
 /-- `IsInClass x I` expresses that `I` is in the same ideal class as `∏ i, x i`. -/
 def IsInClass (R : Type*) {n : ℕ} [CommRing R] (x : Fin n → Ideal R) :
@@ -583,15 +801,48 @@ lemma ideal_mem_principal_class'' {O R: Type*} [CommRing O] [CommRing R]
 
 /-- Given `O`-generators for `I` and `r ∈ R`, certifies generators for `⟨r⟩ · I`. -/
 lemma ideal_mul_span_singleton_coe [Algebra R O] {r m : ℕ} [NeZero r] (B : Basis (Fin r) R O)
-  (I : Ideal O) (v : Fin m → Fin r → R)
-  (hI : I = Ideal.span (Set.range (fun i => B.equivFun.symm (v i)))) (r : R) :
-  Ideal.span {(algebraMap R O r)} * I =
-    Ideal.span (Set.range (fun i => B.equivFun.symm ((r • v) i))) := by
-rw [hI, Ideal.span_mul_span] ; congr
-ext x
-simp only [Set.mem_mul, Set.mem_range, Set.mem_singleton_iff, Set.mem_range,
-  ↓existsAndEq, Basis.equivFun_symm_apply, true_and, Pi.smul_apply, map_smul]
-simp_rw [Algebra.smul_def]
+    (I : Ideal O) (v : Fin m → Fin r → R)
+    (hI : I = Ideal.span (Set.range (fun i => B.equivFun.symm (v i)))) (r : R) :
+    Ideal.span {(algebraMap R O r)} * I =
+      Ideal.span (Set.range (fun i => B.equivFun.symm ((r • v) i))) := by
+  rw [hI, Ideal.span_mul_span] ; congr
+  ext x
+  simp only [Set.mem_mul, Set.mem_range, Set.mem_singleton_iff, Set.mem_range,
+    ↓existsAndEq, Basis.equivFun_symm_apply, true_and, Pi.smul_apply, map_smul]
+  simp_rw [Algebra.smul_def]
+
+/- Certify `⟨s⟩ * I = ⟨a⟩ * J`, where `s` is a scalar. Purely computational: -/
+structure RelationCertificate {r n m : ℕ} (T : Fin r → Fin r → List R)
+  (s : R) (u : Fin m → Fin r → R) (a : Fin r → R) (v : Fin n → Fin r → R)  where
+  su : Fin m → Fin r → R
+  hsu : s • u = su
+  w : Fin n → Fin r → R
+  hw : ∀ i, table_mul_list T (List.ofFn a) (List.ofFn (v i)) = List.ofFn (w i)
+  g : Fin m → Fin n → Fin r → R
+  h : Fin n → Fin m → Fin r → R
+  hle1 : ∀ i, List.ofFn (su i) =
+    List.sum (List.ofFn (fun k => table_mul_list T  (List.ofFn (g i k)) (List.ofFn (w k))))
+  hle2 : ∀ i, List.ofFn (w i) =
+    List.sum (List.ofFn (fun k => table_mul_list T  (List.ofFn (h i k)) (List.ofFn (su k))))
+
+lemma relation_of_RelationCertificate [Algebra R O] {r m n : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    (heq : ∀ i j , T i j = List.ofFn (TT.table i j))
+    {I J : Ideal O} {s : R} {u : Fin m → Fin r → R} {a : Fin r → R} {v : Fin n → Fin r → R}
+    (hieq1 : I = Ideal.span (Set.range (fun i => TT.basis.equivFun.symm (u i))))
+    (hieq2 : J = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (v j))))
+    (C : RelationCertificate T s u a v) :
+    (Ideal.span {algebraMap R O s}) * I = Ideal.span {TT.basis.equivFun.symm a} * J := by
+  rw [ideal_mul_span_singleton_coe TT.basis I u hieq1, C.hsu,
+    ideal_eq_principal_mul_of_IdealMulPrincipalCertificate
+    (TT := TT) (I := J) (α := a) (u := v) (w := C.w)]
+  swap
+  exact { T := T, heq := heq, hI := hieq2, hmul := C.hw }
+  refine ideal_eq_of_IdealEqCertificateO' heq rfl rfl ?_
+  exact { g := C.g, h := C.h, hle1 := C.hle1, hle2 := C.hle2}
+
+
+
 
 
 end I
