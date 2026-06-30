@@ -120,7 +120,7 @@ lemma PowJ0_0J1_2 : J0 ^ 0*J1 ^ 2 = Ideal.span (Set.range fun i ↦ B.equivFun.s
 lemma PowJ0_1J1_0 : J0 ^ 1*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![3, 0, 0, 0], ![-1, 1, 0, 0]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  rfl
-def MulRJ0_1J1_1 : IdealMulEqCertificate timesTableO (J0) J1
+def MulR11_J0_1J1_1 : IdealMulEqCertificate timesTableO (J0) J1
   ![![3, 0, 0, 0], ![-1, 1, 0, 0]] ![![3, 0, 0, 0], ![1, 1, 0, 0]]
   ![![3, 0, 0, 0], ![-131, -67, -4, 1]] where
  T := Table
@@ -136,50 +136,50 @@ def MulRJ0_1J1_1 : IdealMulEqCertificate timesTableO (J0) J1
 
 lemma PowJ0_1J1_1 : J0 ^ 1*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![3, 0, 0, 0], ![-131, -67, -4, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_1J1_1]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR11_J0_1J1_1]
  rfl
-def MulRJ0_1J1_2 : IdealMulEqCertificate timesTableO (J0) (J1*J1)
+def MulR12_J0_1J1_2 : IdealMulEqCertificate timesTableO (J0) (J1*J1)
   ![![3, 0, 0, 0], ![-1, 1, 0, 0]] ![![9, 0, 0, 0], ![-2, 1, 0, 0]]
-  ![![9, 0, 0, 0], ![-564, -280, -15, 4]] where
+  ![![9, 0, 0, 0], ![279, 94, 0, -1]] where
  T := Table
  heq := timesTableT_eq_Table
  hI1 := rfl
  hI2 := ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ10
  M :=  ![![![27, 0, 0, 0], ![-6, 3, 0, 0]], ![![-9, 9, 0, 0], ![2, -3, 1, 0]]]
  hmul := by decide
- f :=  ![![![![-72, 254, -113, 2], ![-321, 975, -18, 0]], ![![1, 0, 0, 0], ![18, 0, 0, 0]]], ![![![-9600, 5274, 10384, -5287], ![-42444, 1897, 47771, 0]], ![![-692, 0, 0, 0], ![-1128, -560, 0, 0]]]]
- g :=  ![![![![-54102609, 152016132, -40244472, -6638253], ![-1274796432, -468993447, 72, 0]], ![![9769065, -27447761, 7266523, 1198596], ![230176369, 84681133, -13, 0]]], ![![![11272428, -31671519, 8384730, 1383041], ![265596954, 97712250, -15, 0]], ![![-1503016, 4223333, -1118068, -184424], ![-35416323, -13029550, 2, 0]]]]
+ f :=  ![![![![-72, 254, -113, 2], ![-321, 975, -18, 0]], ![![1, 0, 0, 0], ![18, 0, 0, 0]]], ![![![2779, -1461, -702, 361], ![12285, -304, -3312, 0]], ![![240, 0, 0, 0], ![558, 188, 0, 0]]]]
+ g :=  ![![![![499626, -1459471, -299502, 49057], ![249228, 193221, 72, 0]], ![![-111183, 324275, 66556, -10901], ![-55379, -42938, -16, 0]]], ![![![-166914, 486366, 99834, -16351], ![-83064, -64407, -24, 0]], ![![34687, -101363, -20800, 3407], ![17309, 13419, 5, 0]]]]
  hle1 := by decide
  hle2 := by decide
 
-lemma PowJ0_1J1_2 : J0 ^ 1*J1 ^ 2 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0, 0], ![-564, -280, -15, 4]] i)) := by 
+lemma PowJ0_1J1_2 : J0 ^ 1*J1 ^ 2 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0, 0], ![279, 94, 0, -1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_1J1_2]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR12_J0_1J1_2]
  rfl
 
 lemma PowJ0_2J1_0 : J0 ^ 2*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0, 0], ![-4, 1, 0, 0]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ00] 
  rfl     
-def MulRJ0_2J1_1 : IdealMulEqCertificate timesTableO ((J0*J0)) J1
+def MulR21_J0_2J1_1 : IdealMulEqCertificate timesTableO ((J0*J0)) J1
   ![![9, 0, 0, 0], ![-4, 1, 0, 0]] ![![3, 0, 0, 0], ![1, 1, 0, 0]]
-  ![![9, 0, 0, 0], ![-114, -104, -12, 2]] where
+  ![![9, 0, 0, 0], ![-427, -210, -11, 3]] where
  T := Table
  heq := timesTableT_eq_Table
  hI1 := ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ00
  hI2 := rfl
  M :=  ![![![27, 0, 0, 0], ![9, 9, 0, 0]], ![![-12, 3, 0, 0], ![-4, -3, 1, 0]]]
  hmul := by decide
- f :=  ![![![![101646, 21072, 105779, 108976], ![-118585, 8405, -326672, 0]], ![![139758, -288, -768, 0], ![18, 0, 0, 0]]], ![![![-1251642, -260398, -1303430, -1345202], ![1460252, -104062, 4031288, 0]], ![![-1720920, 1152, 13024, 0], ![-228, -208, 0, 0]]]]
- g :=  ![![![![8400440355, -8486811238, -1789065492, 225822700], ![-5900155317, -976789971, 144, 0]], ![![2800147107, -2828937231, -596355204, 75274238], ![-1966718595, -325596684, 48, 0]]], ![![![-3733528876, 3771916113, 795140212, -100365644], ![2622291205, 434128867, -64, 0]], ![![-1400065764, 1414461023, 298175989, -37636916], ![983353939, 162797453, -24, 0]]]]
+ f :=  ![![![![101646, 21072, 105779, 108976], ![-118585, 8405, -326672, 0]], ![![139758, -288, -768, 0], ![18, 0, 0, 0]]], ![![![-4753548, -987352, -4948639, -5102992], ![5545809, -394147, 15294647, 0]], ![![-6535806, 8624, 43128, 0], ![-854, -420, 0, 0]]]]
+ g :=  ![![![![-1763532, 5154885, 569790, 123960], ![-37263600, -13833405, 360, 0]], ![![-587611, 1718391, 189934, 41318], ![-12421074, -4611090, 120, 0]]], ![![![784012, -2290958, -253235, -55095], ![16561645, 6148195, -160, 0]], ![![274680, -801690, -88624, -19285], ![5796519, 2151845, -56, 0]]]]
  hle1 := by decide
  hle2 := by decide
 
-lemma PowJ0_2J1_1 : J0 ^ 2*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0, 0], ![-114, -104, -12, 2]] i)) := by 
+lemma PowJ0_2J1_1 : J0 ^ 2*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0, 0], ![-427, -210, -11, 3]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_2J1_1]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR21_J0_2J1_1]
  rfl
-def MulRJ0_2J1_2 : IdealMulEqCertificate timesTableO ((J0*J0)) (J1*J1)
+def MulR22_J0_2J1_2 : IdealMulEqCertificate timesTableO ((J0*J0)) (J1*J1)
   ![![9, 0, 0, 0], ![-4, 1, 0, 0]] ![![9, 0, 0, 0], ![-2, 1, 0, 0]]
   ![![9, 0, 0, 0], ![-128, -67, -4, 1]] where
  T := Table
@@ -195,5 +195,5 @@ def MulRJ0_2J1_2 : IdealMulEqCertificate timesTableO ((J0*J0)) (J1*J1)
 
 lemma PowJ0_2J1_2 : J0 ^ 2*J1 ^ 2 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0, 0], ![-128, -67, -4, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_2J1_2]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR22_J0_2J1_2]
  rfl

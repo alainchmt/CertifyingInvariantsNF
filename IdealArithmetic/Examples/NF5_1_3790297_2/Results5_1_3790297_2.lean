@@ -4,11 +4,11 @@ noncomputable section
 
 open Polynomial NumberField
 
-/-Number field `K(α)` with `α` root of polynomial `X^5 - X^4 + 3*X^2 + 21*X + 4 `.-/
+/- Number field `K(α)` with `α` root of the polynomial `X^5 - X^4 + 3*X^2 + 21*X + 4`. -/
 
-lemma T_def' : K = AdjoinRoot (map (algebraMap ℤ ℚ) (X^5 - X^4 + 3*X^2 + 21*X + 4 )) := rfl
+lemma T_def' : K = AdjoinRoot (map (algebraMap ℤ ℚ) (X^5 - X^4 + 3*X^2 + 21*X + 4)) := rfl
 
-lemma T_irreducible' : Irreducible (X^5 - X^4 + 3*X^2 + 21*X + 4: ℤ[X]) := irreducible_T
+lemma T_irreducible' : Irreducible (X^5 - X^4 + 3*X^2 + 21*X + 4 : ℤ[X]) := irreducible_T
 
 theorem O_ringOfIntegers : O = RingOfIntegers K := O_ringOfIntegers'
 
@@ -19,4 +19,4 @@ lemma K_nrComplexPlaces' : InfinitePlace.nrComplexPlaces K = 2 := K_nrComplexPla
 def class_group_equiv' :
   (∀ i : Fin 2 , (ZMod (![2, 2] i))) ≃+ Additive (ClassGroup (RingOfIntegers K)) := class_group_equiv
 
-theorem class_number_K_eq_4' : classNumber K = 4 := class_number_K_eq_4
+theorem class_number_K_eq_4' : classNumber K = 4 := class_number_K_eq_4 

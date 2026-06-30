@@ -4,9 +4,9 @@ noncomputable section
 
 open Polynomial NumberField
 
-/- Number field `K(α)` with `α` root of polynomial `X^4 - 2*X^3 + 7*X^2 - 6*X + 78`. -/
+/- Number field `K(α)` with `α` root of the polynomial `X^4 - 2*X^3 + 7*X^2 - 6*X + 78`. -/
 
-lemma T_def' : K = AdjoinRoot (map (algebraMap ℤ ℚ) (X^4 - 2*X^3 + 7*X^2 - 6*X + 78 )) := rfl
+lemma T_def' : K = AdjoinRoot (map (algebraMap ℤ ℚ) (X^4 - 2*X^3 + 7*X^2 - 6*X + 78)) := rfl
 
 lemma T_irreducible' : Irreducible (X^4 - 2*X^3 + 7*X^2 - 6*X + 78 : ℤ[X]) := irreducible_T
 
@@ -19,4 +19,4 @@ lemma K_nrComplexPlaces' : InfinitePlace.nrComplexPlaces K = 2 := K_nrComplexPla
 def class_group_equiv' :
   (∀ i : Fin 2 , (ZMod (![6, 2] i))) ≃+ Additive (ClassGroup (RingOfIntegers K)) := class_group_equiv
 
-theorem class_number_K_eq_12' : classNumber K = 12 := class_number_K_eq_12
+theorem class_number_K_eq_12' : classNumber K = 12 := class_number_K_eq_12 

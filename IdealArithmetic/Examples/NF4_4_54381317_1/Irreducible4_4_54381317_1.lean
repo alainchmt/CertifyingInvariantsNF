@@ -6,12 +6,12 @@ open Polynomial
 
 local notation "T" => (X^4 - X^3 - 80*X^2 - 332*X - 383 : ℤ[X])
 
-local notation "l" => [-383, -332, -80,-1,1]
+local notation "l" => [-383, -332, -80, -1, 1]
 
 unseal Rat.add Rat.mul Rat.inv
 
-lemma T_ofList' : T = ofList l := by norm_num ; ring
-
+lemma T_ofList' : T = ofList l := by norm_num ; ring 
+    
 noncomputable def C : CertificateIrreducibleIntOfPrime T l where
  hpol := T_ofList'
  hdeg := by decide
@@ -29,4 +29,4 @@ noncomputable def C : CertificateIrreducibleIntOfPrime T l where
  hs := by norm_num
  heval := by norm_num
 
-theorem irreducible_T : Irreducible T := irreducible_of_CertificateIrreducibleIntOfPrime _ _ C
+theorem irreducible_T : Irreducible T := irreducible_of_CertificateIrreducibleIntOfPrime _ _ C 

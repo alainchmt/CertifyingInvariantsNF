@@ -136,7 +136,7 @@ variable {K : Type _} [CommRing K]  [Algebra R K]
 /-- If `I` is an `O`-ideal, then the multiplier ring of `I` is an `R`-subalgebra
 consisting of all the elements `x` in `K` such that `x I ⊆ I `· -/
 def multiplierRing {O : Subalgebra R K} (I : Ideal O) : Subalgebra R K where
-  carrier := {(x : K)  | ∀ (i : O), i ∈ I → ( ∃ (j : O), j ∈ I ∧ i * x = j )}
+  carrier := { x : K | ∀ i ∈ I , ∃ (j : O), j ∈ I ∧ i * x = j }
   mul_mem':= by
     intros a b ha hb i hi
     obtain ⟨ j, hj1, hj2 ⟩ := ha i hi

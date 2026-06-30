@@ -649,8 +649,8 @@ def IdealMulLeChainCertificate.Ideals [Algebra R O] {r m s : ℕ}
 notation "𝟙" => IdealMulChainCertificate.nil
 infixl:65 " ⊗ " => IdealMulChainCertificate.cons
 
-notation "𝟙'" => IdealMulLeChainCertificate.nil
-infixl:65 " ⊗' " => IdealMulLeChainCertificate.cons
+notation "𝕀" => IdealMulLeChainCertificate.nil
+infixl:65 " ⊙ " => IdealMulLeChainCertificate.cons
 
 lemma ideal_prod_of_IdealMulChainCertificate [Algebra R O] {r m s : ℕ} [NeZero r]
     {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
@@ -705,6 +705,43 @@ lemma ideal_le_singleton_IdealMulLeChainCertificate [Algebra R O] {r m : ℕ} [N
     simp only [Set.mem_range, Set.mem_singleton_iff, Fin.exists_fin_one, Fin.isValue]
     rw [hf, ← Nat.cast_smul_eq_nsmul R p, LinearEquiv.map_smul , hB, Algebra.smul_def, mul_one]
     simp [eq_comm]
+
+/- lemma ideal_ne_bot_IdealMulLeChainCertificate [Algebra R O] {r m s : ℕ} [NeZero r]
+    {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
+    {u : Fin m → Fin r → R} [hu : NeZero u] {w : Fin s → Fin r → R}
+    (A : IdealMulLeChainCertificate T u w) : ∀ I ∈ (A.Ideals TT), I ≠ ⊥ := by
+  intro I hI hc
+  induction A with
+  | nil =>
+    unfold IdealMulLeChainCertificate.Ideals at hI
+    simp only [ List.mem_cons, List.not_mem_nil, or_false] at hI
+    rw [hI] at hc
+    erw [Ideal.span_eq_bot] at hc
+    have : ∀ i j , u i j = 0 := by
+      intro i j
+      specialize hc (TT.basis.equivFun.symm (u i))
+      simp only [Set.mem_range, exists_apply_eq_apply,
+      forall_const, (LinearEquiv.map_eq_zero_iff TT.basis.equivFun.symm)] at hc
+      rw [hc]
+      rfl
+    exact hu.out (show u = 0 by ext ; rw [this] ; rfl)
+  | cons A B hAB =>
+    unfold IdealMulLeChainCertificate.Ideals at hI
+    simp only [List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hI
+    rcases hI with h1 | h2
+    · contradiction
+    · rw [hc] at h2
+      symm at h2
+      expose_names
+      erw [Ideal.span_eq_bot] at h2
+      have : ∀ i j , uu i j = 0 := by
+        intro i j
+        specialize h2 (TT.basis.equivFun.symm (uu i))
+        simp only [Set.mem_range, exists_apply_eq_apply,
+        forall_const, (LinearEquiv.map_eq_zero_iff TT.basis.equivFun.symm)] at h2
+        rw [h2]
+        rfl
+      exact inst_4.out (show uu = 0 by ext ; rw [this] ; rfl) -/
 
 lemma ideal_eq_singleton_IdealMulEqCertificate' [Algebra R O] {r n : ℕ} [NeZero r]
     {TT  : TimesTable (Fin r) R O} {T : Fin r → Fin r → List R}
@@ -810,6 +847,17 @@ lemma ideal_mul_span_singleton_coe [Algebra R O] {r m : ℕ} [NeZero r] (B : Bas
   simp only [Set.mem_mul, Set.mem_range, Set.mem_singleton_iff, Set.mem_range,
     ↓existsAndEq, Basis.equivFun_symm_apply, true_and, Pi.smul_apply, map_smul]
   simp_rw [Algebra.smul_def]
+
+lemma ideal_span_ne_bot [Algebra R O] {r m : ℕ} {B : Basis (Fin r) R O}
+    (i : Fin m) (j : Fin r) {v : Fin m → Fin r → R} (hv : v i j ≠ 0) :
+   Ideal.span (Set.range (fun i => B.equivFun.symm (v i))) ≠ 0 := by
+    intro hc
+    erw [Ideal.span_eq_bot] at hc
+    specialize hc (B.equivFun.symm (v i))
+    simp only [Set.mem_range, exists_apply_eq_apply,
+      forall_const, (LinearEquiv.map_eq_zero_iff B.equivFun.symm)] at hc
+    rw [hc] at hv
+    simp only [Pi.zero_apply, ne_eq, not_true_eq_false] at hv
 
 /- Certify `⟨s⟩ * I = ⟨a⟩ * J`, where `s` is a scalar. Purely computational: -/
 structure RelationCertificate {r n m : ℕ} (T : Fin r → Fin r → List R)

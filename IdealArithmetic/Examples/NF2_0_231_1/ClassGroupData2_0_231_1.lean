@@ -121,7 +121,7 @@ lemma PowJ0_0J1_1 : J0 ^ 0*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.s
 lemma PowJ0_1J1_0 : J0 ^ 1*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![2, 0], ![1, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  rfl
-def MulRJ0_1J1_1 : IdealMulEqCertificate timesTableO (J0) J1
+def MulR11_J0_1J1_1 : IdealMulEqCertificate timesTableO (J0) J1
   ![![2, 0], ![1, 1]] ![![7, 0], ![3, 1]]
   ![![14, 0], ![3, 1]] where
  T := Table
@@ -137,14 +137,14 @@ def MulRJ0_1J1_1 : IdealMulEqCertificate timesTableO (J0) J1
 
 lemma PowJ0_1J1_1 : J0 ^ 1*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![14, 0], ![3, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_1J1_1]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR11_J0_1J1_1]
  rfl
 
 lemma PowJ0_2J1_0 : J0 ^ 2*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![4, 0], ![1, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ00] 
  rfl     
-def MulRJ0_2J1_1 : IdealMulEqCertificate timesTableO ((J0*J0)) J1
+def MulR21_J0_2J1_1 : IdealMulEqCertificate timesTableO ((J0*J0)) J1
   ![![4, 0], ![1, 1]] ![![7, 0], ![3, 1]]
   ![![28, 0], ![17, 1]] where
  T := Table
@@ -160,14 +160,14 @@ def MulRJ0_2J1_1 : IdealMulEqCertificate timesTableO ((J0*J0)) J1
 
 lemma PowJ0_2J1_1 : J0 ^ 2*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![28, 0], ![17, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_2J1_1]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR21_J0_2J1_1]
  rfl
 
 lemma PowJ0_3J1_0 : J0 ^ 3*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![8, 0], ![5, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ01] 
  rfl     
-def MulRJ0_3J1_1 : IdealMulEqCertificate timesTableO (((J0*J0)*J0)) J1
+def MulR31_J0_3J1_1 : IdealMulEqCertificate timesTableO (((J0*J0)*J0)) J1
   ![![8, 0], ![5, 1]] ![![7, 0], ![3, 1]]
   ![![56, 0], ![45, 1]] where
  T := Table
@@ -183,14 +183,14 @@ def MulRJ0_3J1_1 : IdealMulEqCertificate timesTableO (((J0*J0)*J0)) J1
 
 lemma PowJ0_3J1_1 : J0 ^ 3*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![56, 0], ![45, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_3J1_1]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR31_J0_3J1_1]
  rfl
 
 lemma PowJ0_4J1_0 : J0 ^ 4*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![16, 0], ![13, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ02] 
  rfl     
-def MulRJ0_4J1_1 : IdealMulEqCertificate timesTableO ((((J0*J0)*J0)*J0)) J1
+def MulR41_J0_4J1_1 : IdealMulEqCertificate timesTableO ((((J0*J0)*J0)*J0)) J1
   ![![16, 0], ![13, 1]] ![![7, 0], ![3, 1]]
   ![![112, 0], ![45, 1]] where
  T := Table
@@ -206,14 +206,14 @@ def MulRJ0_4J1_1 : IdealMulEqCertificate timesTableO ((((J0*J0)*J0)*J0)) J1
 
 lemma PowJ0_4J1_1 : J0 ^ 4*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![112, 0], ![45, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_4J1_1]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR41_J0_4J1_1]
  rfl
 
 lemma PowJ0_5J1_0 : J0 ^ 5*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![32, 0], ![29, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ03] 
  rfl     
-def MulRJ0_5J1_1 : IdealMulEqCertificate timesTableO (((((J0*J0)*J0)*J0)*J0)) J1
+def MulR51_J0_5J1_1 : IdealMulEqCertificate timesTableO (((((J0*J0)*J0)*J0)*J0)) J1
   ![![32, 0], ![29, 1]] ![![7, 0], ![3, 1]]
   ![![224, 0], ![157, 1]] where
  T := Table
@@ -229,5 +229,5 @@ def MulRJ0_5J1_1 : IdealMulEqCertificate timesTableO (((((J0*J0)*J0)*J0)*J0)) J1
 
 lemma PowJ0_5J1_1 : J0 ^ 5*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![224, 0], ![157, 1]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
- simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulRJ0_5J1_1]
+ simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR51_J0_5J1_1]
  rfl

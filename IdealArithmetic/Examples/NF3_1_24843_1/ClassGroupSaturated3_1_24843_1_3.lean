@@ -48,57 +48,45 @@ def I0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![7, 0, 
 def I1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![13, 0, 0], ![0, 1, 0]] i)))
 def I2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![31, 0, 0], ![4, 1, 0]] i)))
 
-def A0: IdealEqSpanCertificate timesTableO I0
- ![![7, 0, 0], ![0, 1, 0]] 
+def A0: IdealEqSpanCertificate' Table ![![7, 0, 0], ![0, 1, 0]] 
  ![![7, 0, 0], ![0, 1, 0], ![2, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![7, 0, 0], ![0, 7, 0], ![0, 0, 7]], ![![0, 1, 0], ![-1, -1, 3], ![30, 0, 1]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![0, -1, 3], ![0, -7, 0]], ![![0, 0, 0], ![1, 0, 0]], ![![0, 0, 1], ![-2, -2, 0]]]
   g := ![![![1, 0, 0], ![0, 7, 0], ![-2, 0, 7]], ![![0, 1, 0], ![-1, -1, 3], ![4, 0, 1]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma N0 : Nat.card (O ⧸ I0) = 7 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate A0)
+ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0)
 
-def A1: IdealEqSpanCertificate timesTableO I1
- ![![13, 0, 0], ![0, 1, 0]] 
+def A1: IdealEqSpanCertificate' Table ![![13, 0, 0], ![0, 1, 0]] 
  ![![13, 0, 0], ![0, 1, 0], ![4, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![13, 0, 0], ![0, 13, 0], ![0, 0, 13]], ![![0, 1, 0], ![-1, -1, 3], ![30, 0, 1]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![0, -1, 3], ![0, -13, 0]], ![![0, 0, 0], ![1, 0, 0]], ![![0, 0, 1], ![-4, -4, 0]]]
   g := ![![![1, 0, 0], ![0, 13, 0], ![-4, 0, 13]], ![![0, 1, 0], ![-1, -1, 3], ![2, 0, 1]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma N1 : Nat.card (O ⧸ I1) = 13 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate A1)
+ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1)
 
-def A2: IdealEqSpanCertificate timesTableO I2
- ![![31, 0, 0], ![4, 1, 0]] 
+def A2: IdealEqSpanCertificate' Table ![![31, 0, 0], ![4, 1, 0]] 
  ![![31, 0, 0], ![4, 1, 0], ![6, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![31, 0, 0], ![0, 31, 0], ![0, 0, 31]], ![![4, 1, 0], ![-1, 3, 3], ![30, 0, 5]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![-135, 408, 408], ![0, -4216, 0]], ![![-17, 51, 51], ![1, -527, 0]], ![![-30, 78, 79], ![30, -816, 0]]]
   g := ![![![1, 0, 0], ![-4, 31, 0], ![-6, 0, 31]], ![![0, 1, 0], ![-1, 3, 3], ![0, 0, 5]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma N2 : Nat.card (O ⧸ I2) = 31 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate A2)
+ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2)
 
 def Log00Mem : IdealMemCertificate B I0
   ![![7, 0, 0], ![0, 1, 0], ![2, 0, 1]] ![-14, 2, 0] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A0
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0
  g := ![-2, 2, 0]
  hmem := by decide
 
@@ -115,12 +103,12 @@ def Log00: DiscreteLogCertificate N0 ((orderOf_of_IsOrderOf R7) ▸ IsPrimitiveR
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log00Mem
  k :=  5
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log01Mem : IdealMemCertificate B I0
   ![![7, 0, 0], ![0, 1, 0], ![2, 0, 1]] ![2, 1, 1] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A0
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0
  g := ![0, 1, 1]
  hmem := by decide
 
@@ -137,12 +125,12 @@ def Log01: DiscreteLogCertificate N0 ((orderOf_of_IsOrderOf R7) ▸ IsPrimitiveR
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log01Mem
  k :=  4
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log02Mem : IdealMemCertificate B I0
   ![![7, 0, 0], ![0, 1, 0], ![2, 0, 1]] ![2, 1, 1] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A0
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0
  g := ![0, 1, 1]
  hmem := by decide
 
@@ -159,12 +147,12 @@ def Log02: DiscreteLogCertificate N0 ((orderOf_of_IsOrderOf R7) ▸ IsPrimitiveR
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log02Mem
  k :=  1
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log10Mem : IdealMemCertificate B I1
   ![![13, 0, 0], ![0, 1, 0], ![4, 0, 1]] ![-13, 2, 0] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A1
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1
  g := ![-1, 2, 0]
  hmem := by decide
 
@@ -181,12 +169,12 @@ def Log10: DiscreteLogCertificate N1 ((orderOf_of_IsOrderOf R13) ▸ IsPrimitive
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log10Mem
  k :=  2
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log11Mem : IdealMemCertificate B I1
   ![![13, 0, 0], ![0, 1, 0], ![4, 0, 1]] ![4, 1, 1] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A1
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1
  g := ![0, 1, 1]
  hmem := by decide
 
@@ -203,12 +191,12 @@ def Log11: DiscreteLogCertificate N1 ((orderOf_of_IsOrderOf R13) ▸ IsPrimitive
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log11Mem
  k :=  1
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log12Mem : IdealMemCertificate B I1
   ![![13, 0, 0], ![0, 1, 0], ![4, 0, 1]] ![4, 1, 1] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A1
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1
  g := ![0, 1, 1]
  hmem := by decide
 
@@ -225,12 +213,12 @@ def Log12: DiscreteLogCertificate N1 ((orderOf_of_IsOrderOf R13) ▸ IsPrimitive
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log12Mem
  k :=  0
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log20Mem : IdealMemCertificate B I2
   ![![31, 0, 0], ![4, 1, 0], ![6, 0, 1]] ![-23, 2, 0] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A2
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2
  g := ![-1, 2, 0]
  hmem := by decide
 
@@ -247,12 +235,12 @@ def Log20: DiscreteLogCertificate N2 ((orderOf_of_IsOrderOf R31) ▸ IsPrimitive
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log20Mem
  k :=  22
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log21Mem : IdealMemCertificate B I2
   ![![31, 0, 0], ![4, 1, 0], ![6, 0, 1]] ![-21, 1, 1] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A2
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2
  g := ![-1, 1, 1]
  hmem := by decide
 
@@ -269,12 +257,12 @@ def Log21: DiscreteLogCertificate N2 ((orderOf_of_IsOrderOf R31) ▸ IsPrimitive
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log21Mem
  k :=  3
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 def Log22Mem : IdealMemCertificate B I2
   ![![31, 0, 0], ![4, 1, 0], ![6, 0, 1]] ![-21, 1, 1] where
- hieq := ideal_eq_of_IdealEqSpanCertificate A2
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2
  g := ![-1, 1, 1]
  hmem := by decide
 
@@ -291,7 +279,7 @@ def Log22: DiscreteLogCertificate N2 ((orderOf_of_IsOrderOf R31) ▸ IsPrimitive
  hCeq := by rfl
  hmem := mem_of_certificate _ _ _ _ Log22Mem
  k :=  5
- hpow := by decide
+ hpow := by zmod_pow
  heql := by decide
 
 end Sat3

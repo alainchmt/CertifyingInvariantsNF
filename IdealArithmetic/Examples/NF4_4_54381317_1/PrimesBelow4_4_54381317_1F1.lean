@@ -2,6 +2,7 @@
 import IdealArithmetic.Examples.NF4_4_54381317_1.RI4_4_54381317_1
 import IdealArithmetic.Generation.ClassGroupGeneration
 import IdealArithmetic.IdealArithmetic
+import IdealArithmetic.Computation.PrimeSieve
 
 set_option linter.all false
 
@@ -9,29 +10,18 @@ open Classical Polynomial
 
 noncomputable section 
 instance hp31 : Fact (Nat.Prime 31) := {out := by norm_num}
+
 def I31N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![31, 0, 0, 0], ![-130, -62, -4, 1]] i)))
 
-def SI31N0: IdealEqSpanCertificate timesTableO I31N0
- ![![31, 0, 0, 0], ![-130, -62, -4, 1]] 
+def SI31N0: IdealEqSpanCertificate' Table ![![31, 0, 0, 0], ![-130, -62, -4, 1]] 
  ![![31, 0, 0, 0], ![0, 31, 0, 0], ![4, 13, 1, 0], ![10, 21, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![31, 0, 0, 0], ![0, 31, 0, 0], ![0, 0, 31, 0], ![0, 0, 0, 31]], ![![-130, -62, -4, 1], ![383, 202, 18, -3], ![-1149, -613, -38, 15], ![5745, 3831, 587, -23]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![1, 0, 0, 0], ![0, 0, 0, 0]], ![![317, 713, 190, -4], ![-2573, -899, 0, 0]], ![![175, 319, 81, -2], ![-1069, -377, 0, 0]], ![![257, 503, 130, -3], ![-1733, -609, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-4, -13, 31, 0], ![-10, -21, 0, 31]], ![![-4, -1, -4, 1], ![11, 1, 18, -3], ![-37, -14, -38, 15], ![117, -107, 587, -23]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI31N0 : Nat.card (O ⧸ I31N0) = 961 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI31N0)
-
-def MemCI31N0 : IdealMemCertificate B I31N0
-  ![![31, 0, 0, 0], ![0, 31, 0, 0], ![4, 13, 1, 0], ![10, 21, 0, 1]] ![32941, 29672, 8231, 631] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI31N0
- g := ![-203, -2922, 8231, 631]
- hmem := by decide
 
 def P31P0 : CertificateIrreducibleZModOfList' 31 2 2 4 [3, 29, 1] where
  m := 1
@@ -55,57 +45,38 @@ def P31P0 : CertificateIrreducibleZModOfList' 31 2 2 4 [3, 29, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI31N0 : CertifiedPrimeIdeal O 31 where 
-  r := 4
+def PI31N0 : CertifiedPrimeIdeal' SI31N0 31 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I31N0
-  hcard := NI31N0
+  hpos := by decide  
   P := [3, 29, 1]
-  f := ofList [3, 29, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P31P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P31P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![32941, 29672, 8231, 631]
   a := ![0, -1, -1, -1]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI31N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI31N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-203, -2922, 8231, 631]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI31N0 : Ideal.IsPrime I31N0 := CertifiedPrimeIdeal.isPrime PI31N0
+lemma isPrimeI31N0 : Ideal.IsPrime I31N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI31N0 B_one_repr
+lemma NI31N0 : Nat.card (O ⧸ I31N0) = 961 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI31N0
+
 def I31N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![31, 0, 0, 0], ![-136, -73, -4, 1]] i)))
 
-def SI31N1: IdealEqSpanCertificate timesTableO I31N1
- ![![31, 0, 0, 0], ![-136, -73, -4, 1]] 
+def SI31N1: IdealEqSpanCertificate' Table ![![31, 0, 0, 0], ![-136, -73, -4, 1]] 
  ![![31, 0, 0, 0], ![0, 31, 0, 0], ![5, 17, 1, 0], ![8, 26, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![31, 0, 0, 0], ![0, 31, 0, 0], ![0, 0, 31, 0], ![0, 0, 0, 31]], ![![-136, -73, -4, 1], ![383, 196, 7, -3], ![-1149, -613, -44, 4], ![1532, 179, -293, -40]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![6888, 238, -1337, -117], ![-29946, -11191, 0, 0]], ![![-341, 0, 71, 6], ![1581, 589, 0, 0]], ![![981, 69, -175, -16], ![-3950, -1482, 0, 0]], ![![1474, 52, -286, -25], ![-6406, -2394, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-5, -17, 31, 0], ![-8, -26, 0, 31]], ![![-4, -1, -4, 1], ![12, 5, 7, -3], ![-31, 1, -44, 4], ![107, 200, -293, -40]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI31N1 : Nat.card (O ⧸ I31N1) = 961 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI31N1)
-
-def MemCI31N1 : IdealMemCertificate B I31N1
-  ![![31, 0, 0, 0], ![0, 31, 0, 0], ![5, 17, 1, 0], ![8, 26, 0, 1]] ![1553083, 1297610, 282820, -6160] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI31N1
- g := ![6073, -108070, 282820, -6160]
- hmem := by decide
 
 def P31P1 : CertificateIrreducibleZModOfList' 31 2 2 4 [16, 1, 1] where
  m := 1
@@ -129,85 +100,57 @@ def P31P1 : CertificateIrreducibleZModOfList' 31 2 2 4 [16, 1, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI31N1 : CertifiedPrimeIdeal O 31 where 
-  r := 4
+def PI31N1 : CertifiedPrimeIdeal' SI31N1 31 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I31N1
-  hcard := NI31N1
+  hpos := by decide  
   P := [16, 1, 1]
-  f := ofList [16, 1, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P31P1
-  hneq := by decide
-  hlen := by decide
+  hirr := P31P1
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![1553083, 1297610, 282820, -6160]
   a := ![-2, 3, -64, 1]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI31N1
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI31N1]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![6073, -108070, 282820, -6160]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI31N1 : Ideal.IsPrime I31N1 := CertifiedPrimeIdeal.isPrime PI31N1
-def MulI31N0 : IdealMulEqCertificate timesTableO (I31N0) I31N1
+lemma isPrimeI31N1 : Ideal.IsPrime I31N1 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI31N1 B_one_repr
+lemma NI31N1 : Nat.card (O ⧸ I31N1) = 961 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI31N1
+def MulI31N0 : IdealMulLeCertificate' Table 
   ![![31, 0, 0, 0], ![-130, -62, -4, 1]] ![![31, 0, 0, 0], ![-136, -73, -4, 1]]
   ![![31, 0, 0, 0]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := rfl
- hI2 := rfl
  M :=  ![![![961, 0, 0, 0], ![-4216, -2263, -124, 31]], ![![-4030, -1922, -124, 31], ![62, -31, -31, 0]]]
- hmul := by decide
- f :=  ![![![![2571864393681510, 67501436669443, -508801121896301, -44102330715354], ![-11377743879376743, -4248304757498191, 0, 0]], ![![1859057280, -288, 0, 0], ![0, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![31, 0, 0, 0]], ![![-136, -73, -4, 1]]], ![![![-130, -62, -4, 1]], ![![2, -1, -1, 0]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def PBC31 : IsPrimesAboveP 31 ![I31N0, I31N1] where 
+
+def PBC31 : ContainsPrimesAboveP 31 ![I31N0, I31N1] where 
   Ip := by 
     intro i 
     fin_cases i 
     exact isPrimeI31N0
     exact isPrimeI31N1
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    rw [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI31N0, Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate timesTableT_eq_Table B_one_repr 31 (by decide) (𝕀 ⊙ MulI31N0)
 instance hp37 : Fact (Nat.Prime 37) := {out := by norm_num}
+
 def I37N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![-127, -67, -4, 1]] i)))
 
-def SI37N0: IdealEqSpanCertificate timesTableO I37N0
- ![![-127, -67, -4, 1]] 
+def SI37N0: IdealEqSpanCertificate' Table ![![-127, -67, -4, 1]] 
  ![![37, 0, 0, 0], ![0, 37, 0, 0], ![2, 4, 1, 0], ![29, 23, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![-127, -67, -4, 1], ![383, 205, 13, -3], ![-1149, -613, -35, 10], ![3830, 2171, 187, -25]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![-136, -67, -4, 1]], ![![383, 196, 13, -3]], ![![3, 1, 0, 0]], ![![235, 128, 10, -2]]]
   g := ![![![-4, -2, -4, 1], ![12, 6, 13, -3], ![-37, -19, -35, 10], ![113, 54, 187, -25]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI37N0 : Nat.card (O ⧸ I37N0) = 1369 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI37N0)
-
-def MemCI37N0 : IdealMemCertificate B I37N0
-  ![![37, 0, 0, 0], ![0, 37, 0, 0], ![2, 4, 1, 0], ![29, 23, 0, 1]] ![275003, 239545, 61904, 3888] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI37N0
- g := ![1039, -2635, 61904, 3888]
- hmem := by decide
 
 def P37P0 : CertificateIrreducibleZModOfList' 37 2 2 5 [30, 22, 1] where
  m := 1
@@ -231,57 +174,38 @@ def P37P0 : CertificateIrreducibleZModOfList' 37 2 2 5 [30, 22, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI37N0 : CertifiedPrimeIdeal O 37 where 
-  r := 4
+def PI37N0 : CertifiedPrimeIdeal' SI37N0 37 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I37N0
-  hcard := NI37N0
+  hpos := by decide  
   P := [30, 22, 1]
-  f := ofList [30, 22, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P37P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P37P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![275003, 239545, 61904, 3888]
   a := ![-1, 1, 1, -3]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI37N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI37N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![1039, -2635, 61904, 3888]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI37N0 : Ideal.IsPrime I37N0 := CertifiedPrimeIdeal.isPrime PI37N0
+lemma isPrimeI37N0 : Ideal.IsPrime I37N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI37N0 B_one_repr
+lemma NI37N0 : Nat.card (O ⧸ I37N0) = 1369 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI37N0
+
 def I37N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![-136, -67, -4, 1]] i)))
 
-def SI37N1: IdealEqSpanCertificate timesTableO I37N1
- ![![-136, -67, -4, 1]] 
+def SI37N1: IdealEqSpanCertificate' Table ![![-136, -67, -4, 1]] 
  ![![37, 0, 0, 0], ![0, 37, 0, 0], ![12, 32, 1, 0], ![23, 24, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![-136, -67, -4, 1], ![383, 196, 13, -3], ![-1149, -613, -44, 10], ![3830, 2171, 187, -34]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![-127, -67, -4, 1]], ![![383, 205, 13, -3]], ![![259, 139, 9, -2]], ![![273, 150, 11, -2]]]
   g := ![![![-3, 1, -4, 1], ![8, -4, 13, -3], ![-23, 15, -44, 10], ![64, -81, 187, -34]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI37N1 : Nat.card (O ⧸ I37N1) = 1369 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI37N1)
-
-def MemCI37N1 : IdealMemCertificate B I37N1
-  ![![37, 0, 0, 0], ![0, 37, 0, 0], ![12, 32, 1, 0], ![23, 24, 0, 1]] ![29902, 25489, 6268, 356] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI37N1
- g := ![-1446, -4963, 6268, 356]
- hmem := by decide
 
 def P37P1 : CertificateIrreducibleZModOfList' 37 2 2 5 [28, 24, 1] where
  m := 1
@@ -305,85 +229,57 @@ def P37P1 : CertificateIrreducibleZModOfList' 37 2 2 5 [28, 24, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI37N1 : CertifiedPrimeIdeal O 37 where 
-  r := 4
+def PI37N1 : CertifiedPrimeIdeal' SI37N1 37 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I37N1
-  hcard := NI37N1
+  hpos := by decide  
   P := [28, 24, 1]
-  f := ofList [28, 24, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P37P1
-  hneq := by decide
-  hlen := by decide
+  hirr := P37P1
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![29902, 25489, 6268, 356]
   a := ![0, -1, -1, 1]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI37N1
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI37N1]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-1446, -4963, 6268, 356]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI37N1 : Ideal.IsPrime I37N1 := CertifiedPrimeIdeal.isPrime PI37N1
-def MulI37N0 : IdealMulEqCertificate timesTableO (I37N0) I37N1
+lemma isPrimeI37N1 : Ideal.IsPrime I37N1 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI37N1 B_one_repr
+lemma NI37N1 : Nat.card (O ⧸ I37N1) = 1369 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI37N1
+def MulI37N0 : IdealMulLeCertificate' Table 
   ![![-127, -67, -4, 1]] ![![-136, -67, -4, 1]]
   ![![37, 0, 0, 0]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := rfl
- hI2 := rfl
  M :=  ![![![37, 0, 0, 0]]]
- hmul := by decide
- f :=  ![![![![1, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![1, 0, 0, 0]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def PBC37 : IsPrimesAboveP 37 ![I37N0, I37N1] where 
+
+def PBC37 : ContainsPrimesAboveP 37 ![I37N0, I37N1] where 
   Ip := by 
     intro i 
     fin_cases i 
     exact isPrimeI37N0
     exact isPrimeI37N1
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    rw [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI37N0, Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate timesTableT_eq_Table B_one_repr 37 (by decide) (𝕀 ⊙ MulI37N0)
 instance hp41 : Fact (Nat.Prime 41) := {out := by norm_num}
+
 def I41N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![41, 0, 0, 0]] i)))
 
-def SI41N0: IdealEqSpanCertificate timesTableO I41N0
- ![![41, 0, 0, 0]] 
+def SI41N0: IdealEqSpanCertificate' Table ![![41, 0, 0, 0]] 
  ![![41, 0, 0, 0], ![0, 41, 0, 0], ![0, 0, 41, 0], ![0, 0, 0, 41]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![41, 0, 0, 0], ![0, 41, 0, 0], ![0, 0, 41, 0], ![0, 0, 0, 41]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![1, 0, 0, 0]], ![![0, 1, 0, 0]], ![![0, 0, 1, 0]], ![![0, 0, 0, 1]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![0, 0, 1, 0], ![0, 0, 0, 1]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI41N0 : Nat.card (O ⧸ I41N0) = 2825761 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI41N0)
-
-def MemCI41N0 : IdealMemCertificate B I41N0
-  ![![41, 0, 0, 0], ![0, 41, 0, 0], ![0, 0, 41, 0], ![0, 0, 0, 41]] ![3073808142710, 2936740358953, 903274299967, 88867303856] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI41N0
- g := ![74970930310, 71627813633, 22031080487, 2167495216]
- hmem := by decide
 
 def P41P0 : CertificateIrreducibleZModOfList' 41 4 2 5 [26, 32, 21, 22, 1] where
  m := 1
@@ -407,71 +303,49 @@ def P41P0 : CertificateIrreducibleZModOfList' 41 4 2 5 [26, 32, 21, 22, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI41N0 : CertifiedPrimeIdeal O 41 where 
-  r := 4
+def PI41N0 : CertifiedPrimeIdeal' SI41N0 41 where 
   n := 4
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I41N0
-  hcard := NI41N0
+  hpos := by decide  
   P := [26, 32, 21, 22, 1]
-  f := ofList [26, 32, 21, 22, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P41P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P41P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![3073808142710, 2936740358953, 903274299967, 88867303856]
   a := ![19, 1, -1, 3]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI41N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI41N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![74970930310, 71627813633, 22031080487, 2167495216]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI41N0 : Ideal.IsPrime I41N0 := CertifiedPrimeIdeal.isPrime PI41N0
-def PBC41 : IsPrimesAboveP 41 ![I41N0] where 
+lemma isPrimeI41N0 : Ideal.IsPrime I41N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI41N0 B_one_repr
+lemma NI41N0 : Nat.card (O ⧸ I41N0) = 2825761 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI41N0
+
+def PBC41 : ContainsPrimesAboveP 41 ![I41N0] where 
   Ip := by 
     intro i 
     fin_cases i 
     exact isPrimeI41N0
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    unfold I41N0
-    rw [Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate (u := ![![41, 0, 0, 0]]) timesTableT_eq_Table B_one_repr 41 (by decide) 𝕀
+
 instance hp43 : Fact (Nat.Prime 43) := {out := by norm_num}
+
 def I43N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![43, 0, 0, 0], ![-115, -67, -4, 1]] i)))
 
-def SI43N0: IdealEqSpanCertificate timesTableO I43N0
- ![![43, 0, 0, 0], ![-115, -67, -4, 1]] 
+def SI43N0: IdealEqSpanCertificate' Table ![![43, 0, 0, 0], ![-115, -67, -4, 1]] 
  ![![43, 0, 0, 0], ![0, 43, 0, 0], ![38, 16, 1, 0], ![37, 40, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![43, 0, 0, 0], ![0, 43, 0, 0], ![0, 0, 43, 0], ![0, 0, 0, 43]], ![![-115, -67, -4, 1], ![383, 217, 13, -3], ![-1149, -613, -23, 10], ![3830, 2171, 187, -13]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![43669, 18498, 1155, -6], ![-145641, -48633, 0, 0]], ![![-1482, -623, -39, 0], ![5031, 1677, 0, 0]], ![![38120, 16162, 1009, -6], ![-126804, -42354, 0, 0]], ![![36181, 15328, 957, -5], ![-120645, -40287, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-38, -16, 43, 0], ![-37, -40, 0, 43]], ![![0, -1, -4, 1], ![0, 3, 13, -3], ![-15, -15, -23, 10], ![-65, -7, 187, -13]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI43N0 : Nat.card (O ⧸ I43N0) = 1849 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI43N0)
-
-def MemCI43N0 : IdealMemCertificate B I43N0
-  ![![43, 0, 0, 0], ![0, 43, 0, 0], ![38, 16, 1, 0], ![37, 40, 0, 1]] ![126022, 112292, 30529, 2339] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI43N0
- g := ![-26061, -10924, 30529, 2339]
- hmem := by decide
 
 def P43P0 : CertificateIrreducibleZModOfList' 43 2 2 5 [37, 23, 1] where
  m := 1
@@ -495,101 +369,76 @@ def P43P0 : CertificateIrreducibleZModOfList' 43 2 2 5 [37, 23, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI43N0 : CertifiedPrimeIdeal O 43 where 
-  r := 4
+def PI43N0 : CertifiedPrimeIdeal' SI43N0 43 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I43N0
-  hcard := NI43N0
+  hpos := by decide  
   P := [37, 23, 1]
-  f := ofList [37, 23, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P43P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P43P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![126022, 112292, 30529, 2339]
   a := ![-1, 0, 1, 2]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI43N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI43N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-26061, -10924, 30529, 2339]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI43N0 : Ideal.IsPrime I43N0 := CertifiedPrimeIdeal.isPrime PI43N0
+lemma isPrimeI43N0 : Ideal.IsPrime I43N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI43N0 B_one_repr
+lemma NI43N0 : Nat.card (O ⧸ I43N0) = 1849 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI43N0
+
 def I43N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![43, 0, 0, 0], ![1, 1, 0, 0]] i)))
 
-def SI43N1: IdealEqSpanCertificate timesTableO I43N1
- ![![43, 0, 0, 0], ![1, 1, 0, 0]] 
+def SI43N1: IdealEqSpanCertificate' Table ![![43, 0, 0, 0], ![1, 1, 0, 0]] 
  ![![43, 0, 0, 0], ![1, 1, 0, 0], ![42, 0, 1, 0], ![1, 0, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![43, 0, 0, 0], ![0, 43, 0, 0], ![0, 0, 43, 0], ![0, 0, 0, 43]], ![![1, 1, 0, 0], ![0, 1, 1, 0], ![0, 0, 1, 1], ![383, 332, 80, 2]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![0, -4, -4, -1], ![43, 129, 43, 0]], ![![0, 0, 1, 1], ![1, 0, -43, 0]], ![![0, -2, -2, -1], ![42, 44, 43, 0]], ![![0, 0, 1, 1], ![1, -1, -42, 0]]]
   g := ![![![1, 0, 0, 0], ![-1, 43, 0, 0], ![-42, 0, 43, 0], ![-1, 0, 0, 43]], ![![0, 1, 0, 0], ![-1, 1, 1, 0], ![-1, 0, 1, 1], ![-77, 332, 80, 2]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma NI43N1 : Nat.card (O ⧸ I43N1) = 43 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI43N1)
+ ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl SI43N1)
 
 lemma isPrimeI43N1 : Ideal.IsPrime I43N1 := prime_ideal_of_norm_prime hp43.out _ NI43N1
+
 def I43N2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![43, 0, 0, 0], ![-18, 1, 0, 0]] i)))
 
-def SI43N2: IdealEqSpanCertificate timesTableO I43N2
- ![![43, 0, 0, 0], ![-18, 1, 0, 0]] 
+def SI43N2: IdealEqSpanCertificate' Table ![![43, 0, 0, 0], ![-18, 1, 0, 0]] 
  ![![43, 0, 0, 0], ![25, 1, 0, 0], ![20, 0, 1, 0], ![16, 0, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![43, 0, 0, 0], ![0, 43, 0, 0], ![0, 0, 43, 0], ![0, 0, 0, 43]], ![![-18, 1, 0, 0], ![0, -18, 1, 0], ![0, 0, -18, 1], ![383, 332, 80, -17]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![361, 34, 6045, -336], ![860, 129, 14448, 0]], ![![199, 25, 3670, -204], ![474, 86, 8772, 0]], ![![188, 26, 2806, -156], ![448, 87, 6708, 0]], ![![136, 18, 2249, -125], ![324, 61, 5376, 0]]]
   g := ![![![1, 0, 0, 0], ![-25, 43, 0, 0], ![-20, 0, 43, 0], ![-16, 0, 0, 43]], ![![-1, 1, 0, 0], ![10, -18, 1, 0], ![8, 0, -18, 1], ![-215, 332, 80, -17]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma NI43N2 : Nat.card (O ⧸ I43N2) = 43 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI43N2)
+ ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl SI43N2)
 
 lemma isPrimeI43N2 : Ideal.IsPrime I43N2 := prime_ideal_of_norm_prime hp43.out _ NI43N2
-def MulI43N0 : IdealMulEqCertificate timesTableO (I43N0) I43N1
+def MulI43N0 : IdealMulLeCertificate' Table 
   ![![43, 0, 0, 0], ![-115, -67, -4, 1]] ![![43, 0, 0, 0], ![1, 1, 0, 0]]
   ![![43, 0, 0, 0], ![225, 150, 9, -2]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := rfl
- hI2 := rfl
  M :=  ![![![1849, 0, 0, 0], ![43, 43, 0, 0]], ![![-4945, -2881, -172, 43], ![268, 150, 9, -2]]]
- hmul := by decide
- f :=  ![![![![2904271638, 2051099008, -415186036, -8659479], ![-83210759453, 19292508061, 9984381, 0]], ![![362373156, 0, 0, 0], ![-1290, 0, 0, 0]]], ![![![15198929862, 10734020052, -2172793798, -45317664], ![-435467013711, 100963515849, 52251166, 0]], ![![1896408072, 0, 0, 0], ![-6750, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![-182, -150, -9, 2], ![43, 0, 0, 0]], ![![-224, -149, -9, 2], ![43, 0, 0, 0]]], ![![![-115, -67, -4, 1], ![0, 0, 0, 0]], ![![-224, -150, -9, 2], ![44, 0, 0, 0]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def MulI43N1 : IdealMulEqCertificate timesTableO (I43N0*I43N1) I43N2
+def MulI43N1 : IdealMulLeCertificate' Table 
   ![![43, 0, 0, 0], ![225, 150, 9, -2]] ![![43, 0, 0, 0], ![-18, 1, 0, 0]]
   ![![43, 0, 0, 0]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI43N0
- hI2 := rfl
  M :=  ![![![1849, 0, 0, 0], ![-774, 43, 0, 0]], ![![9675, 6450, 387, -86], ![-4816, -3139, -172, 43]]]
- hmul := by decide
- f :=  ![![![![2180551, -23494008, 1497478, -11071], ![5200344, -55841500, 474653, 0]], ![![-700, 0, 0, 0], ![0, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![43, 0, 0, 0]], ![![-18, 1, 0, 0]]], ![![![225, 150, 9, -2]], ![![-112, -73, -4, 1]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def PBC43 : IsPrimesAboveP 43 ![I43N0, I43N1, I43N2] where 
+
+def PBC43 : ContainsPrimesAboveP 43 ![I43N0, I43N1, I43N2] where 
   Ip := by 
     intro i 
     fin_cases i 
@@ -597,36 +446,21 @@ def PBC43 : IsPrimesAboveP 43 ![I43N0, I43N1, I43N2] where
     exact isPrimeI43N1
     exact isPrimeI43N2
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    rw [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI43N1, Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate timesTableT_eq_Table B_one_repr 43 (by decide) (𝕀 ⊙ MulI43N0 ⊙ MulI43N1)
 instance hp47 : Fact (Nat.Prime 47) := {out := by norm_num}
+
 def I47N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![47, 0, 0, 0], ![-151, -53, -4, 1]] i)))
 
-def SI47N0: IdealEqSpanCertificate timesTableO I47N0
- ![![47, 0, 0, 0], ![-151, -53, -4, 1]] 
+def SI47N0: IdealEqSpanCertificate' Table ![![47, 0, 0, 0], ![-151, -53, -4, 1]] 
  ![![47, 0, 0, 0], ![0, 47, 0, 0], ![11, 14, 1, 0], ![34, 3, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![47, 0, 0, 0], ![0, 47, 0, 0], ![0, 0, 47, 0], ![0, 0, 0, 47]], ![![-151, -53, -4, 1], ![383, 181, 27, -3], ![-1149, -613, -59, 24], ![9192, 6819, 1307, -35]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![6058, 18891, 6228, -207], ![-41031, -16920, 0, 0]], ![![-500, -1851, -620, 20], ![4136, 1692, 0, 0]], ![![1346, 3897, 1275, -43], ![-8347, -3456, 0, 0]], ![![4434, 13577, 4468, -149], ![-29392, -12132, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-11, -14, 47, 0], ![-34, -3, 0, 47]], ![![-3, 0, -4, 1], ![4, -4, 27, -3], ![-28, 3, -59, 24], ![-85, -242, 1307, -35]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI47N0 : Nat.card (O ⧸ I47N0) = 2209 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI47N0)
-
-def MemCI47N0 : IdealMemCertificate B I47N0
-  ![![47, 0, 0, 0], ![0, 47, 0, 0], ![11, 14, 1, 0], ![34, 3, 0, 1]] ![124058, 109100, 28780, 1982] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI47N0
- g := ![-5530, -6378, 28780, 1982]
- hmem := by decide
 
 def P47P0 : CertificateIrreducibleZModOfList' 47 2 2 5 [16, 15, 1] where
  m := 1
@@ -650,57 +484,38 @@ def P47P0 : CertificateIrreducibleZModOfList' 47 2 2 5 [16, 15, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI47N0 : CertifiedPrimeIdeal O 47 where 
-  r := 4
+def PI47N0 : CertifiedPrimeIdeal' SI47N0 47 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I47N0
-  hcard := NI47N0
+  hpos := by decide  
   P := [16, 15, 1]
-  f := ofList [16, 15, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P47P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P47P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![124058, 109100, 28780, 1982]
   a := ![-5, 0, 0, 2]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI47N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI47N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-5530, -6378, 28780, 1982]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI47N0 : Ideal.IsPrime I47N0 := CertifiedPrimeIdeal.isPrime PI47N0
+lemma isPrimeI47N0 : Ideal.IsPrime I47N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI47N0 B_one_repr
+lemma NI47N0 : Nat.card (O ⧸ I47N0) = 2209 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI47N0
+
 def I47N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![47, 0, 0, 0], ![-148, -46, -4, 1]] i)))
 
-def SI47N1: IdealEqSpanCertificate timesTableO I47N1
- ![![47, 0, 0, 0], ![-148, -46, -4, 1]] 
+def SI47N1: IdealEqSpanCertificate' Table ![![47, 0, 0, 0], ![-148, -46, -4, 1]] 
  ![![47, 0, 0, 0], ![0, 47, 0, 0], ![25, 32, 1, 0], ![46, 35, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![47, 0, 0, 0], ![0, 47, 0, 0], ![0, 0, 47, 0], ![0, 0, 0, 47]], ![![-148, -46, -4, 1], ![383, 184, 34, -3], ![-1149, -613, -56, 31], ![11873, 9143, 1867, -25]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![9245, 43148, 14912, -318], ![-72474, -29140, 0, 0]], ![![-329, -2115, -742, 15], ![3666, 1457, 0, 0]], ![![4703, 21514, 7427, -159], ![-36051, -14508, 0, 0]], ![![8797, 40653, 14042, -300], ![-68204, -27435, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-25, -32, 47, 0], ![-46, -35, 0, 47]], ![![-2, 1, -4, 1], ![-7, -17, 34, -3], ![-25, 2, -56, 31], ![-716, -1058, 1867, -25]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI47N1 : Nat.card (O ⧸ I47N1) = 2209 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI47N1)
-
-def MemCI47N1 : IdealMemCertificate B I47N1
-  ![![47, 0, 0, 0], ![0, 47, 0, 0], ![25, 32, 1, 0], ![46, 35, 0, 1]] ![84265, 63449, 9583, -1388] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI47N1
- g := ![-1946, -4141, 9583, -1388]
- hmem := by decide
 
 def P47P1 : CertificateIrreducibleZModOfList' 47 2 2 5 [25, 12, 1] where
  m := 1
@@ -724,85 +539,57 @@ def P47P1 : CertificateIrreducibleZModOfList' 47 2 2 5 [25, 12, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI47N1 : CertifiedPrimeIdeal O 47 where 
-  r := 4
+def PI47N1 : CertifiedPrimeIdeal' SI47N1 47 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I47N1
-  hcard := NI47N1
+  hpos := by decide  
   P := [25, 12, 1]
-  f := ofList [25, 12, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P47P1
-  hneq := by decide
-  hlen := by decide
+  hirr := P47P1
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![84265, 63449, 9583, -1388]
   a := ![-10, 2, 13, -1]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI47N1
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI47N1]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-1946, -4141, 9583, -1388]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI47N1 : Ideal.IsPrime I47N1 := CertifiedPrimeIdeal.isPrime PI47N1
-def MulI47N0 : IdealMulEqCertificate timesTableO (I47N0) I47N1
+lemma isPrimeI47N1 : Ideal.IsPrime I47N1 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI47N1 B_one_repr
+lemma NI47N1 : Nat.card (O ⧸ I47N1) = 2209 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI47N1
+def MulI47N0 : IdealMulLeCertificate' Table 
   ![![47, 0, 0, 0], ![-151, -53, -4, 1]] ![![47, 0, 0, 0], ![-148, -46, -4, 1]]
   ![![47, 0, 0, 0]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := rfl
- hI2 := rfl
  M :=  ![![![2209, 0, 0, 0], ![-6956, -2162, -188, 47]], ![![-7097, -2491, -188, 47], ![18518, 8789, 893, -141]]]
- hmul := by decide
- f :=  ![![![![7289577578837405495, 34153925824367677880, 11806008788122145920, -251582067951567673], ![-57391780570410411481, -23072044739402031078, 0, 0]], ![![3545927708478, -96800, 0, 0], ![0, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![47, 0, 0, 0]], ![![-148, -46, -4, 1]]], ![![![-151, -53, -4, 1]], ![![394, 187, 19, -3]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def PBC47 : IsPrimesAboveP 47 ![I47N0, I47N1] where 
+
+def PBC47 : ContainsPrimesAboveP 47 ![I47N0, I47N1] where 
   Ip := by 
     intro i 
     fin_cases i 
     exact isPrimeI47N0
     exact isPrimeI47N1
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    rw [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI47N0, Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate timesTableT_eq_Table B_one_repr 47 (by decide) (𝕀 ⊙ MulI47N0)
 instance hp53 : Fact (Nat.Prime 53) := {out := by norm_num}
+
 def I53N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![-121, -67, -4, 1]] i)))
 
-def SI53N0: IdealEqSpanCertificate timesTableO I53N0
- ![![-121, -67, -4, 1]] 
+def SI53N0: IdealEqSpanCertificate' Table ![![-121, -67, -4, 1]] 
  ![![53, 0, 0, 0], ![0, 53, 0, 0], ![20, 10, 1, 0], ![12, 26, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![-121, -67, -4, 1], ![383, 211, 13, -3], ![-1149, -613, -29, 10], ![3830, 2171, 187, -19]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![142, 67, 4, -1]], ![![-383, -190, -13, 3]], ![![3, 1, 0, 0]], ![![-228, -119, -9, 2]]]
   g := ![![![-1, -1, -4, 1], ![3, 3, 13, -3], ![-13, -11, -29, 10], ![6, 15, 187, -19]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI53N0 : Nat.card (O ⧸ I53N0) = 2809 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI53N0)
-
-def MemCI53N0 : IdealMemCertificate B I53N0
-  ![![53, 0, 0, 0], ![0, 53, 0, 0], ![20, 10, 1, 0], ![12, 26, 0, 1]] ![39483, 37652, 11576, 1138] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI53N0
- g := ![-3881, -2032, 11576, 1138]
- hmem := by decide
 
 def P53P0 : CertificateIrreducibleZModOfList' 53 2 2 5 [26, 7, 1] where
  m := 1
@@ -826,101 +613,76 @@ def P53P0 : CertificateIrreducibleZModOfList' 53 2 2 5 [26, 7, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI53N0 : CertifiedPrimeIdeal O 53 where 
-  r := 4
+def PI53N0 : CertifiedPrimeIdeal' SI53N0 53 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I53N0
-  hcard := NI53N0
+  hpos := by decide  
   P := [26, 7, 1]
-  f := ofList [26, 7, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P53P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P53P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![39483, 37652, 11576, 1138]
   a := ![1, 1, -4, -1]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI53N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI53N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-3881, -2032, 11576, 1138]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI53N0 : Ideal.IsPrime I53N0 := CertifiedPrimeIdeal.isPrime PI53N0
+lemma isPrimeI53N0 : Ideal.IsPrime I53N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI53N0 B_one_repr
+lemma NI53N0 : Nat.card (O ⧸ I53N0) = 2809 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI53N0
+
 def I53N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![53, 0, 0, 0], ![-10, 1, 0, 0]] i)))
 
-def SI53N1: IdealEqSpanCertificate timesTableO I53N1
- ![![53, 0, 0, 0], ![-10, 1, 0, 0]] 
+def SI53N1: IdealEqSpanCertificate' Table ![![53, 0, 0, 0], ![-10, 1, 0, 0]] 
  ![![53, 0, 0, 0], ![43, 1, 0, 0], ![6, 0, 1, 0], ![7, 0, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![53, 0, 0, 0], ![0, 53, 0, 0], ![0, 0, 53, 0], ![0, 0, 0, 53]], ![![-10, 1, 0, 0], ![0, -10, 1, 0], ![0, 0, -10, 1], ![383, 332, 80, -9]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![221, -12, 1439, -144], ![1166, 53, 7632, 0]], ![![171, -7, 1279, -128], ![902, 53, 6784, 0]], ![![42, 6, 159, -16], ![222, 54, 848, 0]], ![![39, -2, 190, -19], ![206, 10, 1008, 0]]]
   g := ![![![1, 0, 0, 0], ![-43, 53, 0, 0], ![-6, 0, 53, 0], ![-7, 0, 0, 53]], ![![-1, 1, 0, 0], ![8, -10, 1, 0], ![1, 0, -10, 1], ![-270, 332, 80, -9]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma NI53N1 : Nat.card (O ⧸ I53N1) = 53 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI53N1)
+ ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl SI53N1)
 
 lemma isPrimeI53N1 : Ideal.IsPrime I53N1 := prime_ideal_of_norm_prime hp53.out _ NI53N1
+
 def I53N2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![53, 0, 0, 0], ![-1, 1, 0, 0]] i)))
 
-def SI53N2: IdealEqSpanCertificate timesTableO I53N2
- ![![53, 0, 0, 0], ![-1, 1, 0, 0]] 
+def SI53N2: IdealEqSpanCertificate' Table ![![53, 0, 0, 0], ![-1, 1, 0, 0]] 
  ![![53, 0, 0, 0], ![52, 1, 0, 0], ![52, 0, 1, 0], ![52, 0, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![53, 0, 0, 0], ![0, 53, 0, 0], ![0, 0, 53, 0], ![0, 0, 0, 53]], ![![-1, 1, 0, 0], ![0, -1, 1, 0], ![0, 0, -1, 1], ![383, 332, 80, 0]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![6, -55, 51, -1], ![265, -2650, 53, 0]], ![![3, -51, 50, -1], ![107, -2597, 53, 0]], ![![2, -1, 51, -51], ![54, 1, 2703, 0]], ![![3, -53, 51, 0], ![107, -2702, 1, 0]]]
   g := ![![![1, 0, 0, 0], ![-52, 53, 0, 0], ![-52, 0, 53, 0], ![-52, 0, 0, 53]], ![![-1, 1, 0, 0], ![0, -1, 1, 0], ![0, 0, -1, 1], ![-397, 332, 80, 0]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma NI53N2 : Nat.card (O ⧸ I53N2) = 53 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI53N2)
+ ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl SI53N2)
 
 lemma isPrimeI53N2 : Ideal.IsPrime I53N2 := prime_ideal_of_norm_prime hp53.out _ NI53N2
-def MulI53N0 : IdealMulEqCertificate timesTableO (I53N0) I53N1
+def MulI53N0 : IdealMulLeCertificate' Table 
   ![![-121, -67, -4, 1]] ![![53, 0, 0, 0], ![-10, 1, 0, 0]]
   ![![53, 0, 0, 0], ![1646, 881, 53, -13]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := rfl
- hI2 := rfl
  M :=  ![![![-6413, -3551, -212, 53], ![1593, 881, 53, -13]]]
- hmul := by decide
- f :=  ![![![![906487404, 263697182880, -26378841192, 5803], ![4804383227, 1398075507580, -307560, 0]]], ![![![34100407544, 9919808552066, -992324042272, 218299], ![180732159970, 52593058541940, -11569848, 0]]]]
+ hmul := by decide  
  g :=  ![![![![-121, -67, -4, 1], ![0, 0, 0, 0]], ![![-1, 0, 0, 0], ![1, 0, 0, 0]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def MulI53N1 : IdealMulEqCertificate timesTableO (I53N0*I53N1) I53N2
+def MulI53N1 : IdealMulLeCertificate' Table 
   ![![53, 0, 0, 0], ![1646, 881, 53, -13]] ![![53, 0, 0, 0], ![-1, 1, 0, 0]]
   ![![53, 0, 0, 0]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI53N0
- hI2 := rfl
  M :=  ![![![2809, 0, 0, 0], ![-53, 53, 0, 0]], ![![87238, 46693, 2809, -689], ![-6625, -3551, -212, 53]]]
- hmul := by decide
- f :=  ![![![![13742586, -238136481, 231528464, -117844], ![489897745, -12258967980, 4362396, 0]], ![![-144872, 0, 0, 0], ![0, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![53, 0, 0, 0]], ![![-1, 1, 0, 0]]], ![![![1646, 881, 53, -13]], ![![-125, -67, -4, 1]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def PBC53 : IsPrimesAboveP 53 ![I53N0, I53N1, I53N2] where 
+
+def PBC53 : ContainsPrimesAboveP 53 ![I53N0, I53N1, I53N2] where 
   Ip := by 
     intro i 
     fin_cases i 
@@ -928,36 +690,21 @@ def PBC53 : IsPrimesAboveP 53 ![I53N0, I53N1, I53N2] where
     exact isPrimeI53N1
     exact isPrimeI53N2
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    rw [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI53N1, Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate timesTableT_eq_Table B_one_repr 53 (by decide) (𝕀 ⊙ MulI53N0 ⊙ MulI53N1)
 instance hp59 : Fact (Nat.Prime 59) := {out := by norm_num}
+
 def I59N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![59, 0, 0, 0]] i)))
 
-def SI59N0: IdealEqSpanCertificate timesTableO I59N0
- ![![59, 0, 0, 0]] 
+def SI59N0: IdealEqSpanCertificate' Table ![![59, 0, 0, 0]] 
  ![![59, 0, 0, 0], ![0, 59, 0, 0], ![0, 0, 59, 0], ![0, 0, 0, 59]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![59, 0, 0, 0], ![0, 59, 0, 0], ![0, 0, 59, 0], ![0, 0, 0, 59]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![1, 0, 0, 0]], ![![0, 1, 0, 0]], ![![0, 0, 1, 0]], ![![0, 0, 0, 1]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![0, 0, 1, 0], ![0, 0, 0, 1]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI59N0 : Nat.card (O ⧸ I59N0) = 12117361 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI59N0)
-
-def MemCI59N0 : IdealMemCertificate B I59N0
-  ![![59, 0, 0, 0], ![0, 59, 0, 0], ![0, 0, 59, 0], ![0, 0, 0, 59]] ![30550054270, 29149665847, 8949313225, 878144436] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI59N0
- g := ![517797530, 494062133, 151683275, 14883804]
- hmem := by decide
 
 def P59P0 : CertificateIrreducibleZModOfList' 59 4 2 5 [28, 58, 37, 56, 1] where
  m := 1
@@ -981,70 +728,48 @@ def P59P0 : CertificateIrreducibleZModOfList' 59 4 2 5 [28, 58, 37, 56, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI59N0 : CertifiedPrimeIdeal O 59 where 
-  r := 4
+def PI59N0 : CertifiedPrimeIdeal' SI59N0 59 where 
   n := 4
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I59N0
-  hcard := NI59N0
+  hpos := by decide  
   P := [28, 58, 37, 56, 1]
-  f := ofList [28, 58, 37, 56, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P59P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P59P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![30550054270, 29149665847, 8949313225, 878144436]
   a := ![-3, 1, -1, 1]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI59N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI59N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![517797530, 494062133, 151683275, 14883804]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI59N0 : Ideal.IsPrime I59N0 := CertifiedPrimeIdeal.isPrime PI59N0
-def PBC59 : IsPrimesAboveP 59 ![I59N0] where 
+lemma isPrimeI59N0 : Ideal.IsPrime I59N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI59N0 B_one_repr
+lemma NI59N0 : Nat.card (O ⧸ I59N0) = 12117361 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI59N0
+
+def PBC59 : ContainsPrimesAboveP 59 ![I59N0] where 
   Ip := by 
     intro i 
     fin_cases i 
     exact isPrimeI59N0
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    unfold I59N0
-    rw [Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate (u := ![![59, 0, 0, 0]]) timesTableT_eq_Table B_one_repr 59 (by decide) 𝕀
+
+
 def I61N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![61, 0, 0, 0], ![-116, -67, -4, 1]] i)))
 
-def SI61N0: IdealEqSpanCertificate timesTableO I61N0
- ![![61, 0, 0, 0], ![-116, -67, -4, 1]] 
+def SI61N0: IdealEqSpanCertificate' Table ![![61, 0, 0, 0], ![-116, -67, -4, 1]] 
  ![![61, 0, 0, 0], ![0, 61, 0, 0], ![35, 15, 1, 0], ![24, 54, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![61, 0, 0, 0], ![0, 61, 0, 0], ![0, 0, 61, 0], ![0, 0, 0, 61]], ![![-116, -67, -4, 1], ![383, 216, 13, -3], ![-1149, -613, -24, 10], ![3830, 2171, 187, -14]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![44677, 22362, 1404, -186], ![-109434, -40260, 0, 0]], ![![-733, -365, -23, 3], ![1830, 671, 0, 0]], ![![25456, 12742, 800, -106], ![-62339, -22935, 0, 0]], ![![16986, 8508, 534, -71], ![-41406, -15246, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-35, -15, 61, 0], ![-24, -54, 0, 61]], ![![0, -1, -4, 1], ![0, 3, 13, -3], ![-9, -13, -24, 10], ![-39, 2, 187, -14]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI61N0 : Nat.card (O ⧸ I61N0) = 3721 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI61N0)
-
-def MemCI61N0 : IdealMemCertificate B I61N0
-  ![![61, 0, 0, 0], ![0, 61, 0, 0], ![35, 15, 1, 0], ![24, 54, 0, 1]] ![493769, 412628, 96045, 3357] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI61N0
- g := ![-48334, -19825, 96045, 3357]
- hmem := by decide
 
 def P61P0 : CertificateIrreducibleZModOfList' 61 2 2 5 [58, 5, 1] where
  m := 1
@@ -1068,82 +793,60 @@ def P61P0 : CertificateIrreducibleZModOfList' 61 2 2 5 [58, 5, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI61N0 : CertifiedPrimeIdeal O 61 where 
-  r := 4
+def PI61N0 : CertifiedPrimeIdeal' SI61N0 61 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I61N0
-  hcard := NI61N0
+  hpos := by decide  
   P := [58, 5, 1]
-  f := ofList [58, 5, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P61P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P61P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![493769, 412628, 96045, 3357]
   a := ![3, 0, 7, -4]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI61N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI61N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-48334, -19825, 96045, 3357]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI61N0 : Ideal.IsPrime I61N0 := CertifiedPrimeIdeal.isPrime PI61N0
+lemma isPrimeI61N0 : Ideal.IsPrime I61N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI61N0 B_one_repr
+lemma NI61N0 : Nat.card (O ⧸ I61N0) = 3721 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI61N0
+
 def I61N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![61, 0, 0, 0], ![-8, 1, 0, 0]] i)))
 
-def SI61N1: IdealEqSpanCertificate timesTableO I61N1
- ![![61, 0, 0, 0], ![-8, 1, 0, 0]] 
+def SI61N1: IdealEqSpanCertificate' Table ![![61, 0, 0, 0], ![-8, 1, 0, 0]] 
  ![![61, 0, 0, 0], ![53, 1, 0, 0], ![58, 0, 1, 0], ![37, 0, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![61, 0, 0, 0], ![0, 61, 0, 0], ![0, 0, 61, 0], ![0, 0, 0, 61]], ![![-8, 1, 0, 0], ![0, -8, 1, 0], ![0, 0, -8, 1], ![383, 332, 80, -7]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![217, -19, 3679, -460], ![1647, 61, 28060, 0]], ![![193, -16, 3311, -414], ![1465, 61, 25254, 0]], ![![210, -18, 3495, -437], ![1594, 62, 26657, 0]], ![![145, -9, 2231, -279], ![1101, 69, 17020, 0]]]
   g := ![![![1, 0, 0, 0], ![-53, 61, 0, 0], ![-58, 0, 61, 0], ![-37, 0, 0, 61]], ![![-1, 1, 0, 0], ![6, -8, 1, 0], ![7, 0, -8, 1], ![-354, 332, 80, -7]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
 lemma NI61N1 : Nat.card (O ⧸ I61N1) = 61 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI61N1)
+ ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl SI61N1)
 
 lemma isPrimeI61N1 : Ideal.IsPrime I61N1 := prime_ideal_of_norm_prime hp61.out _ NI61N1
-def MulI61N0 : IdealMulEqCertificate timesTableO (I61N0) I61N1
+def MulI61N0 : IdealMulLeCertificate' Table 
   ![![61, 0, 0, 0], ![-116, -67, -4, 1]] ![![61, 0, 0, 0], ![-8, 1, 0, 0]]
   ![![61, 0, 0, 0], ![1433, 752, 45, -11]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := rfl
- hI2 := rfl
  M :=  ![![![3721, 0, 0, 0], ![-488, 61, 0, 0]], ![![-7076, -4087, -244, 61], ![1311, 752, 45, -11]]]
- hmul := by decide
- f :=  ![![![![1224853095, -20497613470, 2586617429, -5424466], ![9316869253, -155142768059, 329331351, 0]], ![![1561053, 0, 0, 0], ![-122, 0, 0, 0]]], ![![![28776810207, -481572805559, 60770226267, -127442877], ![218891375057, -3644938382420, 7737339458, 0]], ![![36675522, 0, 0, 0], ![-2866, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![-1372, -752, -45, 11], ![61, 0, 0, 0]], ![![-8, 1, 0, 0], ![0, 0, 0, 0]]], ![![![-116, -67, -4, 1], ![0, 0, 0, 0]], ![![-2, 0, 0, 0], ![1, 0, 0, 0]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def MulI61N1 : IdealMulEqCertificate timesTableO (I61N0*I61N1) I61N1
+def MulI61N1 : IdealMulLeCertificate' Table 
   ![![61, 0, 0, 0], ![1433, 752, 45, -11]] ![![61, 0, 0, 0], ![-8, 1, 0, 0]]
   ![![61, 0, 0, 0]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI61N0
- hI2 := rfl
  M :=  ![![![3721, 0, 0, 0], ![-488, 61, 0, 0]], ![![87413, 45872, 2745, -671], ![-15677, -8235, -488, 122]]]
- hmul := by decide
- f :=  ![![![![917997, -15384977, 1941442, -4069], ![6982765, -116446514, 247153, 0]], ![![0, 0, 0, 0], ![528, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![61, 0, 0, 0]], ![![-8, 1, 0, 0]]], ![![![1433, 752, 45, -11]], ![![-257, -135, -8, 2]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def PBC61 : IsPrimesAboveP 61 ![I61N0, I61N1, I61N1] where 
+
+def PBC61 : ContainsPrimesAboveP 61 ![I61N0, I61N1, I61N1] where 
   Ip := by 
     intro i 
     fin_cases i 
@@ -1151,36 +854,21 @@ def PBC61 : IsPrimesAboveP 61 ![I61N0, I61N1, I61N1] where
     exact isPrimeI61N1
     exact isPrimeI61N1
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    rw [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI61N1, Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate timesTableT_eq_Table B_one_repr 61 (by decide) (𝕀 ⊙ MulI61N0 ⊙ MulI61N1)
 instance hp67 : Fact (Nat.Prime 67) := {out := by norm_num}
+
 def I67N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![67, 0, 0, 0]] i)))
 
-def SI67N0: IdealEqSpanCertificate timesTableO I67N0
- ![![67, 0, 0, 0]] 
+def SI67N0: IdealEqSpanCertificate' Table ![![67, 0, 0, 0]] 
  ![![67, 0, 0, 0], ![0, 67, 0, 0], ![0, 0, 67, 0], ![0, 0, 0, 67]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![67, 0, 0, 0], ![0, 67, 0, 0], ![0, 0, 67, 0], ![0, 0, 0, 67]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![1, 0, 0, 0]], ![![0, 1, 0, 0]], ![![0, 0, 1, 0]], ![![0, 0, 0, 1]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![0, 0, 1, 0], ![0, 0, 0, 1]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI67N0 : Nat.card (O ⧸ I67N0) = 20151121 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI67N0)
-
-def MemCI67N0 : IdealMemCertificate B I67N0
-  ![![67, 0, 0, 0], ![0, 67, 0, 0], ![0, 0, 67, 0], ![0, 0, 0, 67]] ![27504193249, 26227687608, 8044822995, 788187933] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI67N0
- g := ![410510347, 391458024, 120071985, 11763999]
- hmem := by decide
 
 def P67P0 : CertificateIrreducibleZModOfList' 67 4 2 6 [4, 41, 21, 3, 1] where
  m := 1
@@ -1204,71 +892,49 @@ def P67P0 : CertificateIrreducibleZModOfList' 67 4 2 6 [4, 41, 21, 3, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI67N0 : CertifiedPrimeIdeal O 67 where 
-  r := 4
+def PI67N0 : CertifiedPrimeIdeal' SI67N0 67 where 
   n := 4
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I67N0
-  hcard := NI67N0
+  hpos := by decide  
   P := [4, 41, 21, 3, 1]
-  f := ofList [4, 41, 21, 3, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P67P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P67P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![27504193249, 26227687608, 8044822995, 788187933]
   a := ![0, 1, 1, -1]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI67N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI67N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![410510347, 391458024, 120071985, 11763999]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI67N0 : Ideal.IsPrime I67N0 := CertifiedPrimeIdeal.isPrime PI67N0
-def PBC67 : IsPrimesAboveP 67 ![I67N0] where 
+lemma isPrimeI67N0 : Ideal.IsPrime I67N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI67N0 B_one_repr
+lemma NI67N0 : Nat.card (O ⧸ I67N0) = 20151121 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI67N0
+
+def PBC67 : ContainsPrimesAboveP 67 ![I67N0] where 
   Ip := by 
     intro i 
     fin_cases i 
     exact isPrimeI67N0
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    unfold I67N0
-    rw [Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate (u := ![![67, 0, 0, 0]]) timesTableT_eq_Table B_one_repr 67 (by decide) 𝕀
+
 instance hp71 : Fact (Nat.Prime 71) := {out := by norm_num}
+
 def I71N0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![71, 0, 0, 0], ![-98, -67, -4, 1]] i)))
 
-def SI71N0: IdealEqSpanCertificate timesTableO I71N0
- ![![71, 0, 0, 0], ![-98, -67, -4, 1]] 
+def SI71N0: IdealEqSpanCertificate' Table ![![71, 0, 0, 0], ![-98, -67, -4, 1]] 
  ![![71, 0, 0, 0], ![0, 71, 0, 0], ![18, 33, 1, 0], ![45, 65, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![71, 0, 0, 0], ![0, 71, 0, 0], ![0, 0, 71, 0], ![0, 0, 0, 71]], ![![-98, -67, -4, 1], ![383, 234, 13, -3], ![-1149, -613, -6, 10], ![3830, 2171, 187, 4]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![8707, 3780, 150, -18], ![-15336, -5538, 0, 0]], ![![-632, -264, -10, 1], ![1207, 426, 0, 0]], ![![1904, 829, 33, -4], ![-3334, -1206, 0, 0]], ![![4893, 2122, 84, -10], ![-8649, -3120, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-18, -33, 71, 0], ![-45, -65, 0, 71]], ![![-1, 0, -4, 1], ![4, 0, 13, -3], ![-21, -15, -6, 10], ![4, -60, 187, 4]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI71N0 : Nat.card (O ⧸ I71N0) = 5041 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI71N0)
-
-def MemCI71N0 : IdealMemCertificate B I71N0
-  ![![71, 0, 0, 0], ![0, 71, 0, 0], ![18, 33, 1, 0], ![45, 65, 0, 1]] ![6192, 5327, 1309, 40] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI71N0
- g := ![-270, -570, 1309, 40]
- hmem := by decide
 
 def P71P0 : CertificateIrreducibleZModOfList' 71 2 2 6 [70, 7, 1] where
  m := 1
@@ -1292,57 +958,38 @@ def P71P0 : CertificateIrreducibleZModOfList' 71 2 2 6 [70, 7, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI71N0 : CertifiedPrimeIdeal O 71 where 
-  r := 4
+def PI71N0 : CertifiedPrimeIdeal' SI71N0 71 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I71N0
-  hcard := NI71N0
+  hpos := by decide  
   P := [70, 7, 1]
-  f := ofList [70, 7, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P71P0
-  hneq := by decide
-  hlen := by decide
+  hirr := P71P0
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![6192, 5327, 1309, 40]
   a := ![-1, 3, 4, 0]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI71N0
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI71N0]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-270, -570, 1309, 40]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI71N0 : Ideal.IsPrime I71N0 := CertifiedPrimeIdeal.isPrime PI71N0
+lemma isPrimeI71N0 : Ideal.IsPrime I71N0 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI71N0 B_one_repr
+lemma NI71N0 : Nat.card (O ⧸ I71N0) = 5041 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI71N0
+
 def I71N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![71, 0, 0, 0], ![-165, -67, -4, 1]] i)))
 
-def SI71N1: IdealEqSpanCertificate timesTableO I71N1
- ![![71, 0, 0, 0], ![-165, -67, -4, 1]] 
+def SI71N1: IdealEqSpanCertificate' Table ![![71, 0, 0, 0], ![-165, -67, -4, 1]] 
  ![![71, 0, 0, 0], ![0, 71, 0, 0], ![30, 37, 1, 0], ![26, 10, 0, 1]] where
-  T := Table 
-  heq := timesTableT_eq_Table
-  hieq := rfl 
   M :=![![![71, 0, 0, 0], ![0, 71, 0, 0], ![0, 0, 71, 0], ![0, 0, 0, 71]], ![![-165, -67, -4, 1], ![383, 167, 13, -3], ![-1149, -613, -73, 10], ![3830, 2171, 187, -63]]]
-  hmulB := by decide
+  hmulB := by decide  
   f := ![![![20611, 13190, 2060, -410], ![-60350, -29820, 0, 0]], ![![-3380, -2175, -342, 68], ![10082, 4970, 0, 0]], ![![6980, 4453, 693, -138], ![-20232, -10010, 0, 0]], ![![7146, 4554, 708, -141], ![-20648, -10220, 0, 0]]]
   g := ![![![1, 0, 0, 0], ![0, 1, 0, 0], ![-30, -37, 71, 0], ![-26, -10, 0, 71]], ![![-1, 1, -4, 1], ![1, -4, 13, -3], ![11, 28, -73, 10], ![-2, -58, 187, -63]]]
-  hle1 := by decide
-  hle2 := by decide
+  hle1 := by decide   
+  hle2 := by decide  
 
-lemma NI71N1 : Nat.card (O ⧸ I71N1) = 5041 := 
- ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate SI71N1)
-
-def MemCI71N1 : IdealMemCertificate B I71N1
-  ![![71, 0, 0, 0], ![0, 71, 0, 0], ![30, 37, 1, 0], ![26, 10, 0, 1]] ![1525483, 1341135, 353676, 24255] where
- hieq := ideal_eq_of_IdealEqSpanCertificate SI71N1
- g := ![-136837, -168837, 353676, 24255]
- hmem := by decide
 
 def P71P1 : CertificateIrreducibleZModOfList' 71 2 2 6 [7, 14, 1] where
  m := 1
@@ -1366,59 +1013,147 @@ def P71P1 : CertificateIrreducibleZModOfList' 71 2 2 6 [7, 14, 1] where
  hhn := by decide
  hgcd := by decide
 
-def PI71N1 : CertifiedPrimeIdeal O 71 where 
-  r := 4
+def PI71N1 : CertifiedPrimeIdeal' SI71N1 71 where 
   n := 2
-  hpos := by decide
-  TT := timesTableO
-  T := Table
-  heq := timesTableT_eq_Table
-  I := I71N1
-  hcard := NI71N1
+  hpos := by decide  
   P := [7, 14, 1]
-  f := ofList [7, 14, 1]
-  hfeq := by decide
-  hirr := irreducible_ofList_ofCertificateIrreducibleZModOfList' P71P1
-  hneq := by decide
-  hlen := by decide
+  hirr := P71P1
+  hd := by decide  
+  hij := by decide  
+  hcard := by decide  
+  hneq := by decide  
+  hlen := by decide  
   c := ![1525483, 1341135, 353676, 24255]
   a := ![-1, 1, 0, 7]
   z := ![1, 0, 0, 0]
-  hBz := B_one_repr
-  hpol := by decide
-  hcmem := mem_of_certificate _ _ _ _ MemCI71N1
-  hpmem := by 
-    erw [← Submodule.mem_carrier (R := O), ideal_eq_of_IdealEqSpanCertificate SI71N1]
-    apply Submodule.subset_span
-    use 0 ; dsimp ; congr ; norm_num
+  hpol := by decide  
+  g := ![-136837, -168837, 353676, 24255]
+  hcmem := by decide  
+  hpmem := by decide  
 
-        
-lemma isPrimeI71N1 : Ideal.IsPrime I71N1 := CertifiedPrimeIdeal.isPrime PI71N1
-def MulI71N0 : IdealMulEqCertificate timesTableO (I71N0) I71N1
+lemma isPrimeI71N1 : Ideal.IsPrime I71N1 := CertifiedPrimeIdeal'.isPrime timesTableT_eq_Table rfl PI71N1 B_one_repr
+lemma NI71N1 : Nat.card (O ⧸ I71N1) = 5041 := CertifiedPrimeIdeal'.idealNorm timesTableT_eq_Table PI71N1
+def MulI71N0 : IdealMulLeCertificate' Table 
   ![![71, 0, 0, 0], ![-98, -67, -4, 1]] ![![71, 0, 0, 0], ![-165, -67, -4, 1]]
   ![![71, 0, 0, 0]] where
- T := Table
- heq := timesTableT_eq_Table
- hI1 := rfl
- hI2 := rfl
  M :=  ![![![5041, 0, 0, 0], ![-11715, -4757, -284, 71]], ![![-6958, -4757, -284, 71], ![-1065, 0, 0, 0]]]
- hmul := by decide
- f :=  ![![![![353284766, 226242874, 35359048, -7036702], ![-1036601473, -512069040, 0, 0]], ![![195, 0, 0, 0], ![0, 0, 0, 0]]]]
+ hmul := by decide  
  g :=  ![![![![71, 0, 0, 0]], ![![-165, -67, -4, 1]]], ![![![-98, -67, -4, 1]], ![![-15, 0, 0, 0]]]]
- hle1 := by decide
- hle2 := by decide
+ hle2 := by decide  
 
-def PBC71 : IsPrimesAboveP 71 ![I71N0, I71N1] where 
+
+def PBC71 : ContainsPrimesAboveP 71 ![I71N0, I71N1] where 
   Ip := by 
     intro i 
     fin_cases i 
     exact isPrimeI71N0
     exact isPrimeI71N1
   hPprod := by 
-    simp only [Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, ← Ideal.mul_assoc]
-    dsimp
-    rw [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulI71N0, Set.range_unique]
-    dsimp ; congr 
-    erw [B_int_repr]
-    rfl
+    simp only [← Fin.prod_ofFn]
+    exact ideal_le_singleton_IdealMulLeChainCertificate timesTableT_eq_Table B_one_repr 71 (by decide) (𝕀 ⊙ MulI71N0)
 
+
+lemma PB692I1_primes (p : ℕ) :
+  p ∈ Set.range ![31, 37, 41, 43, 47, 53, 59, 61, 67, 71] ↔ Nat.Prime p ∧ 29 < p ∧ p ≤ 71 := by
+  rw [← List.mem_ofFn']
+  convert primes_range 29 71 (by omega)
+
+def PB692I1 : PrimesBelowBoundCertificateInterval' O 29 71 692 where
+  m := 10
+  g := ![2, 2, 1, 3, 2, 3, 1, 3, 1, 2]
+  P := ![31, 37, 41, 43, 47, 53, 59, 61, 67, 71]
+  hP := PB692I1_primes
+  I := fun i => by
+    cases i
+    rename_i i h
+    interval_cases i 
+    · exact ![I31N0, I31N1]
+    · exact ![I37N0, I37N1]
+    · exact ![I41N0]
+    · exact ![I43N0, I43N1, I43N2]
+    · exact ![I47N0, I47N1]
+    · exact ![I53N0, I53N1, I53N2]
+    · exact ![I59N0]
+    · exact ![I61N0, I61N1, I61N1]
+    · exact ![I67N0]
+    · exact ![I71N0, I71N1]
+  hC := fun i => by
+    cases i
+    rename_i i h
+    interval_cases i
+    · exact PBC31
+    · exact PBC37
+    · exact PBC41
+    · exact PBC43
+    · exact PBC47
+    · exact PBC53
+    · exact PBC59
+    · exact PBC61
+    · exact PBC67
+    · exact PBC71
+  N := fun i => by
+    cases i
+    rename_i i h
+    interval_cases i
+    · exact ![961, 961]
+    · exact ![1369, 1369]
+    · exact ![2825761]
+    · exact ![1849, 43, 43]
+    · exact ![2209, 2209]
+    · exact ![2809, 53, 53]
+    · exact ![12117361]
+    · exact ![3721, 61, 61]
+    · exact ![20151121]
+    · exact ![5041, 5041]
+  hNz := by decide
+  hN := fun i => by
+    cases i
+    rename_i i h
+    interval_cases i 
+    · dsimp ; intro j
+      fin_cases j
+      exact NI31N0
+      exact NI31N1
+    · dsimp ; intro j
+      fin_cases j
+      exact NI37N0
+      exact NI37N1
+    · dsimp ; intro j
+      fin_cases j
+      exact NI41N0
+    · dsimp ; intro j
+      fin_cases j
+      exact NI43N0
+      exact NI43N1
+      exact NI43N2
+    · dsimp ; intro j
+      fin_cases j
+      exact NI47N0
+      exact NI47N1
+    · dsimp ; intro j
+      fin_cases j
+      exact NI53N0
+      exact NI53N1
+      exact NI53N2
+    · dsimp ; intro j
+      fin_cases j
+      exact NI59N0
+    · dsimp ; intro j
+      fin_cases j
+      exact NI61N0
+      exact NI61N1
+      exact NI61N1
+    · dsimp ; intro j
+      fin_cases j
+      exact NI67N0
+    · dsimp ; intro j
+      fin_cases j
+      exact NI71N0
+      exact NI71N1
+  Il := ![[], [], [], [I43N1, I43N2], [], [I53N1, I53N2], [], [I61N1, I61N1], [], []]
+  hIl := by
+      intro i
+      cases i
+      rename_i i h
+      interval_cases i
+      all_goals rfl
