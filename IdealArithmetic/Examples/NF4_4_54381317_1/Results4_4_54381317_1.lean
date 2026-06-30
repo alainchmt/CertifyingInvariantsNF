@@ -19,4 +19,4 @@ lemma K_nrComplexPlaces' : InfinitePlace.nrComplexPlaces K = 0 := K_nrComplexPla
 def class_group_equiv' :
   (∀ i : Fin 2 , (ZMod (![3, 3] i))) ≃+ Additive (ClassGroup (RingOfIntegers K)) := class_group_equiv
 
-theorem class_number_K_eq_9' : classNumber K = 9 := class_number_K_eq_9 
+theorem class_number_K_eq_9' : classNumber K = 9 := class_number_K_eq_9
