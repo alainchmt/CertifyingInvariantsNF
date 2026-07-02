@@ -83,15 +83,68 @@ theorem quotient_mk_eq_iff_sameCycle (σ : Equiv.Perm α) (x y : α) :
   rw [Quotient.eq'', MulAction.orbitRel_apply, mem_orbit_zpowers_iff]
   exact ⟨Equiv.Perm.SameCycle.symm, Equiv.Perm.SameCycle.symm⟩
 
-/-- **L_b1 / T008.** The partition of `Fintype.card α` attached to a permutation `σ` is the multiset
-of cardinalities of the orbits of `⟨σ⟩ = Subgroup.zpowers σ` acting on `α`. (Length-`≥2` cycles are
-the nontrivial orbits; fixed points are the singleton orbits — which is why `partition` is the right
-object, not `cycleType`, since the latter drops fixed points.) -/
-theorem partition_parts_eq_orbit_card (σ : Equiv.Perm α) :
-    σ.partition.parts =
-      (Finset.univ : Finset (MulAction.orbitRel.Quotient (Subgroup.zpowers σ) α)).val.map
-        (fun ω => Nat.card ω.orbit) := by
-  classical
+/-- With `rep` a choice of representative in the support of each cyclic factor of `σ`, sending a
+factor to the `⟨σ⟩`-orbit class of its representative and a fixed point to its own class is a
+bijection `cycleFactorsFinset σ ⊕ fixedPoints σ ≃ ⟨σ⟩-orbits`. Injectivity: two representatives with
+the same class are `SameCycle`, forcing equal cycle factors (resp. equal fixed points), and the
+factor/fixed-point cases cannot collide since representatives lie in `σ.support`. Surjectivity: every
+point is either fixed or lies in the support of `σ.cycleOf`, a cyclic factor. -/
+private theorem repClass_sumElim_bijective (σ : Equiv.Perm α)
+    (rep : {c // c ∈ σ.cycleFactorsFinset} → α)
+    (hcycleOf_rep : ∀ c : {c // c ∈ σ.cycleFactorsFinset}, σ.cycleOf (rep c) = ↑c)
+    (hrep_supp : ∀ c : {c // c ∈ σ.cycleFactorsFinset}, rep c ∈ σ.support)
+    (hrep_mem : ∀ c : {c // c ∈ σ.cycleFactorsFinset}, rep c ∈ (c : Equiv.Perm α).support) :
+    Function.Bijective
+      (Sum.elim (fun c => Quotient.mk'' (rep c))
+          (fun x : {x // σ x = x} => Quotient.mk'' x.1) :
+        ({c // c ∈ σ.cycleFactorsFinset} ⊕ {x // σ x = x}) →
+          MulAction.orbitRel.Quotient (Subgroup.zpowers σ) α) := by
+  constructor
+  · rintro (c₁ | x₁) (c₂ | x₂) h
+    · simp only [Sum.elim_inl] at h
+      rw [quotient_mk_eq_iff_sameCycle] at h
+      have : σ.cycleOf (rep c₁) = σ.cycleOf (rep c₂) := h.cycleOf_eq
+      rw [hcycleOf_rep, hcycleOf_rep] at this
+      exact congrArg Sum.inl (Subtype.ext this)
+    · simp only [Sum.elim_inl, Sum.elim_inr] at h
+      rw [quotient_mk_eq_iff_sameCycle] at h
+      obtain ⟨m, hm⟩ := h.symm
+      rw [Equiv.Perm.zpow_apply_eq_self_of_apply_eq_self x₂.2] at hm
+      have hfix : σ (rep c₁) = rep c₁ := by rw [← hm]; exact x₂.2
+      exact absurd hfix (Equiv.Perm.mem_support.mp (hrep_supp c₁))
+    · simp only [Sum.elim_inl, Sum.elim_inr] at h
+      rw [quotient_mk_eq_iff_sameCycle] at h
+      obtain ⟨n, hn⟩ := h
+      rw [Equiv.Perm.zpow_apply_eq_self_of_apply_eq_self x₁.2] at hn
+      have hfix : σ (rep c₂) = rep c₂ := by rw [← hn]; exact x₁.2
+      exact absurd hfix (Equiv.Perm.mem_support.mp (hrep_supp c₂))
+    · simp only [Sum.elim_inr] at h
+      rw [quotient_mk_eq_iff_sameCycle] at h
+      obtain ⟨n, hn⟩ := h
+      rw [Equiv.Perm.zpow_apply_eq_self_of_apply_eq_self x₁.2] at hn
+      exact congrArg Sum.inr (Subtype.ext hn)
+  · intro ω
+    induction ω using Quotient.inductionOn' with
+    | h y =>
+      by_cases hy : σ y = y
+      · exact ⟨Sum.inr ⟨y, hy⟩, rfl⟩
+      · have hys : y ∈ σ.support := Equiv.Perm.mem_support.mpr hy
+        refine ⟨Sum.inl ⟨σ.cycleOf y, Equiv.Perm.cycleOf_mem_cycleFactorsFinset_iff.mpr hys⟩, ?_⟩
+        simp only [Sum.elim_inl]
+        rw [quotient_mk_eq_iff_sameCycle]
+        have hmem := hrep_mem ⟨σ.cycleOf y, Equiv.Perm.cycleOf_mem_cycleFactorsFinset_iff.mpr hys⟩
+        rw [Equiv.Perm.mem_support_cycleOf_iff] at hmem
+        exact hmem.1.symm
+
+/-- The `⟨σ⟩`-orbits on `α` biject with `cycleFactorsFinset σ ⊕ fixedPoints σ` in such a way that the
+orbit corresponding to a cyclic factor has that factor's support cardinality, while the orbit of a
+fixed point is a singleton. Packages the bijection with its orbit-size data for
+`partition_parts_eq_orbit_card`. -/
+private theorem exists_orbitQuotient_equiv_orbit_card (σ : Equiv.Perm α) :
+    ∃ e : ({c // c ∈ σ.cycleFactorsFinset} ⊕ {x // σ x = x}) ≃
+        MulAction.orbitRel.Quotient (Subgroup.zpowers σ) α,
+      (∀ c, Nat.card (e (Sum.inl c)).orbit = (c : Equiv.Perm α).support.card) ∧
+      (∀ x, Nat.card (e (Sum.inr x)).orbit = 1) := by
   have hne : ∀ c : {c // c ∈ σ.cycleFactorsFinset}, (↑c : Equiv.Perm α).support.Nonempty :=
     fun c => ((Equiv.Perm.mem_cycleFactorsFinset_iff.mp c.2).1).nonempty_support
   set rep : {c // c ∈ σ.cycleFactorsFinset} → α := fun c => (hne c).choose with hrep
@@ -104,57 +157,24 @@ theorem partition_parts_eq_orbit_card (σ : Equiv.Perm α) :
     have := hrep_mem c
     rw [← hcycleOf_rep c] at this
     exact (Equiv.Perm.mem_support_cycleOf_iff.mp this).2
-  set g : ({c // c ∈ σ.cycleFactorsFinset} ⊕ {x // σ x = x}) →
-      MulAction.orbitRel.Quotient (Subgroup.zpowers σ) α :=
-    Sum.elim (fun c => Quotient.mk'' (rep c)) (fun x => Quotient.mk'' x.1) with hg
-  have hbij : Function.Bijective g := by
-    constructor
-    · rintro (c₁ | x₁) (c₂ | x₂) h
-      · simp only [hg, Sum.elim_inl] at h
-        rw [quotient_mk_eq_iff_sameCycle] at h
-        have : σ.cycleOf (rep c₁) = σ.cycleOf (rep c₂) := h.cycleOf_eq
-        rw [hcycleOf_rep, hcycleOf_rep] at this
-        exact congrArg Sum.inl (Subtype.ext this)
-      · simp only [hg, Sum.elim_inl, Sum.elim_inr] at h
-        rw [quotient_mk_eq_iff_sameCycle] at h
-        obtain ⟨m, hm⟩ := h.symm
-        rw [Equiv.Perm.zpow_apply_eq_self_of_apply_eq_self x₂.2] at hm
-        have hfix : σ (rep c₁) = rep c₁ := by rw [← hm]; exact x₂.2
-        exact absurd hfix (Equiv.Perm.mem_support.mp (hrep_supp c₁))
-      · simp only [hg, Sum.elim_inl, Sum.elim_inr] at h
-        rw [quotient_mk_eq_iff_sameCycle] at h
-        obtain ⟨n, hn⟩ := h
-        rw [Equiv.Perm.zpow_apply_eq_self_of_apply_eq_self x₁.2] at hn
-        have hfix : σ (rep c₂) = rep c₂ := by rw [← hn]; exact x₁.2
-        exact absurd hfix (Equiv.Perm.mem_support.mp (hrep_supp c₂))
-      · simp only [hg, Sum.elim_inr] at h
-        rw [quotient_mk_eq_iff_sameCycle] at h
-        obtain ⟨n, hn⟩ := h
-        rw [Equiv.Perm.zpow_apply_eq_self_of_apply_eq_self x₁.2] at hn
-        exact congrArg Sum.inr (Subtype.ext hn)
-    · intro ω
-      induction ω using Quotient.inductionOn' with
-      | h y =>
-        by_cases hy : σ y = y
-        · exact ⟨Sum.inr ⟨y, hy⟩, rfl⟩
-        · have hys : y ∈ σ.support := Equiv.Perm.mem_support.mpr hy
-          refine ⟨Sum.inl ⟨σ.cycleOf y, Equiv.Perm.cycleOf_mem_cycleFactorsFinset_iff.mpr hys⟩, ?_⟩
-          simp only [hg, Sum.elim_inl]
-          rw [quotient_mk_eq_iff_sameCycle]
-          have hmem := hrep_mem ⟨σ.cycleOf y, Equiv.Perm.cycleOf_mem_cycleFactorsFinset_iff.mpr hys⟩
-          rw [Equiv.Perm.mem_support_cycleOf_iff] at hmem
-          exact hmem.1.symm
-  have hsize_inl : ∀ c : {c // c ∈ σ.cycleFactorsFinset},
-      Nat.card (g (Sum.inl c)).orbit = (c : Equiv.Perm α).support.card := by
-    intro c
-    simp only [hg, Sum.elim_inl]
-    rw [MulAction.orbitRel.Quotient.orbit_mk, orbit_zpowers_eq_support_cycleOf σ (hrep_supp c),
-      hcycleOf_rep c, Nat.card_coe_set_eq, Set.ncard_coe_finset]
-  have hsize_inr : ∀ x : {x // σ x = x}, Nat.card (g (Sum.inr x)).orbit = 1 := by
-    intro x
-    simp only [hg, Sum.elim_inr]
-    rw [MulAction.orbitRel.Quotient.orbit_mk, orbit_zpowers_of_fixed σ x.2,
-      Nat.card_coe_set_eq, Set.ncard_singleton]
+  refine ⟨Equiv.ofBijective _ (repClass_sumElim_bijective σ rep hcycleOf_rep hrep_supp hrep_mem),
+    fun c => ?_, fun x => ?_⟩
+  · rw [Equiv.ofBijective_apply, Sum.elim_inl, MulAction.orbitRel.Quotient.orbit_mk,
+      orbit_zpowers_eq_support_cycleOf σ (hrep_supp c), hcycleOf_rep c, Nat.card_coe_set_eq,
+      Set.ncard_coe_finset]
+  · rw [Equiv.ofBijective_apply, Sum.elim_inr, MulAction.orbitRel.Quotient.orbit_mk,
+      orbit_zpowers_of_fixed σ x.2, Nat.card_coe_set_eq, Set.ncard_singleton]
+
+/-- **L_b1 / T008.** The partition of `Fintype.card α` attached to a permutation `σ` is the multiset
+of cardinalities of the orbits of `⟨σ⟩ = Subgroup.zpowers σ` acting on `α`. (Length-`≥2` cycles are
+the nontrivial orbits; fixed points are the singleton orbits — which is why `partition` is the right
+object, not `cycleType`, since the latter drops fixed points.) -/
+theorem partition_parts_eq_orbit_card (σ : Equiv.Perm α) :
+    σ.partition.parts =
+      (Finset.univ : Finset (MulAction.orbitRel.Quotient (Subgroup.zpowers σ) α)).val.map
+        (fun ω => Nat.card ω.orbit) := by
+  classical
+  obtain ⟨e, hsize_inl, hsize_inr⟩ := exists_orbitQuotient_equiv_orbit_card σ
   have hfix_card : Fintype.card {x // σ x = x} = Fintype.card α - σ.support.card := by
     rw [Fintype.card_subtype, ← Finset.card_compl]
     congr 1
@@ -165,10 +185,9 @@ theorem partition_parts_eq_orbit_card (σ : Equiv.Perm α) :
         Finset (MulAction.orbitRel.Quotient (Subgroup.zpowers σ) α)).val.map
         (fun ω => Nat.card ω.orbit)
       = σ.cycleType + Multiset.replicate (Fintype.card α - σ.support.card) 1 := by
-    rw [← Finset.map_univ_equiv (Equiv.ofBijective g hbij), Finset.map_val, Multiset.map_map,
+    rw [← Finset.map_univ_equiv e, Finset.map_val, Multiset.map_map,
       ← Finset.univ_disjSum_univ, Finset.val_disjSum, Multiset.map_disjSum]
-    simp only [Function.comp_apply, Equiv.coe_toEmbedding, Equiv.ofBijective_apply,
-      hsize_inl, hsize_inr]
+    simp only [Function.comp_apply, Equiv.coe_toEmbedding, hsize_inl, hsize_inr]
     congr 1
     · rw [Equiv.Perm.cycleType]
       conv_rhs => rw [← Multiset.attach_map_val σ.cycleFactorsFinset.val, Multiset.map_map]
@@ -565,6 +584,33 @@ theorem map_prod_X_sub_C {R S : Type*} [CommRing R] [CommRing S] (φ : R →+* S
   intro a _
   simp [Function.comp, Polynomial.map_sub, Polynomial.map_X, Polynomial.map_C]
 
+/-- If a prime `𝔔` of a `ℤ`-algebra `A` lies over `p` (its contraction to `ℤ` is `span {p}`), then
+`p` vanishes in the residue ring, so `A ⧸ 𝔔` has characteristic `p`. -/
+private theorem charP_residue_of_under_eq_span {A : Type*} [CommRing A] [Algebra ℤ A] (p : ℕ)
+    [hp : Fact p.Prime] (𝔔 : Ideal A) [𝔔.IsPrime] (hlies : 𝔔.under ℤ = Ideal.span {(p : ℤ)}) :
+    CharP (A ⧸ 𝔔) p := by
+  have hmem : ((p : ℕ) : A) ∈ 𝔔 := by
+    have h1 : ((p : ℤ)) ∈ 𝔔.under ℤ := by rw [hlies]; exact Ideal.mem_span_singleton_self _
+    rw [Ideal.mem_comap] at h1
+    have h2 : algebraMap ℤ A (p : ℤ) = ((p : ℕ) : A) := by push_cast; ring
+    rwa [h2] at h1
+  have h0 : ((p : ℕ) : A ⧸ 𝔔) = 0 := by
+    rw [← map_natCast (Ideal.Quotient.mk 𝔔) p]
+    exact Ideal.Quotient.eq_zero_iff_mem.mpr hmem
+  exact (CharP.charP_iff_prime_eq_zero hp.out).mpr h0
+
+/-- A prime `𝔔` of a `ℤ`-algebra `A` (into which `ℤ` maps injectively) lying over a nonzero `p` is
+itself nonzero: its contraction `span {p} ≠ ⊥` forces `𝔔 ≠ ⊥`. -/
+private theorem ne_bot_of_under_eq_span {A : Type*} [CommRing A] [Algebra ℤ A] (p : ℕ)
+    (hp0 : p ≠ 0) (hinj : Function.Injective (algebraMap ℤ A)) (𝔔 : Ideal A)
+    (hlies : 𝔔.under ℤ = Ideal.span {(p : ℤ)}) : 𝔔 ≠ ⊥ := by
+  rintro rfl
+  have hunder : (⊥ : Ideal A).under ℤ = ⊥ := by
+    rw [Ideal.under, ← RingHom.ker_eq_comap_bot]
+    exact (RingHom.injective_iff_ker_eq_bot _).mp hinj
+  rw [hunder] at hlies
+  exact hp0 (by exact_mod_cast (Ideal.span_singleton_eq_bot).mp hlies.symm)
+
 variable (p : ℕ) [hp : Fact p.Prime] (f : ℤ[X]) (hf : f.Monic)
     (hsepf : (f.map (Int.castRingHom (ZMod p))).Separable)
     [Fact (((f.map (Int.castRingHom ℚ)).map
@@ -576,6 +622,85 @@ variable (p : ℕ) [hp : Fact p.Prime] (f : ℤ[X]) (hf : f.Monic)
     (𝔔 : Ideal (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField)) [hQp : 𝔔.IsPrime]
     [Finite (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔)]
     (hlies : 𝔔.under ℤ = Ideal.span {(p : ℤ)})
+
+omit [IsGalois ℚ (f.map (Int.castRingHom ℚ)).SplittingField]
+  [Algebra.IsInvariant ℤ (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField)
+    ((f.map (Int.castRingHom ℚ)).SplittingField ≃ₐ[ℚ] (f.map (Int.castRingHom ℚ)).SplittingField)]
+  [Finite (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔)] in
+include hf hsepf in
+open scoped Classical in
+/-- The `𝓞E`-factorisation of `f` and its reduction. Writing `E` for the splitting field, there is a
+multiset `M` of algebraic-integer roots of `f` such that `f` (mapped to `𝓞E`) is `∏ (X - m)`; hence
+reducing mod `𝔔` factors `f mod p` over the residue field `𝓞E ⧸ 𝔔` as `∏ (X - m̄)`, and these reduced
+roots are distinct (`f mod p` is separable). Membership in `M` is exactly being a root of `f` in `E`;
+this characterisation is what the injectivity/surjectivity of the reduction map in
+`exists_reduction_rootSet_equiv_permCongr` consume. -/
+private theorem exists_reductionRoots_prod [𝔔.IsMaximal]
+    [Algebra (ZMod p) (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔)] :
+    ∃ M : Multiset (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField),
+      (∀ x : 𝓞 (f.map (Int.castRingHom ℚ)).SplittingField,
+          x ∈ M ↔ (aeval (x : (f.map (Int.castRingHom ℚ)).SplittingField)) f = 0) ∧
+      (f.map (Int.castRingHom (ZMod p))).map
+          (algebraMap (ZMod p) (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔))
+        = ((M.map (Ideal.Quotient.mk 𝔔)).map fun a => X - C a).prod ∧
+      (M.map (Ideal.Quotient.mk 𝔔)).Nodup := by
+  classical
+  set E := (f.map (Int.castRingHom ℚ)).SplittingField
+  have hmapℤE : f.map (algebraMap ℤ E)
+      = (f.map (Int.castRingHom ℚ)).map (algebraMap ℚ E) := by
+    rw [Polynomial.map_map]
+    exact congrArg (Polynomial.map · f) (Subsingleton.elim _ _)
+  have hsplitE : (f.map (algebraMap ℤ E)).Splits := by rw [hmapℤE]; exact Fact.out
+  have hmonicE : (f.map (algebraMap ℤ E)).Monic := hf.map _
+  have hFE : f.map (algebraMap ℤ E)
+      = ((f.map (algebraMap ℤ E)).roots.map fun a => X - C a).prod :=
+    hsplitE.eq_prod_roots_of_monic hmonicE
+  have hrootint : ∀ a ∈ (f.map (algebraMap ℤ E)).roots, IsIntegral ℤ a := by
+    intro a ha
+    have haroot : eval a (f.map (algebraMap ℤ E)) = 0 :=
+      (Polynomial.mem_roots hmonicE.ne_zero).mp ha
+    rw [Polynomial.eval_map] at haroot
+    exact ⟨f, hf, haroot⟩
+  set M : Multiset (𝓞 E) :=
+    (f.map (algebraMap ℤ E)).roots.pmap (fun a ha => (⟨a, ha⟩ : 𝓞 E)) hrootint with hMdef
+  have hMmap : M.map (algebraMap (𝓞 E) E) = (f.map (algebraMap ℤ E)).roots := by
+    rw [hMdef, Multiset.map_pmap]
+    change Multiset.pmap (fun a (_ : IsIntegral ℤ a) => a)
+      (f.map (algebraMap ℤ E)).roots hrootint = _
+    rw [Multiset.pmap_eq_map, Multiset.map_id']
+  have hF𝓞 : f.map (algebraMap ℤ (𝓞 E)) = (M.map fun a => X - C a).prod := by
+    apply Polynomial.map_injective (algebraMap (𝓞 E) E) RingOfIntegers.coe_injective
+    rw [map_prod_X_sub_C, hMmap, Polynomial.map_map,
+      show (algebraMap (𝓞 E) E).comp (algebraMap ℤ (𝓞 E)) = algebraMap ℤ E from
+        Subsingleton.elim _ _]
+    exact hFE
+  have hg_eq : (f.map (Int.castRingHom (ZMod p))).map (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))
+      = (f.map (algebraMap ℤ (𝓞 E))).map (Ideal.Quotient.mk 𝔔) := by
+    rw [Polynomial.map_map, Polynomial.map_map]
+    exact congrArg (Polynomial.map · f) (Subsingleton.elim _ _)
+  have hFk : (f.map (Int.castRingHom (ZMod p))).map (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))
+      = ((M.map (Ideal.Quotient.mk 𝔔)).map fun a => X - C a).prod := by
+    rw [hg_eq, hF𝓞, map_prod_X_sub_C]
+  have hSnodup : (M.map (Ideal.Quotient.mk 𝔔)).Nodup := by
+    have hsep : ((f.map (Int.castRingHom (ZMod p))).map
+        (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))).Separable := hsepf.map
+    rw [hFk] at hsep
+    have hnd := Polynomial.nodup_roots hsep
+    rwa [Polynomial.roots_multiset_prod_X_sub_C] at hnd
+  refine ⟨M, fun x => ?_, hFk, hSnodup⟩
+  rw [hMdef, Multiset.mem_pmap]
+  constructor
+  · rintro ⟨a, ha, rfl⟩
+    have haroot : eval a (f.map (algebraMap ℤ E)) = 0 :=
+      (Polynomial.mem_roots hmonicE.ne_zero).mp ha
+    rw [Polynomial.eval_map, ← Polynomial.aeval_def] at haroot
+    exact haroot
+  · intro hx
+    have hmem : (x : E) ∈ (f.map (algebraMap ℤ E)).roots := by
+      rw [Polynomial.mem_roots hmonicE.ne_zero, Polynomial.IsRoot.def, Polynomial.eval_map,
+        ← Polynomial.aeval_def]
+      exact hx
+    exact ⟨(x : E), hmem, RingOfIntegers.coe_injective rfl⟩
 
 include hp hf hsepf hlies in
 open scoped Classical in
@@ -651,55 +776,13 @@ theorem exists_reduction_rootSet_equiv_permCongr [𝔔.IsMaximal]
       rfl
     rw [hlifteq]
     exact (reduction_arithFrob_eq_pow p 𝔔 hlies (lift y)).symm
-  have hmapℤE : f.map (algebraMap ℤ E)
-      = (f.map (Int.castRingHom ℚ)).map (algebraMap ℚ E) := by
-    rw [Polynomial.map_map]
-    exact congrArg (Polynomial.map · f) (Subsingleton.elim _ _)
-  have hsplitE : (f.map (algebraMap ℤ E)).Splits := by rw [hmapℤE]; exact Fact.out
-  have hmonicE : (f.map (algebraMap ℤ E)).Monic := hf.map _
-  have hFE : f.map (algebraMap ℤ E)
-      = ((f.map (algebraMap ℤ E)).roots.map fun a => X - C a).prod :=
-    hsplitE.eq_prod_roots_of_monic hmonicE
-  have hrootint : ∀ a ∈ (f.map (algebraMap ℤ E)).roots, IsIntegral ℤ a := by
-    intro a ha
-    have haroot : eval a (f.map (algebraMap ℤ E)) = 0 :=
-      (Polynomial.mem_roots hmonicE.ne_zero).mp ha
-    rw [Polynomial.eval_map] at haroot
-    exact ⟨f, hf, haroot⟩
-  set M : Multiset (𝓞 E) :=
-    (f.map (algebraMap ℤ E)).roots.pmap (fun a ha => (⟨a, ha⟩ : 𝓞 E)) hrootint with hMdef
-  have hMmap : M.map (algebraMap (𝓞 E) E) = (f.map (algebraMap ℤ E)).roots := by
-    rw [hMdef, Multiset.map_pmap]
-    change Multiset.pmap (fun a (_ : IsIntegral ℤ a) => a)
-      (f.map (algebraMap ℤ E)).roots hrootint = _
-    rw [Multiset.pmap_eq_map, Multiset.map_id']
-  have hF𝓞 : f.map (algebraMap ℤ (𝓞 E)) = (M.map fun a => X - C a).prod := by
-    apply Polynomial.map_injective (algebraMap (𝓞 E) E) RingOfIntegers.coe_injective
-    rw [map_prod_X_sub_C, hMmap, Polynomial.map_map,
-      show (algebraMap (𝓞 E) E).comp (algebraMap ℤ (𝓞 E)) = algebraMap ℤ E from
-        Subsingleton.elim _ _]
-    exact hFE
-  have hg_eq : g.map (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))
-      = (f.map (algebraMap ℤ (𝓞 E))).map (Ideal.Quotient.mk 𝔔) := by
-    rw [hgdef, Polynomial.map_map, Polynomial.map_map]
-    exact congrArg (Polynomial.map · f) (Subsingleton.elim _ _)
+  obtain ⟨M, hMmem, hFk0, hSnodup⟩ := exists_reductionRoots_prod p f hf hsepf 𝔔
   have hFk : g.map (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))
-      = ((M.map (Ideal.Quotient.mk 𝔔)).map fun a => X - C a).prod := by
-    rw [hg_eq, hF𝓞, map_prod_X_sub_C]
+      = ((M.map (Ideal.Quotient.mk 𝔔)).map fun a => X - C a).prod := hFk0
   have hmonick : (g.map (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))).Monic :=
     (hf.map (Int.castRingHom (ZMod p))).map (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))
-  have hSnodup : (M.map (Ideal.Quotient.mk 𝔔)).Nodup := by
-    have hsep : (g.map (algebraMap (ZMod p) (𝓞 E ⧸ 𝔔))).Separable := hsepf.map
-    rw [hFk] at hsep
-    have hnd := Polynomial.nodup_roots hsep
-    rwa [Polynomial.roots_multiset_prod_X_sub_C] at hnd
-  have hmemM : ∀ r0 : (f.map (Int.castRingHom ℚ)).rootSet E, lift r0 ∈ M := by
-    intro r0
-    rw [hMdef, Multiset.mem_pmap]
-    refine ⟨(r0 : E), ?_, rfl⟩
-    rw [Polynomial.mem_roots hmonicE.ne_zero, Polynomial.IsRoot.def, Polynomial.eval_map,
-      ← Polynomial.aeval_def]
-    exact hroot r0
+  have hmemM : ∀ r0 : (f.map (Int.castRingHom ℚ)).rootSet E, lift r0 ∈ M :=
+    fun r0 => (hMmem (lift r0)).mpr (hroot r0)
   have hρinj : Function.Injective ρ := by
     intro r r' hrr'
     have h1 : Ideal.Quotient.mk 𝔔 (lift r) = Ideal.Quotient.mk 𝔔 (lift r') :=
@@ -717,17 +800,17 @@ theorem exists_reduction_rootSet_equiv_permCongr [𝔔.IsMaximal]
       exact haeval
     rw [Multiset.mem_map] at hs0mem
     obtain ⟨m, hmM, hmk⟩ := hs0mem
-    rw [hMdef, Multiset.mem_pmap] at hmM
-    obtain ⟨a, ha_r, ham⟩ := hmM
-    have ha_rootSet : a ∈ (f.map (Int.castRingHom ℚ)).rootSet E := by
+    have ha_rootSet : (m : E) ∈ (f.map (Int.castRingHom ℚ)).rootSet E := by
       rw [Polynomial.mem_rootSet']
-      refine ⟨by rw [← hmapℤE]; exact hmonicE.ne_zero, ?_⟩
-      rw [Polynomial.aeval_def, ← Polynomial.eval_map, ← hmapℤE]
-      exact (Polynomial.mem_roots hmonicE.ne_zero).mp ha_r
-    refine ⟨⟨a, ha_rootSet⟩, ?_⟩
+      refine ⟨((hf.map (Int.castRingHom ℚ)).map (algebraMap ℚ E)).ne_zero, ?_⟩
+      rw [Polynomial.aeval_def, Polynomial.eval₂_map,
+        Subsingleton.elim ((algebraMap ℚ E).comp (Int.castRingHom ℚ)) (algebraMap ℤ E),
+        ← Polynomial.aeval_def]
+      exact (hMmem m).mp hmM
+    refine ⟨⟨(m : E), ha_rootSet⟩, ?_⟩
     apply Subtype.ext
-    show Ideal.Quotient.mk 𝔔 (lift ⟨a, ha_rootSet⟩) = (s0 : 𝓞 E ⧸ 𝔔)
-    have hlm : lift ⟨a, ha_rootSet⟩ = m := by rw [← ham]
+    show Ideal.Quotient.mk 𝔔 (lift ⟨(m : E), ha_rootSet⟩) = (s0 : 𝓞 E ⧸ 𝔔)
+    have hlm : lift ⟨(m : E), ha_rootSet⟩ = m := RingOfIntegers.coe_injective rfl
     rw [hlm]; exact hmk
   have hbij : Function.Bijective ρ := ⟨hρinj, hρsurj⟩
   refine ⟨(Polynomial.Gal.rootsEquivRoots (f.map (Int.castRingHom ℚ)) E).symm.trans
@@ -783,39 +866,14 @@ theorem galActionHom_arithFrob_partition_eq_factor_degrees :
     Ideal.Quotient.isDomain 𝔔
   have hinj : Function.Injective
       (algebraMap ℤ (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField)) := RingHom.injective_int _
-  have hbot : 𝔔 ≠ ⊥ := by
-    rintro rfl
-    have hunder : (⊥ : Ideal (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField)).under ℤ = ⊥ := by
-      rw [Ideal.under, ← RingHom.ker_eq_comap_bot]
-      exact (RingHom.injective_iff_ker_eq_bot _).mp hinj
-    rw [hunder] at hlies
-    exact hp.out.ne_zero (by exact_mod_cast (Ideal.span_singleton_eq_bot).mp hlies.symm)
-  haveI : 𝔔.IsMaximal := hQp.isMaximal hbot
-  have hmem : ((p : ℕ) : 𝓞 (f.map (Int.castRingHom ℚ)).SplittingField) ∈ 𝔔 := by
-    have h1 : ((p : ℤ)) ∈ 𝔔.under ℤ := by rw [hlies]; exact Ideal.mem_span_singleton_self _
-    rw [Ideal.mem_comap] at h1
-    have h2 : algebraMap ℤ (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField) (p : ℤ)
-        = ((p : ℕ) : 𝓞 (f.map (Int.castRingHom ℚ)).SplittingField) := by push_cast; ring
-    rwa [h2] at h1
-  have h0 : ((p : ℕ) : 𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔) = 0 := by
-    rw [← map_natCast (Ideal.Quotient.mk 𝔔) p]
-    exact (Ideal.Quotient.eq_zero_iff_mem).mpr hmem
-  haveI hchar : CharP (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔) p :=
-    (CharP.charP_iff_prime_eq_zero hp.out).mpr h0
-  haveI halg : Algebra (ZMod p) (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔) :=
+  haveI : 𝔔.IsMaximal := hQp.isMaximal (ne_bot_of_under_eq_span p hp.out.ne_zero hinj 𝔔 hlies)
+  haveI : CharP (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔) p :=
+    charP_residue_of_under_eq_span p 𝔔 hlies
+  haveI : Algebra (ZMod p) (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔) :=
     ZMod.algebra _ p
   obtain ⟨e, hsplit, hperm⟩ := exists_reduction_rootSet_equiv_permCongr p f hf hsepf 𝔔 hlies
-  calc (Polynomial.Gal.galActionHom (f.map (Int.castRingHom ℚ))
-          (f.map (Int.castRingHom ℚ)).SplittingField
-          (arithFrobAt ℤ ((f.map (Int.castRingHom ℚ)).SplittingField ≃ₐ[ℚ]
-            (f.map (Int.castRingHom ℚ)).SplittingField) 𝔔)).partition.parts
-      = (frobeniusPerm p (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔)
-          (f.map (Int.castRingHom (ZMod p)))).partition.parts := by
-        rw [hperm, partition_parts_permCongr]
-    _ = (normalizedFactors (f.map (Int.castRingHom (ZMod p)))).map Polynomial.natDegree :=
-        frobeniusPerm_partition_parts_eq_factor_degrees p
-          (𝓞 (f.map (Int.castRingHom ℚ)).SplittingField ⧸ 𝔔)
-          (f.map (Int.castRingHom (ZMod p))) hsepf hsplit
+  rw [← partition_parts_permCongr e, ← hperm]
+  exact frobeniusPerm_partition_parts_eq_factor_degrees p _ _ hsepf hsplit
 
 include hp hf hsepf in
 open scoped Classical in

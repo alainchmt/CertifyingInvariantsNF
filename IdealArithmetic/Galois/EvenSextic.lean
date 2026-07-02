@@ -613,18 +613,18 @@ theorem sqRoot_negRoot (x : (h.comp (X ^ 2)).rootSet (h.comp (X ^ 2)).SplittingF
   Subtype.ext (by simp)
 
 open scoped Classical in
-/-- **(L4.5) Weight-one from a single transposition.** If the honest permutation of `σ` has support of
-size exactly `2` (a single transposition of a `±`-pair), then `blockSign σ` is a standard basis vector
-`Pi.single θ₀ 1`: exactly one block is flipped. (No kernel hypothesis: pure block combinatorics — the
-support is closed under the fixed-point-free involution `negRoot`, so being size `2` it is a single
-`±`-pair `{x₀, -x₀}`, both squaring to the one flipped block `θ₀`.) -/
-theorem blockSign_eq_single_of_support_card_two (hmon : h.Monic)
+/-- **Support of a size-`2` root permutation is a single `±`-pair.** When no root equals its negative
+(`hnd`), the support of `fRootEquiv σ` is closed under the fixed-point-free involution `negRoot`; if it
+has exactly `2` elements it is therefore `{x₀, -x₀}` for some `x₀` in it. -/
+private theorem exists_support_eq_negRoot_pair_of_card_two (σ : (h.comp (X ^ 2)).Gal)
     (hnd : ∀ x : (h.comp (X ^ 2)).rootSet (h.comp (X ^ 2)).SplittingField,
       (x : (h.comp (X ^ 2)).SplittingField) ≠ -(x : (h.comp (X ^ 2)).SplittingField))
-    (σ : (h.comp (X ^ 2)).Gal) (hsupp : (fRootEquiv h σ).support.card = 2) :
-    ∃ θ₀, blockSign h hmon σ = Pi.single θ₀ 1 := by
+    (hsupp : (fRootEquiv h σ).support.card = 2) :
+    ∃ x₀, x₀ ∈ (fRootEquiv h σ).support ∧
+      (fRootEquiv h σ).support = {x₀, negRoot h x₀} := by
   obtain ⟨x₀, hx₀⟩ : (fRootEquiv h σ).support.Nonempty := by
     rw [← Finset.card_pos, hsupp]; norm_num
+  refine ⟨x₀, hx₀, ?_⟩
   have hx₀' : σ (x₀ : (h.comp (X ^ 2)).SplittingField) ≠ (x₀ : (h.comp (X ^ 2)).SplittingField) :=
     (mem_support_fRootEquiv h).mp hx₀
   have hneg_mem : negRoot h x₀ ∈ (fRootEquiv h σ).support := by
@@ -635,25 +635,47 @@ theorem blockSign_eq_single_of_support_card_two (hmon : h.Monic)
   have hsub : ({x₀, negRoot h x₀} : Finset _) ⊆ (fRootEquiv h σ).support :=
     Finset.insert_subset_iff.mpr ⟨hx₀, Finset.singleton_subset_iff.mpr hneg_mem⟩
   have hcard2 : ({x₀, negRoot h x₀} : Finset _).card = 2 := Finset.card_pair hne
-  have hsupp_eq : (fRootEquiv h σ).support = {x₀, negRoot h x₀} :=
-    (Finset.eq_of_subset_of_card_le hsub (le_of_eq (hsupp.trans hcard2.symm))).symm
+  exact (Finset.eq_of_subset_of_card_le hsub (le_of_eq (hsupp.trans hcard2.symm))).symm
+
+open scoped Classical in
+/-- **`σ` fixes the section point of every non-flipped block.** If the support of `fRootEquiv σ` is the
+single `±`-pair `{x₀, -x₀}`, then for any block `θ` other than `sqRoot x₀` the chosen square root
+`sqSection θ` is fixed by `σ`: moving it would place it in the support, yet its square is `θ ≠ sqRoot x₀`
+(and `sqRoot (-x₀) = sqRoot x₀`), a contradiction. -/
+private theorem apply_sqSection_eq_of_ne_sqRoot (hmon : h.Monic) (σ : (h.comp (X ^ 2)).Gal)
+    {x₀ : (h.comp (X ^ 2)).rootSet (h.comp (X ^ 2)).SplittingField}
+    (hsupp_eq : (fRootEquiv h σ).support = {x₀, negRoot h x₀})
+    {θ : h.rootSet (h.comp (X ^ 2)).SplittingField} (hθ : θ ≠ sqRoot h x₀) :
+    σ (sqSection h hmon θ : (h.comp (X ^ 2)).SplittingField)
+      = (sqSection h hmon θ : (h.comp (X ^ 2)).SplittingField) := by
+  by_contra hcc
+  have hmemx1 : sqSection h hmon θ ∈ (fRootEquiv h σ).support :=
+    (mem_support_fRootEquiv h).mpr hcc
+  rw [hsupp_eq, Finset.mem_insert, Finset.mem_singleton] at hmemx1
+  have hsq : sqRoot h (sqSection h hmon θ) = θ := sqRoot_sqSection h hmon θ
+  rcases hmemx1 with h' | h'
+  · rw [h'] at hsq; exact hθ hsq.symm
+  · rw [h', sqRoot_negRoot] at hsq; exact hθ hsq.symm
+
+open scoped Classical in
+/-- **(L4.5) Weight-one from a single transposition.** If the honest permutation of `σ` has support of
+size exactly `2` (a single transposition of a `±`-pair), then `blockSign σ` is a standard basis vector
+`Pi.single θ₀ 1`: exactly one block is flipped. (No kernel hypothesis: pure block combinatorics — the
+support is closed under the fixed-point-free involution `negRoot`, so being size `2` it is a single
+`±`-pair `{x₀, -x₀}`, both squaring to the one flipped block `θ₀`.) -/
+theorem blockSign_eq_single_of_support_card_two (hmon : h.Monic)
+    (hnd : ∀ x : (h.comp (X ^ 2)).rootSet (h.comp (X ^ 2)).SplittingField,
+      (x : (h.comp (X ^ 2)).SplittingField) ≠ -(x : (h.comp (X ^ 2)).SplittingField))
+    (σ : (h.comp (X ^ 2)).Gal) (hsupp : (fRootEquiv h σ).support.card = 2) :
+    ∃ θ₀, blockSign h hmon σ = Pi.single θ₀ 1 := by
+  obtain ⟨x₀, hx₀, hsupp_eq⟩ := exists_support_eq_negRoot_pair_of_card_two h σ hnd hsupp
   refine ⟨sqRoot h x₀, ?_⟩
   funext θ
   by_cases hθ : θ = sqRoot h x₀
   · subst hθ
-    rw [Pi.single_eq_same, blockSign_eq_of_mem_block, if_neg hx₀']
-  · rw [Pi.single_eq_of_ne hθ]
-    have hfix : σ (sqSection h hmon θ : (h.comp (X ^ 2)).SplittingField)
-        = (sqSection h hmon θ : (h.comp (X ^ 2)).SplittingField) := by
-      by_contra hcc
-      have hmemx1 : sqSection h hmon θ ∈ (fRootEquiv h σ).support :=
-        (mem_support_fRootEquiv h).mpr hcc
-      rw [hsupp_eq, Finset.mem_insert, Finset.mem_singleton] at hmemx1
-      have hsq : sqRoot h (sqSection h hmon θ) = θ := sqRoot_sqSection h hmon θ
-      rcases hmemx1 with h' | h'
-      · rw [h'] at hsq; exact hθ hsq.symm
-      · rw [h', sqRoot_negRoot] at hsq; exact hθ hsq.symm
-    rw [blockSign, if_pos hfix]
+    rw [Pi.single_eq_same, blockSign_eq_of_mem_block, if_neg ((mem_support_fRootEquiv h).mp hx₀)]
+  · rw [Pi.single_eq_of_ne hθ, blockSign,
+      if_pos (apply_sqSection_eq_of_ne_sqRoot h hmon σ hsupp_eq hθ)]
 
 /-! ### Conjugation covers all blocks (L4.6): the C₃ symmetry generates the full sign group
 
