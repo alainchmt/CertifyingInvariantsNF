@@ -5,7 +5,6 @@
 #
 #   load('ClassGroupLean.sage')
 #   R.<x> = PolynomialRing(ZZ)
-#   M.<a> = PolynomialRing(QQ)
 #   f = x^3 + 150*x - 50
 #   K.<a> = NumberField(f, a)
 #   B = [1, a, 1/5*a^2]          # integral basis of K
