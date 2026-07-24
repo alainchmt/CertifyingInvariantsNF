@@ -6,7 +6,7 @@
 #   load('ClassGroupLean.sage')
 #   R.<x> = PolynomialRing(ZZ)
 #   f = x^3 + 150*x - 50
-#   K.<a> = NumberField(f, a)
+#   K.<a> = NumberField(f)
 #   B = [1, a, 1/5*a^2]          # integral basis of K
 #   label = '3_1_542700_3'       # names the output folder NF<label> and the files in it
 #   generate_class_group_lean(f, B, label)
@@ -2065,7 +2065,6 @@ def PrimesBelowBoundCertificteGenInterval(K, B, M, number_interval, primes_below
     """Generates interval and gluing strings for the PrimesBelow certificate.
     Returns (interval_strings, gluing_string, ideals_below_interval_flatten,
              ideals_below_flag_p_interval_flatten, ideals_below_flatten, ideals_below_flag_p_flatten)."""
-    import io, contextlib
     O = K.ring_of_integers()
     N = []
     Np = []
@@ -2123,21 +2122,29 @@ def PrimesBelowBoundCertificteGenInterval(K, B, M, number_interval, primes_below
     interval_strings = []
     e = []
     for j in range(number_interval):
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            Il = PP_aux[j][-1]
-            Iu = max(PP_aux[j + 1][-1], (floor((j + 1) / number_interval)) * (M - 1))
-            print('')
-            print(f"""lemma PB{M}I{j}_primes (p : ℕ) :
+        out = ""
+        Il = PP_aux[j][-1]
+        Iu = max(PP_aux[j + 1][-1], (floor((j + 1) / number_interval)) * (M - 1))
+        out += "\n"
+        out += f"""lemma PB{M}I{j}_primes (p : ℕ) :
   p ∈ Set.range !{[p for p in primes(Iu + 1) if Il < p]} ↔ Nat.Prime p ∧ {Il} < p ∧ p ≤ {Iu} := by
   rw [← List.mem_ofFn']
-  convert primes_range {Il} {Iu} (by omega)""")
+  convert primes_range {Il} {Iu} (by omega)
+"""
 
-            ideals_below_as_string = "[" + ", ".join("[" + ", ".join(sub) + "]" for sub in Ideals_below[j]) + "]"
-            ideals_names_as_string = ["[" + ", ".join(sub) + "]" for sub in II_names[j]]
-            e = e + [PP_aux[j][-1]]
-            print('')
-            print(f'''def PB{M}I{j} : PrimesBelowBoundCertificateInterval' O {PP_aux[j][-1]} {max(PP_aux[j+1][-1], (floor((j + 1)/number_interval))*(M-1))} {M} where
+        ideals_below_as_string = "[" + ", ".join("[" + ", ".join(sub) + "]" for sub in Ideals_below[j]) + "]"
+        ideals_names_as_string = ["[" + ", ".join(sub) + "]" for sub in II_names[j]]
+        ideals_below_flat_j = [I for sub in Ideals_below[j] for I in sub]
+        seen = set()
+        beta_names = []
+        for I in ideals_below_flat_j:
+            if I not in seen:
+                seen.add(I)
+                beta_names.append(I)
+        beta_as_string = "[" + ", ".join(beta_names) + "]"
+        e = e + [PP_aux[j][-1]]
+        out += "\n"
+        out += f'''def PB{M}I{j} : PrimesBelowBoundCertificateInterval O {PP_aux[j][-1]} {max(PP_aux[j+1][-1], (floor((j + 1)/number_interval))*(M-1))} {M} where
   m := {len(PP[j])}
   g := !{G[j]}
   P := !{PP[j]}
@@ -2145,51 +2152,70 @@ def PrimesBelowBoundCertificteGenInterval(K, B, M, number_interval, primes_below
   I := fun i => by
     cases i
     rename_i i h
-    interval_cases i ''')
-            for i in range(len(PP[j])):
-                print(f'    · exact !{ideals_names_as_string[i]}')
-            print(f'''  hC := fun i => by
+    interval_cases i \n'''
+        for i in range(len(PP[j])):
+            out += f'    · exact !{ideals_names_as_string[i]}\n'
+        out += '''  hC := fun i => by
     cases i
     rename_i i h
-    interval_cases i''')
-            for i in range(len(PP[j])):
-                print(f'    · exact PBC{PP[j][i]}')
-            print(f'''  N := fun i => by
+    interval_cases i
+'''
+        for i in range(len(PP[j])):
+            out += f'    · exact PBC{PP[j][i]}\n'
+        out += '''  N := fun i => by
     cases i
     rename_i i h
-    interval_cases i''')
-            for i in range(len(PP[j])):
-                print(f'    · exact !{NN[j][i]}')
-            print(f'''  hNz := by decide''')
-            print(f'''  hN := fun i => by
+    interval_cases i
+'''
+        for i in range(len(PP[j])):
+            out += f'    · exact !{NN[j][i]}\n'
+        out += '  hNz := by decide\n'
+        out += '''  hN := fun i => by
     cases i
     rename_i i h
-    interval_cases i ''')
-            for i in range(len(PP[j])):
-                print('''    · dsimp ; intro j
-      fin_cases j''')
-                for k in range(G[j][i]):
-                    print(f'      exact {NN_names[j][i][k]}')
-            print(f'  Il := !{ideals_below_as_string}')
-            print('''  hIl := by
+    interval_cases i \n'''
+        for i in range(len(PP[j])):
+            out += '''    · dsimp ; intro j
+      fin_cases j
+'''
+            for k in range(G[j][i]):
+                out += f'      exact {NN_names[j][i][k]}\n'
+        out += f'  β := !{beta_as_string}\n'
+        out += f'  Il := !{ideals_below_as_string}\n'
+        out += '''  hIl := by
       intro i
       cases i
       rename_i i h
       interval_cases i
-      all_goals rfl''')
-        interval_strings.append(buf.getvalue())
+      all_goals rfl
+'''
+        out += '  hβ := by simp\n'
+        interval_strings.append(out)
 
-    glue_buf = io.StringIO()
-    with contextlib.redirect_stdout(glue_buf):
-        print('')
-        print(f'''def PB{M} : PrimesBelowBoundCertificate' O {M} := by
-  refine primesBelowBoundCertificate_of_Interval' O !{e + [M - 1]} {M - 1} rfl rfl ?_ ?_
-  · decide
-  · rintro ⟨i,hi⟩
-    interval_cases i ''')
-        for i in range(number_interval):
-            print(f'    exact PB{M}I{i}')
-    gluing_string = glue_buf.getvalue()
+    gluing_string = ""
+    gluing_string += "\n"
+    gluing_string += f"abbrev eC := !{e + [M - 1]}\n"
+    gluing_string += "\n"
+    gluing_string += f'''def hC : (i : Fin _) → PrimesBelowBoundCertificateInterval O (eC i.castSucc) (eC (i.castSucc + 1)) {M} := by
+  rintro ⟨i,hi⟩
+  interval_cases i
+'''
+    for i in range(number_interval):
+        gluing_string += f'  exact PB{M}I{i}\n'
+    gluing_string += "\n"
+    gluing_string += "lemma hel : ∀ (i : Fin _), eC i.castSucc < eC (i.castSucc + 1) := by decide\n"
+    gluing_string += "\n"
+    gluing_string += f'''def PB{M} : PrimesBelowBoundCertificate O {M} := by
+  refine primesBelowBoundCertificate_of_Interval O eC {M - 1} rfl rfl hel hC
+'''
+    gluing_string += "\n"
+    gluing_string += f"def 𝔭 := primesBelowBoundCertificate_of_Interval_fun_aux O eC {M - 1} hC\n"
+    gluing_string += "\n"
+    gluing_string += f"def e := primesBelowBoundCertificate_of_Interval_r_aux O eC {M - 1} hC\n"
+    gluing_string += "\n"
+    gluing_string += f'''lemma cert_eq_𝔭 : PB{M}.β = Fin.addCasesIter e 𝔭 := by
+  exact primesBelowBoundCertificate_of_Interval_β_eq_fun_aux O eC {M - 1} rfl rfl hel hC
+'''
 
     return interval_strings, gluing_string, ideals_below_interval_flatten, ideals_below_flag_p_interval_flatten, ideals_below_flatten, ideals_below_flag_p_flatten
 def LeanProof(T, basis, nameIrr, num, comment, flagD):
@@ -2295,13 +2321,6 @@ lemma hroot_mem : θ ∈ O := by
     flagl = dict(flagl)
     flaglW = dict(flaglW)
 
-    straux = ''
-    for i in range(d - 1):
-        if i == 0:
-            straux = straux + '0'
-        else:
-            straux = straux + ',0'
-
     out += f"""
 open BigOperators Classical Matrix Polynomial
 
@@ -2316,12 +2335,6 @@ lemma B_one_repr : B.equivFun.symm !{[1] + [0 for i in range(d - 1)]} = 1 := by
   ext i
   fin_cases i <;> norm_num
   · exact LinearEquiv.injective B.repr
-
-lemma B_int_repr {{n : ℤ}} : B.equivFun.symm ![n, {straux}] = n := by
-  suffices B.equivFun.symm ![n, {straux}] = n • 1 by convert this ; simp only [zsmul_eq_mul,mul_one]
-  rw [← B_one_repr, ← LinearEquiv.map_smul]
-  simp only [Basis.equivFun_symm_apply, zsmul_eq_mul, Matrix.smul_cons, smul_eq_mul, mul_one,
-    mul_zero, Matrix.smul_empty]
 
 instance : IsDomain O := by
   haveI hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
@@ -2454,23 +2467,13 @@ def ClassGroupOrderProofSplit(I, F_flags, BM, name_primes_cert, bound, J_names, 
 
     n = sum(e)
 
-    I_dedup_string = ["[" + ", ".join(Idedup[i]) + "]" for i in range(number_interval)]
-    I_string = ["[" + ", ".join(I[i]) + "]" for i in range(number_interval)]
-
     fac_grp = factor(prod(group_str))
     prime_list = [fac_grp[i][0] for i in range(len(fac_grp))]
     exp_list = [fac_grp[i][1] for i in range(len(fac_grp))]
 
     BMM = split_by_sizes(BM, e)
 
-    out += f'def e := !{e}\n'
     out += f'def s := !{s}\n\n'
-
-    out += f'def g : (i : Fin {number_interval}) → Fin (e i) → Ideal O := by \n'
-    out += f'  rintro ⟨i, hi⟩ \n  interval_cases i \n'
-    for i in range(number_interval):
-        out += '  exact !' + I_dedup_string[i] + '\n'
-    out += '\n'
 
     out += f'def BM : (i : Fin {number_interval}) → Fin (e i) → (Fin {len(J_names)} → ℕ) := by \n'
     out += f'  rintro ⟨i, hi⟩ \n  interval_cases i \n'
@@ -2478,37 +2481,22 @@ def ClassGroupOrderProofSplit(I, F_flags, BM, name_primes_cert, bound, J_names, 
         out += '  exact ' + ExList(str(BMM[i])) + '\n'
     out += '\n'
 
-    for i in range(number_interval):
-        out += f"""lemma primesGenerationAux{i}  {{y}} :
-    y ∈ (List.ofFn (fun (x : Fin (s {i})) => {name_primes_cert}.Il ((indexPair_inv s) ⟨{i},x⟩))).flatten ↔ y ∈ List.ofFn (g {i}) := by
-  erw [ primesBelowBoundCertificate_of_Interval_Il_apply' _ (by decide)]
-  show y ∈ {I_string[i]} ↔ y ∈ {I_dedup_string[i]}
-  simp only [List.mem_cons, List.not_mem_nil, or_false, or_self, or_self_left]
+    out += f"""lemma primesGenerationBelow : {{I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < {bound}}} ⊆ Set.range (Fin.addCasesIter e 𝔭) := by
+  rw [← cert_eq_𝔭]
+  refine le_primes_below_bound_of_PrimesBelowBoundCertificate_le_of_eq (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv {name_primes_cert}
 
-"""
-
-    out += f'lemma primesGenerationAux {{x}} : x ∈ (List.ofFn {name_primes_cert}.Il).flatten ↔ x ∈ List.ofFn (Fin.addCasesIter e g) := by\n'
-    out += f'  refine (list_flatten_eq_list_addCasesIter g (s := s) {name_primes_cert}.Il ?_ x)\n'
-    out += f'  rintro ⟨i, hi⟩ x\n  interval_cases i \n'
-    for i in range(number_interval):
-        out += f'  · exact primesGenerationAux{i}\n'
-    out += '\n'
-
-    out += f"""lemma primesGenerationBelow : {{I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < {bound}}} ⊆ Set.range (Fin.addCasesIter e g) :=
-  le_primes_below_bound_of_PrimesBelowBoundCertificate_le' (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv ((Fin.addCasesIter e g)) {name_primes_cert} (fun _ hx => primesGenerationAux.1 hx)
-
-def g' : Fin {n} → nonZeroDivisors (Ideal O) := by
+def 𝔭' : Fin {n} → nonZeroDivisors (Ideal O) := by
   intro i
-  have : (Fin.addCasesIter e g) i ∈ (List.ofFn {name_primes_cert}.Il).flatten := by
-    simp only [primesGenerationAux, List.mem_ofFn, exists_apply_eq_apply]
-  exact Ideal.toNonZeroDivisorOfNeZero ((Fin.addCasesIter e g) i)
-    (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate' _ {name_primes_cert}) (hc ▸ this) ))
+  have : {name_primes_cert}.β i ∈ List.ofFn {name_primes_cert}.β := by
+    simp only [List.mem_ofFn, exists_apply_eq_apply]
+  refine Ideal.toNonZeroDivisorOfNeZero (({name_primes_cert}.β) i)
+    (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate_Fn _ {name_primes_cert}) (hc ▸ this) ))
 
-def x : Fin {len(J_names)} → Ideal O := ![{','.join(J_names)}]
+def J : Fin {len(J_names)} → Ideal O := ![{','.join(J_names)}]
 
-def x' :  Fin {len(J_names)} → nonZeroDivisors (Ideal O) := by
-  refine fun i => Ideal.toNonZeroDivisorOfNeZero (x i) (?_ )
-  unfold x
+def J' :  Fin {len(J_names)} → nonZeroDivisors (Ideal O) := by
+  refine fun i => Ideal.toNonZeroDivisorOfNeZero (J i) (?_ )
+  unfold J
 """
 
     if names_sat_cert != []:
@@ -2522,43 +2510,44 @@ def x' :  Fin {len(J_names)} → nonZeroDivisors (Ideal O) := by
         out += '  simp \n'
 
     out += f"""
-lemma g'_apply : ∀ (i : Fin {n}), ↑(g' i) = (Fin.addCasesIter e g) i := by
+lemma 𝔭'_apply : ∀ (i : Fin {n}), ↑(𝔭' i) = (Fin.addCasesIter e 𝔭) i := by
   intro i
+  rw [← cert_eq_𝔭]
   rfl
 
-lemma x'_apply : ∀ (i : Fin {len(J_names)}), ↑(x' i) = x i := by
+lemma J'_apply : ∀ (i : Fin {len(J_names)}), ↑(J' i) = J i := by
   intro i
   rfl
 
 """
 
     for i in range(number_interval):
-        out += f"""lemma relations_proof{i} (i : Fin {e[i]}) : IsInClass O x (g {i} i) (BM {i} i) := by
-  show IsInClass O x (g {i} i) ({ExList(str(BMM[i]))} i)
+        all_principal = all(f == 1 for f in Fdedup[i])
+        out += f"""lemma relations_proof{i} (i : Fin {e[i]}) : IsInClass O J (𝔭 {i} i) (BM {i} i) := by
+  show IsInClass O J (𝔭 {i} i) ({ExList(str(BMM[i]))} i)
   unfold IsInClass
-  simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
-  dsimp
-  fin_cases i
 """
+        if not all_principal:
+            out += "  simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]\n"
+        out += "  fin_cases i\n"
         for j in range(e[i]):
             if Fdedup[i][j] != 1:
-                out += f"""  · refine Exists.intro _ (Exists.intro ?_ (Exists.intro (?_) (Exists.intro ?_ (by convert R{(Idedup[i][j])[1:]}))))
-    refine Nat.cast_ne_zero.2 (by decide)
-    exact (LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr (by decide)
+                out += f"""  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R{(Idedup[i][j])[1:]}
+"""
+            elif all_principal:
+                out += """  · refine ideal_mem_principal_class''' (by decide) J rfl rfl
 """
             else:
-                out += """  · simp only [Fin.isValue, Fin.reduceFinMk, Nat.succ_eq_add_one, Nat.reduceAdd, cons_val',
-    cons_val_zero, cons_val_fin_one, cons_val, cons_val_one, pow_zero, mul_one]
-    exact ideal_mem_principal_class'' B _ _ (by decide) rfl
+                out += """  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 """
         out += '\n'
 
-    out += f"""theorem class_group_generator : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (x' i))) = ⊤ := by
+    out += f"""theorem class_group_generator : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (J' i))) = ⊤ := by
   refine subgroup_closure_eq_classGroup'' (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv
-      g'_apply x'_apply ?_ primesGenerationBelow (Fin.addCasesIter e BM) ?_
+      𝔭'_apply J'_apply ?_ primesGenerationBelow (Fin.addCasesIter e BM) ?_
   · refine lt_of_le_of_lt K_minowski ?_
     norm_num
-  · refine forall_addCasesIter_prop g BM (IsInClass O x) ?_
+  · refine forall_addCasesIter_prop 𝔭 BM (IsInClass O J) ?_
     rintro ⟨i, hi⟩
     interval_cases i
 """
@@ -2573,7 +2562,7 @@ lemma x'_apply : ∀ (i : Fin {len(J_names)}), ↑(x' i) = x i := by
 """
 
     if names_sat_cert != []:
-        out += f"""  refine ClassGroup_equiv_of_pSaturatedCertificate x'_apply {names_sat_cert[0][0]}.h class_group_generator ?_
+        out += f"""  refine ClassGroup_equiv_of_pSaturatedCertificate J'_apply {names_sat_cert[0][0]}.h class_group_generator ?_
   rintro ⟨p, hp1, hp2⟩
   have : ∏ i, !{group_str} i = ∏ i, (!{prime_list} i) ^ (!{exp_list} i)  := by decide
   rw [this] at hp2
@@ -2592,8 +2581,8 @@ lemma x'_apply : ∀ (i : Fin {len(J_names)}), ↑(x' i) = x i := by
             out += f'  exact {names_sat_cert[i][0]}\n'
         out += '  omega\n'
     else:
-        out += f"""  refine ClassGroup_equiv_of_pSaturatedCertificate x'_apply (a := ![1]) (n := ![1])
-    (by simp [x]; exact Eq.symm Ideal.span_singleton_one) class_group_generator ?_
+        out += f"""  refine ClassGroup_equiv_of_pSaturatedCertificate J'_apply (a := ![1]) (n := ![1])
+    (by simp [J]; exact Eq.symm Ideal.span_singleton_one) class_group_generator ?_
   rintro ⟨p, hp1, hp2⟩
   simp at hp2
   exact (Nat.Prime.ne_one hp1 hp2).elim
@@ -2765,7 +2754,11 @@ lemma K_nrComplexPlaces : NumberField.InfinitePlace.nrComplexPlaces K = {K.signa
   rw [nrComplexPlaces_of_RankUnitsCertificate RC]
   rfl
 
-theorem K_minowski : MinkowskiBound K ≤ ({float(M + 0.01)} : ℝ) := by
+lemma K_nrRealPlaces : NumberField.InfinitePlace.nrRealPlaces K = {K.signature()[0]} := by
+  rw [nrRealPlaces_of_RankUnitsCertificate RC]
+  rfl
+
+theorem K_minowski : minkowskiBoundFB K ≤ ({float(M + 0.01)} : ℝ) := by
   refine K_minkowski_decimal _ ?_
   erw [K_nrComplexPlaces, K_discr, K_finrank]
   have hraux: √{Dabs} ≤ {sqrt_Dabs_rounded} := by
@@ -2792,7 +2785,7 @@ theorem K_minowski : MinkowskiBound K ≤ ({float(M + 0.01)} : ℝ) := by
     names_sat_cert = [[f'NPSU{pr}', 1 if u[0].multiplicative_order() % pr == 0 else 0]
                       for pr in primesCN]
 
-    if NF > 100:
+    if NF > 70:
         out += "set_option maxRecDepth 20000\n\n"
     out += ClassGroupOrderProofSplit(
         listIint, listPint, BM_final,
@@ -2865,7 +2858,7 @@ def generate_class_group_lean(T, B_polys, num):
 import IdealArithmetic.Examples.NF{num}.RI{num}
 import IdealArithmetic.Generation.ClassGroupGeneration
 import IdealArithmetic.IdealArithmetic
-import IdealArithmetic.Computation.PrimeSieve2
+import IdealArithmetic.Computation.PrimeSieve
 
 set_option linter.all false
 
@@ -2880,8 +2873,9 @@ noncomputable section """
         f"import IdealArithmetic.Examples.NF{num}.PrimesBelow{num}F{i}\n"
         for i in range(NF)
     ) + "\nnoncomputable section"
-    if NF > 100:
+    if NF > 70:
         cert_header += "\nset_option maxRecDepth 20000"
+        cert_header += "\nset_option maxHeartbeats 400000"
     with open(f"{folder}/PrimesBelowCert{num}.lean", "w") as f:
         f.write(cert_header + gluing_string)
 
@@ -2992,6 +2986,8 @@ theorem O_ringOfIntegers : O = RingOfIntegers K := O_ringOfIntegers'
 theorem K_discr' : discr K = {D} := K_discr
 
 lemma K_nrComplexPlaces' : InfinitePlace.nrComplexPlaces K = {K.signature()[1]} := K_nrComplexPlaces
+
+lemma K_nrRealPlaces' : InfinitePlace.nrRealPlaces K = {K.signature()[0]} := K_nrRealPlaces
 """
     results_str += f"""
 def class_group_equiv' :
