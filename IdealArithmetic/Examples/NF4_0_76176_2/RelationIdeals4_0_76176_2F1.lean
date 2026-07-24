@@ -1,6 +1,0 @@
-import IdealArithmetic.Examples.NF4_0_76176_2.PrimesBelow4_0_76176_2F1
-import IdealArithmetic.Examples.NF4_0_76176_2.ClassGroupData4_0_76176_2
-
-set_option linter.all false
-
-noncomputable section

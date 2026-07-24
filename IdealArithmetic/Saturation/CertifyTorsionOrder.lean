@@ -359,18 +359,23 @@ lemma units_finrank_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K
   unfold NumberField.Units.rank
   rw [card_infinitePlace_of_RankUnitsCertificate C]
 
-lemma nrComplexPlaces_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+lemma nrRealPlaces_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
     {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) :
-    InfinitePlace.nrComplexPlaces K = C.r - C.k := by
-  rw [← card_infinitePlace_of_RankUnitsCertificate C,
-    NumberField.InfinitePlace.card_eq_nrRealPlaces_add_nrComplexPlaces, ← C.hr,
+    InfinitePlace.nrRealPlaces K = C.k := by
+  rw [nrRealPlaces_eq_nr_real_roots K _ C.hAdj, ← C.hr,
       ← sturm_theorem_total_map_ofList ℝ (Real.IsRealClosedField) (algebraMap ℤ ℝ)
-      (Int.cast_strictMono) C.SB, nrRealPlaces_eq_nr_real_roots K _ C.hAdj,
-      add_comm, Polynomial.map_map]
+      (Int.cast_strictMono) C.SB, Polynomial.map_map]
   have : (algebraMap ℚ ℝ).comp (algebraMap ℤ ℚ) = algebraMap ℤ ℝ := by rfl
   rw [this, C.hl]
-  simp only [algebraMap_int_eq, add_tsub_cancel_right]
   · rw [Polynomial.map_ne_zero_iff (RingHom.injective_int (algebraMap ℤ ℚ)), ← C.hl ]
     intro hc
     exact (C.hz) (nil_of_ofList_eq_zero C.l
       ((dropTrailingZeros_eq_dropTrailingZeros' C.l ).symm ▸ C.hlz) hc)
+
+lemma nrComplexPlaces_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K]
+    {O : Subalgebra ℤ K} (C : RankUnitsCertificate O) :
+    InfinitePlace.nrComplexPlaces K = C.r - C.k := by
+  rw [← card_infinitePlace_of_RankUnitsCertificate C,
+    NumberField.InfinitePlace.card_eq_nrRealPlaces_add_nrComplexPlaces,
+      nrRealPlaces_of_RankUnitsCertificate C]
+  simp only [add_tsub_cancel_left]

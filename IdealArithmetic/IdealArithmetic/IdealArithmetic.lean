@@ -627,7 +627,7 @@ inductive IdealMulLeChainCertificate {R : Type*} [CommRing R] {r m : ℕ}
   (T : Fin r → Fin r → List R) (u : Fin m → Fin r → R) :
   {s : ℕ} → (Fin s → Fin r → R) → Type (u_4 + 1)
   | nil : IdealMulLeChainCertificate T u u
-  | cons {x : ℕ} {v} {uu : Fin x → Fin r → R} {w} : IdealMulLeChainCertificate T u v →
+  | cons {v} {uu} {w} : IdealMulLeChainCertificate T u v →
     IdealMulLeCertificate' T v uu w → IdealMulLeChainCertificate T u w
 
 /-- The intermediate ideals corresponding to a chain. -/
@@ -836,6 +836,20 @@ lemma ideal_mem_principal_class'' {O R: Type*} [CommRing O] [CommRing R]
     refine congrArg _ ?_
     simp only [Matrix.cons_val_fin_one, Basis.equivFun_symm_apply, Set.range_const]
 
+lemma ideal_mem_principal_class''' {O R: Type*} [CommRing O] [CommRing R]
+  [Algebra R O] {r t : ℕ} [NeZero r] [NeZero t] {B : Basis (Fin r) R O}
+  {I : Ideal O} {v : Fin r → R} (hv : v ≠ 0)
+  (J : Fin t → Ideal O) {K : Ideal O}
+  (hI : I = Ideal.span (Set.range (fun i : Fin 1 => B.equivFun.symm (![v] i) )))
+  (heq : K = ∏ i, (J i) ^ 0) :
+  ∃ (α β : O), ∃ (_ : α ≠ 0), ∃ (_ : β ≠ 0),
+    Ideal.span {α} * I = Ideal.span {β} * K := by
+  simp only [pow_zero,  Finset.prod_const, Finset.card_univ, Fintype.card_fin] at heq
+  rw [one_pow] at heq
+  rw [heq]
+  simp only [Ideal.one_eq_top, Ideal.mul_top]
+  exact ideal_mem_principal_class'' B I v hv hI
+
 /-- Given `O`-generators for `I` and `r ∈ R`, certifies generators for `⟨r⟩ · I`. -/
 lemma ideal_mul_span_singleton_coe [Algebra R O] {r m : ℕ} [NeZero r] (B : Basis (Fin r) R O)
     (I : Ideal O) (v : Fin m → Fin r → R)
@@ -889,7 +903,18 @@ lemma relation_of_RelationCertificate [Algebra R O] {r m n : ℕ} [NeZero r]
   refine ideal_eq_of_IdealEqCertificateO' heq rfl rfl ?_
   exact { g := C.g, h := C.h, hle1 := C.hle1, hle2 := C.hle2}
 
-
+lemma exists_ne_zero_mul_of_relation
+  [Algebra ℤ O] {r : ℕ} [NeZero r] [CharZero O]
+  {B  : Basis (Fin r) ℤ O} {s : ℤ} {a : Fin r → ℤ} {I J : Ideal O}
+  (hs : s ≠ 0) (ha : a ≠ 0)
+  (h : (Ideal.span {algebraMap ℤ O s}) * I = Ideal.span {B.equivFun.symm a} * J ) :
+   ∃ α β, ∃ (_ : α ≠ 0) (_ : β ≠ 0), Ideal.span {α} * I = Ideal.span {β} * J := by
+  use algebraMap ℤ O s, B.equivFun.symm a
+  have aux1 : algebraMap ℤ O s ≠ 0 := by
+    simp only [eq_intCast, ne_eq, Int.cast_eq_zero, hs, not_false_eq_true]
+  have aux2 : B.equivFun.symm a ≠ 0 := by
+    refine (LinearEquiv.map_ne_zero_iff B.equivFun.symm).mpr ha
+  use aux1
 
 
 

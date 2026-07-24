@@ -442,7 +442,6 @@ def T12 : SturmBuilderOfList [[-1, -3, 4, -3, 4, -7, 8, -5, 2, -1, 2, -2, 1], [-
     interval_cases i <;> (dsimp ; decide)
 
 
-set_option maxRecDepth 1000
 
 theorem discr12 : discr (C (-1) + C (-3) * X + C 4 * X ^ 2 + C (-3) * X ^ 3
   + C 4 * X ^ 4 + C (-7) * X ^ 5 + C 8 * X ^ 6 + C (-5) * X ^ 7 +

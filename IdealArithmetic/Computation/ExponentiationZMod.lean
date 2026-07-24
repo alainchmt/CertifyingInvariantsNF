@@ -84,6 +84,13 @@ macro "zmod_pow" : tactic =>
     try decide
   ))
 
+/-- Tactic for unfolding a product into an interated multiplication. -/
+macro "unfold_prod" : tactic =>
+  `(tactic| (
+    simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty,
+    Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
+    rfl))
+
 -- EXAMPLES
 
 
