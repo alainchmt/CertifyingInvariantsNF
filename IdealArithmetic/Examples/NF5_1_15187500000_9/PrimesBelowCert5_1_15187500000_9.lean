@@ -1,0 +1,237 @@
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F0
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F1
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F2
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F3
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F4
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F5
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F6
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F7
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F8
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F9
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F10
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F11
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F12
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F13
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F14
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F15
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F16
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F17
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F18
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F19
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F20
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F21
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F22
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F23
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F24
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F25
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F26
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F27
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F28
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F29
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F30
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F31
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F32
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F33
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F34
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F35
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F36
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F37
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F38
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F39
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F40
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F41
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F42
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F43
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F44
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F45
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F46
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F47
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F48
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F49
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F50
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F51
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F52
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F53
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F54
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F55
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F56
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F57
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F58
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F59
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F60
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F61
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F62
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F63
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F64
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F65
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F66
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F67
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F68
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F69
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F70
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F71
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F72
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F73
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F74
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F75
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F76
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F77
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F78
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F79
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F80
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F81
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F82
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F83
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F84
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F85
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F86
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F87
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F88
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F89
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F90
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F91
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F92
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F93
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F94
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F95
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F96
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F97
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F98
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F99
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F100
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F101
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F102
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F103
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F104
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F105
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F106
+import IdealArithmetic.Examples.NF5_1_15187500000_9.PrimesBelow5_1_15187500000_9F107
+
+noncomputable section
+set_option maxRecDepth 20000
+set_option maxHeartbeats 400000
+abbrev eC := ![1, 23, 61, 103, 151, 197, 251, 307, 359, 419, 463, 523, 593, 643, 701, 761, 827, 883, 953, 1019, 1069, 1129, 1213, 1279, 1321, 1427, 1481, 1543, 1601, 1663, 1733, 1801, 1877, 1951, 2017, 2087, 2143, 2239, 2297, 2371, 2423, 2521, 2593, 2671, 2713, 2789, 2851, 2927, 3011, 3083, 3181, 3253, 3323, 3389, 3467, 3539, 3607, 3673, 3739, 3823, 3907, 3967, 4049, 4127, 4211, 4261, 4349, 4441, 4513, 4591, 4657, 4733, 4813, 4919, 4973, 5039, 5113, 5209, 5297, 5393, 5443, 5519, 5591, 5669, 5743, 5827, 5879, 5987, 6073, 6143, 6221, 6299, 6359, 6449, 6551, 6619, 6701, 6781, 6857, 6947, 6997, 7079, 7187, 7247, 7349, 7459, 7529, 7583, 7671]
+
+def hC : (i : Fin _) → PrimesBelowBoundCertificateInterval O (eC i.castSucc) (eC (i.castSucc + 1)) 7672 := by
+  rintro ⟨i,hi⟩
+  interval_cases i
+  exact PB7672I0
+  exact PB7672I1
+  exact PB7672I2
+  exact PB7672I3
+  exact PB7672I4
+  exact PB7672I5
+  exact PB7672I6
+  exact PB7672I7
+  exact PB7672I8
+  exact PB7672I9
+  exact PB7672I10
+  exact PB7672I11
+  exact PB7672I12
+  exact PB7672I13
+  exact PB7672I14
+  exact PB7672I15
+  exact PB7672I16
+  exact PB7672I17
+  exact PB7672I18
+  exact PB7672I19
+  exact PB7672I20
+  exact PB7672I21
+  exact PB7672I22
+  exact PB7672I23
+  exact PB7672I24
+  exact PB7672I25
+  exact PB7672I26
+  exact PB7672I27
+  exact PB7672I28
+  exact PB7672I29
+  exact PB7672I30
+  exact PB7672I31
+  exact PB7672I32
+  exact PB7672I33
+  exact PB7672I34
+  exact PB7672I35
+  exact PB7672I36
+  exact PB7672I37
+  exact PB7672I38
+  exact PB7672I39
+  exact PB7672I40
+  exact PB7672I41
+  exact PB7672I42
+  exact PB7672I43
+  exact PB7672I44
+  exact PB7672I45
+  exact PB7672I46
+  exact PB7672I47
+  exact PB7672I48
+  exact PB7672I49
+  exact PB7672I50
+  exact PB7672I51
+  exact PB7672I52
+  exact PB7672I53
+  exact PB7672I54
+  exact PB7672I55
+  exact PB7672I56
+  exact PB7672I57
+  exact PB7672I58
+  exact PB7672I59
+  exact PB7672I60
+  exact PB7672I61
+  exact PB7672I62
+  exact PB7672I63
+  exact PB7672I64
+  exact PB7672I65
+  exact PB7672I66
+  exact PB7672I67
+  exact PB7672I68
+  exact PB7672I69
+  exact PB7672I70
+  exact PB7672I71
+  exact PB7672I72
+  exact PB7672I73
+  exact PB7672I74
+  exact PB7672I75
+  exact PB7672I76
+  exact PB7672I77
+  exact PB7672I78
+  exact PB7672I79
+  exact PB7672I80
+  exact PB7672I81
+  exact PB7672I82
+  exact PB7672I83
+  exact PB7672I84
+  exact PB7672I85
+  exact PB7672I86
+  exact PB7672I87
+  exact PB7672I88
+  exact PB7672I89
+  exact PB7672I90
+  exact PB7672I91
+  exact PB7672I92
+  exact PB7672I93
+  exact PB7672I94
+  exact PB7672I95
+  exact PB7672I96
+  exact PB7672I97
+  exact PB7672I98
+  exact PB7672I99
+  exact PB7672I100
+  exact PB7672I101
+  exact PB7672I102
+  exact PB7672I103
+  exact PB7672I104
+  exact PB7672I105
+  exact PB7672I106
+  exact PB7672I107
+
+lemma hel : ∀ (i : Fin _), eC i.castSucc < eC (i.castSucc + 1) := by decide
+
+def PB7672 : PrimesBelowBoundCertificate O 7672 := by
+  refine primesBelowBoundCertificate_of_Interval O eC 7671 rfl rfl hel hC
+
+def 𝔭 := primesBelowBoundCertificate_of_Interval_fun_aux O eC 7671 hC
+
+def e := primesBelowBoundCertificate_of_Interval_r_aux O eC 7671 hC
+
+lemma cert_eq_𝔭 : PB7672.β = Fin.addCasesIter e 𝔭 := by
+  exact primesBelowBoundCertificate_of_Interval_β_eq_fun_aux O eC 7671 rfl rfl hel hC

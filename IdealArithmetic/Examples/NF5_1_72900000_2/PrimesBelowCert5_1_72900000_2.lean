@@ -1,0 +1,41 @@
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F0
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F1
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F2
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F3
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F4
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F5
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F6
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F7
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F8
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F9
+import IdealArithmetic.Examples.NF5_1_72900000_2.PrimesBelow5_1_72900000_2F10
+
+noncomputable section
+abbrev eC := ![1, 23, 61, 103, 151, 197, 251, 307, 359, 419, 463, 531]
+
+def hC : (i : Fin _) → PrimesBelowBoundCertificateInterval O (eC i.castSucc) (eC (i.castSucc + 1)) 532 := by
+  rintro ⟨i,hi⟩
+  interval_cases i
+  exact PB532I0
+  exact PB532I1
+  exact PB532I2
+  exact PB532I3
+  exact PB532I4
+  exact PB532I5
+  exact PB532I6
+  exact PB532I7
+  exact PB532I8
+  exact PB532I9
+  exact PB532I10
+
+lemma hel : ∀ (i : Fin _), eC i.castSucc < eC (i.castSucc + 1) := by decide
+
+def PB532 : PrimesBelowBoundCertificate O 532 := by
+  refine primesBelowBoundCertificate_of_Interval O eC 531 rfl rfl hel hC
+
+def 𝔭 := primesBelowBoundCertificate_of_Interval_fun_aux O eC 531 hC
+
+def e := primesBelowBoundCertificate_of_Interval_r_aux O eC 531 hC
+
+lemma cert_eq_𝔭 : PB532.β = Fin.addCasesIter e 𝔭 := by
+  exact primesBelowBoundCertificate_of_Interval_β_eq_fun_aux O eC 531 rfl rfl hel hC

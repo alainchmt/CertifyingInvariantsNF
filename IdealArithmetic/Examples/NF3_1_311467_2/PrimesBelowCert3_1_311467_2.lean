@@ -1,0 +1,27 @@
+import IdealArithmetic.Examples.NF3_1_311467_2.PrimesBelow3_1_311467_2F0
+import IdealArithmetic.Examples.NF3_1_311467_2.PrimesBelow3_1_311467_2F1
+import IdealArithmetic.Examples.NF3_1_311467_2.PrimesBelow3_1_311467_2F2
+import IdealArithmetic.Examples.NF3_1_311467_2.PrimesBelow3_1_311467_2F3
+
+noncomputable section
+abbrev eC := ![1, 31, 79, 137, 157]
+
+def hC : (i : Fin _) → PrimesBelowBoundCertificateInterval O (eC i.castSucc) (eC (i.castSucc + 1)) 158 := by
+  rintro ⟨i,hi⟩
+  interval_cases i
+  exact PB158I0
+  exact PB158I1
+  exact PB158I2
+  exact PB158I3
+
+lemma hel : ∀ (i : Fin _), eC i.castSucc < eC (i.castSucc + 1) := by decide
+
+def PB158 : PrimesBelowBoundCertificate O 158 := by
+  refine primesBelowBoundCertificate_of_Interval O eC 157 rfl rfl hel hC
+
+def 𝔭 := primesBelowBoundCertificate_of_Interval_fun_aux O eC 157 hC
+
+def e := primesBelowBoundCertificate_of_Interval_r_aux O eC 157 hC
+
+lemma cert_eq_𝔭 : PB158.β = Fin.addCasesIter e 𝔭 := by
+  exact primesBelowBoundCertificate_of_Interval_β_eq_fun_aux O eC 157 rfl rfl hel hC

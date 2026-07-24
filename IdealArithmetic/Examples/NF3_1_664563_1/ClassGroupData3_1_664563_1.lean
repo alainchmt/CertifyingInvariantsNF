@@ -1,0 +1,20 @@
+import IdealArithmetic.IdealArithmetic.IdealArithmetic
+import Mathlib.NumberTheory.NumberField.Units.DirichletTheorem
+import IdealArithmetic.Examples.NF3_1_664563_1.RI3_1_664563_1
+
+set_option linter.all false
+
+open BigOperators Classical Matrix Polynomial Module
+noncomputable section
+
+def v := B.equivFun.symm ![-1, 0, 0]
+
+def zeta1 := B.equivFun.symm ![100848950213247344008574193925564607247848246475471318192930721558578895637553847019774037829503958702480270846, 5418648729426501433741008761075084385249926234721848874597603029046288603155702810349565910171302263397603858, 3409826338427550880992647597163022937895397638795941971114455179632721637234217113514547252689365538341719355]
+
+lemma isUnit_zeta1 : IsUnit zeta1 := by 
+ apply IsUnit.of_mul_eq_one (B.equivFun.symm ![-5214536838512046579496985508602535657270758116590298070, 1019377055109824330157877249151798356768006231081429307, 46829142413671778308778247119365134266008352764580712])
+ rw [← B_one_repr]
+ refine table_mul_list_eq_mul timesTableO.table B _ _ _ timesTableO.basis_mul_basis ?_
+ rw [← table_mul_eq_table_mul' _ _ timesTableT_eq_Table]
+ decide
+

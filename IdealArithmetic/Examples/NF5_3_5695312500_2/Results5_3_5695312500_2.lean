@@ -1,0 +1,24 @@
+import IdealArithmetic.Examples.NF5_3_5695312500_2.Invariants5_3_5695312500_2
+
+noncomputable section
+
+open Polynomial NumberField
+
+/- Number field `K(α)` with `α` root of the polynomial `X^5 - 75*X^3 - 200*X^2 + 150*X - 60`. -/
+
+lemma T_def' : K = AdjoinRoot (map (algebraMap ℤ ℚ) (X^5 - 75*X^3 - 200*X^2 + 150*X - 60)) := rfl
+
+lemma T_irreducible' : Irreducible (X^5 - 75*X^3 - 200*X^2 + 150*X - 60 : ℤ[X]) := irreducible_T
+
+theorem O_ringOfIntegers : O = RingOfIntegers K := O_ringOfIntegers'
+
+theorem K_discr' : discr K = -5695312500 := K_discr
+
+lemma K_nrComplexPlaces' : InfinitePlace.nrComplexPlaces K = 1 := K_nrComplexPlaces
+
+lemma K_nrRealPlaces' : InfinitePlace.nrRealPlaces K = 3 := K_nrRealPlaces
+
+def class_group_equiv' :
+  (∀ i : Fin 1 , (ZMod (![4] i))) ≃+ Additive (ClassGroup (RingOfIntegers K)) := class_group_equiv
+
+theorem class_number_K_eq_4' : classNumber K = 4 := class_number_K_eq_4

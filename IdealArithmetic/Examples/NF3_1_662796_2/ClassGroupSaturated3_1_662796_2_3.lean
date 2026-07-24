@@ -1,0 +1,285 @@
+import IdealArithmetic.Examples.NF3_1_662796_2.ClassGroupData3_1_662796_2
+import IdealArithmetic.IdealArithmetic.IdealArithmetic
+import Mathlib.NumberTheory.NumberField.Units.DirichletTheorem
+import IdealArithmetic.Saturation.PrincipalityCertificate
+import IdealArithmetic.Computation.ExponentiationZMod
+import Mathlib.RingTheory.AdjoinRoot
+import IdealArithmetic.Examples.NF3_1_662796_2.RI3_1_662796_2
+
+set_option linter.all false
+
+open BigOperators Classical Matrix Polynomial
+
+noncomputable section
+
+namespace Sat3 
+instance hq19 : Fact $ Nat.Prime 19 := {out := by norm_num}
+instance hq37 : Fact $ Nat.Prime 37 := {out := by norm_num}
+instance hq31 : Fact $ Nat.Prime 31 := {out := by norm_num}
+
+def R19 : IsOrderOf (2 : ZMod 19) 18 where
+ m := 2
+ P := ![2, 3]
+ e := ![1, 2]
+ hP := fun i => by fin_cases i <;> norm_num
+ hm := by rfl
+ hid := by zmod_pow
+ hnid := fun i => by fin_cases i ; repeat zmod_pow
+
+def R37 : IsOrderOf (2 : ZMod 37) 36 where
+ m := 2
+ P := ![2, 3]
+ e := ![2, 2]
+ hP := fun i => by fin_cases i <;> norm_num
+ hm := by rfl
+ hid := by zmod_pow
+ hnid := fun i => by fin_cases i ; repeat zmod_pow
+
+def R31 : IsOrderOf (3 : ZMod 31) 30 where
+ m := 3
+ P := ![2, 3, 5]
+ e := ![1, 1, 1]
+ hP := fun i => by fin_cases i <;> norm_num
+ hm := by rfl
+ hid := by zmod_pow
+ hnid := fun i => by fin_cases i ; repeat zmod_pow
+
+def I0 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![31, 0, 0], ![4, 1, 0]] i)))
+def I1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![19, 0, 0], ![0, 1, 0]] i)))
+def I2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![37, 0, 0], ![0, 1, 0]] i)))
+
+def A0: IdealEqSpanCertificate' Table ![![31, 0, 0], ![4, 1, 0]] 
+ ![![31, 0, 0], ![4, 1, 0], ![24, 0, 1]] where
+  M :=![![![31, 0, 0], ![0, 31, 0], ![0, 0, 31]], ![![4, 1, 0], ![-1, 5, 3], ![469, 76, 3]]]
+  hmulB := by decide  
+  f := ![![![-99, 479, 288], ![31, -2976, 0]], ![![-12, 60, 36], ![1, -372, 0]], ![![-76, 371, 223], ![19, -2304, 0]]]
+  g := ![![![1, 0, 0], ![-4, 31, 0], ![-24, 0, 31]], ![![0, 1, 0], ![-3, 5, 3], ![3, 76, 3]]]
+  hle1 := by decide   
+  hle2 := by decide  
+
+lemma N0 : Nat.card (O ⧸ I0) = 31 := 
+ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0)
+
+def A1: IdealEqSpanCertificate' Table ![![19, 0, 0], ![0, 1, 0]] 
+ ![![19, 0, 0], ![0, 1, 0], ![6, 0, 1]] where
+  M :=![![![19, 0, 0], ![0, 19, 0], ![0, 0, 19]], ![![0, 1, 0], ![-1, 1, 3], ![469, 76, -1]]]
+  hmulB := by decide  
+  f := ![![![1, 0, 0], ![0, 0, 0]], ![![0, 0, 0], ![1, 0, 0]], ![![0, 0, 1], ![6, -6, 0]]]
+  g := ![![![1, 0, 0], ![0, 19, 0], ![-6, 0, 19]], ![![0, 1, 0], ![-1, 1, 3], ![25, 76, -1]]]
+  hle1 := by decide   
+  hle2 := by decide  
+
+lemma N1 : Nat.card (O ⧸ I1) = 19 := 
+ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1)
+
+def A2: IdealEqSpanCertificate' Table ![![37, 0, 0], ![0, 1, 0]] 
+ ![![37, 0, 0], ![0, 1, 0], ![12, 0, 1]] where
+  M :=![![![37, 0, 0], ![0, 37, 0], ![0, 0, 37]], ![![0, 1, 0], ![-1, 1, 3], ![469, 76, -1]]]
+  hmulB := by decide  
+  f := ![![![1, 0, 0], ![0, 0, 0]], ![![0, 0, 0], ![1, 0, 0]], ![![0, 0, 1], ![12, -12, 0]]]
+  g := ![![![1, 0, 0], ![0, 37, 0], ![-12, 0, 37]], ![![0, 1, 0], ![-1, 1, 3], ![13, 76, -1]]]
+  hle1 := by decide   
+  hle2 := by decide  
+
+lemma N2 : Nat.card (O ⧸ I2) = 37 := 
+ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2)
+
+def Log00Mem : IdealMemCertificate B I0
+ ![![31, 0, 0], ![4, 1, 0], ![24, 0, 1]] ![-288, -51, 12] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0
+ g := ![-12, -51, 12]
+ hmem := by decide
+
+def Log00: DiscreteLogCertificate N0 ((orderOf_of_IsOrderOf R31) ▸ IsPrimitiveRoot.orderOf _) 3 zeta1 1 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![-271, -51, 12]
+ hxeq :=  rfl
+ m := 17
+ C := ![-288, -51, 12]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log00Mem
+ k := 7
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log01Mem : IdealMemCertificate B I0
+ ![![31, 0, 0], ![4, 1, 0], ![24, 0, 1]] ![120, 31, 5] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0
+ g := ![-4, 31, 5]
+ hmem := by decide
+
+def Log01: DiscreteLogCertificate N0 ((orderOf_of_IsOrderOf R31) ▸ IsPrimitiveRoot.orderOf _) 3 alpha0 1 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![132, 31, 5]
+ hxeq :=  rfl
+ m := 12
+ C := ![120, 31, 5]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log01Mem
+ k := 19
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log02Mem : IdealMemCertificate B I0
+ ![![31, 0, 0], ![4, 1, 0], ![24, 0, 1]] ![-138, -26, -4] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A0
+ g := ![2, -26, -4]
+ hmem := by decide
+
+def Log02: DiscreteLogCertificate N0 ((orderOf_of_IsOrderOf R31) ▸ IsPrimitiveRoot.orderOf _) 3 alpha1 2 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![-117, -26, -4]
+ hxeq :=  rfl
+ m := 21
+ C := ![-138, -26, -4]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log02Mem
+ k := 29
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log10Mem : IdealMemCertificate B I1
+ ![![19, 0, 0], ![0, 1, 0], ![6, 0, 1]] ![-289, -51, 12] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1
+ g := ![-19, -51, 12]
+ hmem := by decide
+
+def Log10: DiscreteLogCertificate N1 ((orderOf_of_IsOrderOf R19) ▸ IsPrimitiveRoot.orderOf _) 3 zeta1 0 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![-271, -51, 12]
+ hxeq :=  rfl
+ m := 18
+ C := ![-289, -51, 12]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log10Mem
+ k := 9
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log11Mem : IdealMemCertificate B I1
+ ![![19, 0, 0], ![0, 1, 0], ![6, 0, 1]] ![125, 31, 5] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1
+ g := ![5, 31, 5]
+ hmem := by decide
+
+def Log11: DiscreteLogCertificate N1 ((orderOf_of_IsOrderOf R19) ▸ IsPrimitiveRoot.orderOf _) 3 alpha0 0 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![132, 31, 5]
+ hxeq :=  rfl
+ m := 7
+ C := ![125, 31, 5]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log11Mem
+ k := 6
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log12Mem : IdealMemCertificate B I1
+ ![![19, 0, 0], ![0, 1, 0], ![6, 0, 1]] ![-119, -26, -4] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A1
+ g := ![-5, -26, -4]
+ hmem := by decide
+
+def Log12: DiscreteLogCertificate N1 ((orderOf_of_IsOrderOf R19) ▸ IsPrimitiveRoot.orderOf _) 3 alpha1 1 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![-117, -26, -4]
+ hxeq :=  rfl
+ m := 2
+ C := ![-119, -26, -4]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log12Mem
+ k := 1
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log20Mem : IdealMemCertificate B I2
+ ![![37, 0, 0], ![0, 1, 0], ![12, 0, 1]] ![-300, -51, 12] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2
+ g := ![-12, -51, 12]
+ hmem := by decide
+
+def Log20: DiscreteLogCertificate N2 ((orderOf_of_IsOrderOf R37) ▸ IsPrimitiveRoot.orderOf _) 3 zeta1 0 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![-271, -51, 12]
+ hxeq :=  rfl
+ m := 29
+ C := ![-300, -51, 12]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log20Mem
+ k := 21
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log21Mem : IdealMemCertificate B I2
+ ![![37, 0, 0], ![0, 1, 0], ![12, 0, 1]] ![97, 31, 5] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2
+ g := ![1, 31, 5]
+ hmem := by decide
+
+def Log21: DiscreteLogCertificate N2 ((orderOf_of_IsOrderOf R37) ▸ IsPrimitiveRoot.orderOf _) 3 alpha0 1 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![132, 31, 5]
+ hxeq :=  rfl
+ m := 35
+ C := ![97, 31, 5]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log21Mem
+ k := 19
+ hpow := by zmod_pow
+ heql := by decide
+
+def Log22Mem : IdealMemCertificate B I2
+ ![![37, 0, 0], ![0, 1, 0], ![12, 0, 1]] ![-122, -26, -4] where
+ hieq := ideal_eq_of_IdealEqSpanCertificate' timesTableT_eq_Table rfl A2
+ g := ![-2, -26, -4]
+ hmem := by decide
+
+def Log22: DiscreteLogCertificate N2 ((orderOf_of_IsOrderOf R37) ▸ IsPrimitiveRoot.orderOf _) 3 alpha1 2 where
+ r := 3
+ hN := by infer_instance
+ hpdvd := by decide
+ B := B
+ hone := B_one
+ xcoord := ![-117, -26, -4]
+ hxeq :=  rfl
+ m := 5
+ C := ![-122, -26, -4]
+ hCeq := by rfl
+ hmem := mem_of_certificate _ _ _ _ Log22Mem
+ k := 23
+ hpow := by zmod_pow
+ heql := by decide
+
+end Sat3
