@@ -1,15 +1,15 @@
 # Single-file Sage script for Lean class group certificates
-# Entry point: generate_class_group_lean(T, B_polys, num)
+# Entry point: generate_invariants_proof_lean(T, B_polys, num)
 #
 # Usage example (degree 3):
 #
-#   load('ClassGroupLean.sage')
+#   load('InvariantsNFLean.sage')
 #   R.<x> = PolynomialRing(ZZ)
 #   f = x^3 + 150*x - 50
 #   K.<a> = NumberField(f)
 #   B = [1, a, 1/5*a^2]          # integral basis of K
 #   label = '3_1_542700_3'       # names the output folder NF<label> and the files in it
-#   generate_class_group_lean(f, B, label)
+#   generate_invariants_proof_lean(f, B, label)
 #
 # This writes only .lean files (Irreducible/RI/PrimesBelow*/ClassGroupData/
 # ClassGroupSaturated*/RelationIdeals*/Invariants/Results) into ./NF<label>/.
@@ -463,7 +463,7 @@ def BasisToMatrix(B):
 
 def SubalgebraBuilderF(T, C, d):
     """Builds a term of type SubalgebraBuilderLists in Lean.
-    Returns (str, A, auxTemp) where A is the times table and auxTemp is B^{-1} * (d * e_1)."""
+    Returns (str, A, auxTemp) where A is the times table and auxTemp is C^{-1} * (d * e_1)."""
     n = T.degree()
     K.<a> = NumberField(T)
     S.<X> = PolynomialRing(ZZ)
@@ -947,11 +947,9 @@ def IntegralBasisIdeal(I, B):
     return W
 
 def PseudoProject(M, b):
-    # The second return value (a "norm", used only to rank/report candidates) is discarded by
-    # every caller of SolveRightInteger, so it is computed here as a squared norm (an exact
-    # integer/rational dot product) rather than via norm(): on an integer/rational vector,
-    # norm() builds a symbolic sqrt() expression, which is orders of magnitude slower than the
-    # dot product it's derived from and buys nothing since nothing downstream consumes it.
+    # Given an 'almost' orthogonal basis given as columns of a matrix M, 'project' a vector b on the lattice spanned by the 
+    # basis and subtract it from the original vector. We pick the number of vectors from the basis that results in the minimal 
+    # euclidean length of the result. 
     n = len(M.columns())
     if n == 0:
         return b, float(vector(b).dot_product(vector(b)))
@@ -1137,14 +1135,7 @@ def IdealMultiplication(K, B, ideal_gens1, ideal_gens2):
 def IdealPowerGenerator(K, B, gens, m):
     """Return a generator list for gens^m, computed via the same repeated
     IdealMultiplication used by IteratedMulLean/IdealPowLean.
-
-    gens_reduced() doesn't return a canonical representative, so computing a
-    power's generator via a *different* path than the certificate-generation
-    code (e.g. a direct (ideal^m).gens_reduced() call) risks landing on a
-    different, but equally valid, associate -- which IdealPowLean's
-    exact-equality check then rejects. Using this same iterated-multiplication
-    path wherever a power's generator is needed keeps every computation of it
-    consistent by construction.
+    gens_reduced() doesn't return a canonical representative. 
     """
     accum = gens
     for _ in range(m - 1):
@@ -1393,6 +1384,7 @@ def IsOrderOf(p, name):
     return out
 
 def DiscreteLog(O, I, x, z):
+    # Brute force implementation
     R = QuotientRing(O, I, 'y')
     for i in range(I.norm()):
         if R(x) == R(z)^i:
@@ -2795,7 +2787,7 @@ theorem K_minowski : minkowskiBoundFB K ≤ ({float(M + 0.01)} : ℝ) := by
 
     return out
 
-def generate_class_group_lean(T, B_polys, num):
+def generate_invariants_proof_lean(T, B_polys, num):
     """Generate all Lean files for the class group certificate.
 
     T       : irreducible polynomial in ZZ['x']
