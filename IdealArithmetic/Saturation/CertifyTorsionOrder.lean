@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import IdealArithmetic.IdealArithmetic.IdealArithmetic
 import IdealArithmetic.IdealArithmetic.CertifyPrimeIdeal
 import IdealArithmetic.Signature.Sturm
@@ -289,8 +291,6 @@ theorem eq_card_torsion_of_pow_of_gcd {ι : Type*} {S : Type*} [CommRing S] [IsD
     rw [← hord2]
     exact orderOf_dvd_natCard _
 
-/- NOTE: In general, I want less primes to show up in the gcd. So is something gained if i consider
-  primes of degree greater than `1`? -/
 
 open NumberField Units
 
@@ -309,7 +309,6 @@ theorem prime_sub_dvd_finrank_of_prime_dvd_card_torsion {K : Type*} [Field K]
   · rw [← this, Polynomial.natDegree_cyclotomic, Nat.totient_prime hp.out]
   · rw [← minpoly.ne_zero_iff, ← this]
     exact cyclotomic_ne_zero p ℚ
-
 
 
 

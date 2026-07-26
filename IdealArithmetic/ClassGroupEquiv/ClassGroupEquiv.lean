@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import Mathlib.NumberTheory.NumberField.ClassNumber
 
 /-!
@@ -276,8 +278,8 @@ lemma ClassGroup.map_apply' {R S : Type*} [CommRing R]
 /-- Given an isomorphism between domains, the left inverse of `ClassGroup.map` is given by the
   map between class groups induced by the inverse of the isomorphism. -/
 lemma ClassGroup.map_inverse_apply {R S : Type*} [CommRing R]
-  [CommRing S] [IsDomain R] [IsDomain S] (φ : R ≃+* S) (I : ClassGroup R) :
-  ClassGroup.map (φ := φ.symm.toRingHom) (RingEquiv.injective φ.symm)
+    [CommRing S] [IsDomain R] [IsDomain S] (φ : R ≃+* S) (I : ClassGroup R) :
+    ClassGroup.map (φ := φ.symm.toRingHom) (RingEquiv.injective φ.symm)
     (ClassGroup.map (φ := φ.toRingHom) (RingEquiv.injective φ) I) = I := by
   letI : Algebra R S := φ.toRingHom.toAlgebra
   letI : Algebra S R := φ.symm.toRingHom.toAlgebra
@@ -331,104 +333,3 @@ noncomputable def ClassGroup.congr {R S : Type*} [CommRing R]
   right_inv := by
     intro J
     exact ClassGroup.map_inverse_apply φ.symm J
-
-
-/-
-
-Code for Dedekind domain case
-
--- We assume Dedekind domain to make the proof easier, since we can use mk0.
-noncomputable def ClassGroup.map0 {R S : Type*} [CommRing R]
-  [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
-  [IsDomain R] [IsDomain S]
-  (φ : R →+* S) (hinj : Function.Injective φ) : ClassGroup R →* ClassGroup S where
-    toFun := by
-      intro I
-      choose J hJ using ClassGroup.mk0_surjective I
-      have : Ideal.map φ J.val ∈ nonZeroDivisors (Ideal S) := by
-        simp only [mem_nonZeroDivisors_iff_ne_zero,
-        Submodule.zero_eq_bot, ne_eq]
-        rw [Ideal.map_eq_bot_iff_le_ker]
-        simp only [(RingHom.injective_iff_ker_eq_bot _).1 hinj, le_bot_iff]
-        intro hc
-        exact (mem_nonZeroDivisors_iff_ne_zero.1 J.2) hc
-      exact (mk0 ⟨_, this⟩ )
-    map_one' := by
-      dsimp
-      have := Classical.choose_spec (mk0_surjective (1  : ClassGroup R))
-      erw [ClassGroup.mk0_eq_one_iff]
-      apply Submodule.IsPrincipal.map_ringHom
-      rw [← ClassGroup.mk0_eq_one_iff]
-      exact this
-    map_mul' := by
-      dsimp
-      intro x y
-      have hxy := Classical.choose_spec (mk0_surjective (x * y  : ClassGroup R))
-      have hx:= Classical.choose_spec (mk0_surjective (x  : ClassGroup R))
-      have hy := Classical.choose_spec (mk0_surjective (y  : ClassGroup R))
-      rw [← map_mul, ClassGroup.mk0_eq_mk0_iff]
-      rw [← hx, ← hy, ← map_mul, ClassGroup.mk0_eq_mk0_iff] at hxy
-      obtain ⟨a, b, ha, hb, hab⟩ := hxy
-      use φ a, φ b, ((map_ne_zero_iff φ hinj).mpr ha) ,  ((map_ne_zero_iff φ hinj).mpr hb)
-      apply_fun (fun I => Ideal.map φ I) at hab
-      simp only [map_mul, Ideal.map_mul, Ideal.map_span, Set.image_singleton,
-        Submonoid.coe_mul, hx, hy] at hab
-      convert hab
-
-lemma ClassGroup.map0_apply {R S : Type*} [CommRing R]
-  [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
-  [IsDomain R] [IsDomain S]
-  (φ : R →+* S) (hinj : Function.Injective φ)
-  (I : nonZeroDivisors (Ideal R)) (J : nonZeroDivisors (Ideal S))
-  (hI : ↑J = Ideal.map φ I) : ClassGroup.map0 φ hinj (mk0 I) = mk0 J := by
-  have haux := Classical.choose_spec (mk0_surjective (mk0 I  : ClassGroup R))
-  unfold map0
-  dsimp
-  rw [ClassGroup.mk0_eq_mk0_iff] at haux ⊢
-  obtain ⟨a, b, ha, hb, hab⟩ := haux
-  use φ a, φ b, ((map_ne_zero_iff φ hinj).mpr ha) ,  ((map_ne_zero_iff φ hinj).mpr hb)
-  apply_fun (fun I => Ideal.map φ I) at hab
-  simp only [map_mul, Ideal.map_mul, Ideal.map_span, Set.image_singleton,
-        Submonoid.coe_mul, ← hI] at hab
-  exact hab
-
-
-noncomputable def ClassGroup.equiv0 {R S : Type*} [CommRing R]
-  [IsDedekindDomain R] [CommRing S] [IsDedekindDomain S]
-  [IsDomain R] [IsDomain S] (φ : R ≃+* S) : ClassGroup R ≃* ClassGroup S := by
-  refine MulEquiv.ofBijective (ClassGroup.map0 (R := R) (S := S) φ (RingEquiv.injective φ)) ?_
-  constructor
-  · rw [← MonoidHom.ker_eq_bot_iff]
-    ext x
-    simp only [MonoidHom.mem_ker, Subgroup.mem_bot]
-    constructor
-    · intro h
-      let I := Classical.choose (mk0_surjective (x  : ClassGroup R))
-      have haux : Ideal.map φ I ∈ nonZeroDivisors (Ideal S) := by
-        simp only [mem_nonZeroDivisors_iff_ne_zero,
-        Submodule.zero_eq_bot, ne_eq]
-        rw [Ideal.map_eq_bot_iff_le_ker]
-        simp only [RingHom.ker_equiv, le_bot_iff]
-        intro hc
-        exact (mem_nonZeroDivisors_iff_ne_zero.1 I.2) hc
-      have hx := Classical.choose_spec (mk0_surjective (x  : ClassGroup R))
-      rw [← hx] at h
-      rw [ClassGroup.map0_apply (R := R) (S := S) φ (RingEquiv.injective φ) _
-        ⟨_, haux⟩  rfl , ClassGroup.mk0_eq_one_iff] at h
-      obtain ⟨s, hs⟩ := h
-      rw [← hx, ClassGroup.mk0_eq_one_iff]
-      use φ.symm s
-      apply_fun (fun I => Ideal.map φ.symm I) at hs
-      erw [Ideal.map_of_equiv, Ideal.map_span, Set.image_singleton] at hs
-      rw [hs]
-      rfl
-    ·  intro h
-       simp only [h, map_one]
-  · intro y
-    have hy := Classical.choose_spec (mk0_surjective (y  : ClassGroup S))
-    use ClassGroup.map0 φ.symm (RingEquiv.injective φ.symm) y
-    rw [← hy]
-    apply ClassGroup.map0_apply
-    erw [Ideal.map_of_equiv, hy]
-
--/

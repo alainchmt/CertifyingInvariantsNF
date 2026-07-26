@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import IdealArithmetic.IdealArithmetic.IdealArithmetic
 import Mathlib.LinearAlgebra.Matrix.Rank
 
@@ -325,7 +327,7 @@ lemma z_exponent_vec_eq_zero_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [hp
   exact hu j
 
 lemma nat_up_to_p_power_iff_int_up_to_p_power {S ι : Type*} [CommRing S]
-  [Fintype ι] (u : ι → S) (hu : ∀ i, IsUnit (u i)) (w : Sˣ) {p : ℕ} (hp : p ≠ 0) :
+    [Fintype ι] (u : ι → S) (hu : ∀ i, IsUnit (u i)) (w : Sˣ) {p : ℕ} (hp : p ≠ 0) :
   (∃ (e : ι → ℕ), (∃ (t : Sˣ) , w = (∏ (i : ι), (u i) ^ (e i)) * t ^ p)) ↔
   (∃ (e' : ι → ℤ), (∃ (t : Sˣ) , w = (∏ (i : ι), ((hu i).unit) ^ (e' i)) * t ^ p)) := by
   constructor
@@ -342,90 +344,90 @@ lemma nat_up_to_p_power_iff_int_up_to_p_power {S ι : Type*} [CommRing S]
   proving that there exists a linear combination of the elements in `v` where at least one
   coefficient is not divisible by a prime `p`. -/
 lemma linearIndependent_int_iff_no_common_divisor {M ι R: Type*} [AddCommGroup M]
-  [CommRing R] [IsDomain R] [WfDvdMonoid R] [Module R M] [NoZeroSMulDivisors R M]
-  {p : R} (hp : Prime p) (v : ι → M) : ¬ LinearIndependent R v ↔
+    [CommRing R] [IsDomain R] [WfDvdMonoid R] [Module R M] [NoZeroSMulDivisors R M]
+    {p : R} (hp : Prime p) (v : ι → M) : ¬ LinearIndependent R v ↔
     ∃ (s : Finset ι) (g : ι → R), (∃ i ∈ s, ¬ p ∣ (g i)) ∧ ∑ i ∈ s, g i • v i = 0  := by
-by_cases hnnempty : Nonempty ι
-rw [linearIndependent_iff']
-push Not
-constructor
-swap
-· rintro ⟨s , g , ⟨j , hpj1, hpj2⟩ ,hg⟩
-  use s, g
-  refine ⟨hg, ⟨j , ⟨hpj1, ?_ ⟩ ⟩ ⟩
-  by_contra hz
-  rw [hz] at hpj2
-  simp only [dvd_zero, not_true_eq_false] at hpj2
-· rintro ⟨s , g ,hg ,bhneq⟩
-  by_cases hc : ∃ i ∈ s, ¬ p ∣ (g i)
-  · use s , g
-  · push Not at hc
-    let S := Finset.filter (fun x => g x ≠ 0) s
-    haveI hS : S.Nonempty := by
-      rw [Finset.filter_nonempty_iff]
-      use bhneq.choose
-      simp only [ne_eq]
-      exact bhneq.choose_spec
-    have hSaux : ∀ x, x ∈ S → x ∈ s := by
-      intro x hx
-      exact Finset.mem_of_mem_filter x hx
-    · set m := S.inf' hS (fun i => multiplicity p (g i)) with hmm
-      have hmp : m ≠ 0 := by
-        suffices 1 ≤ m by exact Nat.ne_zero_of_lt this
-        unfold m
-        simp only [Finset.le_inf'_iff]
-        intro j
-        by_cases  hm : FiniteMultiplicity p (g j)
-        · intro hj
-          refine FiniteMultiplicity.le_multiplicity_of_pow_dvd hm ?_
-          rw [pow_one]
-          exact hc j (hSaux _ hj)
-        · intro hj
-          rw [multiplicity_eq_one_of_not_finiteMultiplicity hm]
-      have aux : ∀ i ∈ s , ∃ k, g i = p ^ m * k := by
-        intro i hi
-        by_cases hgi : g i ≠ 0
-        have aux2 : m ≤ multiplicity p (g i) := by
-          simp only [Finset.inf'_le_iff, m]
-          use i
-          exact ⟨Finset.mem_filter.mpr ⟨hi, hgi⟩  , by rfl⟩
-        exact pow_dvd_of_le_multiplicity aux2
-        push Not at hgi
-        use 0
-        rw [hgi, mul_zero]
-      let g' : ι → R := fun i => if hi : i ∈ s then (aux i hi).choose else 0
-      have hgaux :  ∀ i ∈ s, g i = p ^ m  * g' i := by
-        intro i hi
-        simp only [hi, ↓reduceDIte, g', m]
-        exact (aux i hi).choose_spec
-      obtain ⟨a, ha1, ha2⟩ := Finset.exists_mem_eq_inf' hS (fun i => multiplicity p (g i))
-      rw [← hmm] at ha2
-      have hndvd : ¬ p ∣ g' a := by
-        by_contra hdvd
-        obtain ⟨t, ht ⟩ := hdvd
-        specialize hgaux a  (hSaux _ ha1)
-        rw [ht, ← mul_assoc] at hgaux
-        nth_rw 2 [← pow_one (a := p)] at hgaux
-        rw [← pow_add] at hgaux
-        have haux2 := (FiniteMultiplicity.pow_dvd_iff_le_multiplicity ?_).1 (Dvd.intro t (id (Eq.symm hgaux)))
-        rw [← ha2] at haux2
-        simp only [add_le_iff_nonpos_right, nonpos_iff_eq_zero, one_ne_zero, m] at haux2
-        refine FiniteMultiplicity.of_prime_left (α := R) hp ?_
-        rw [Finset.mem_filter] at ha1
-        exact ha1.2
-      have hg' := Finset.sum_congr (s₂ := s) (f := fun x => g x • v x) (g := fun x =>
-        (p ^ m  * g' x) • v x) rfl (fun x hx => by simp only [hgaux x hx] )
-      simp_rw [hg', ← smul_smul, ← Finset.smul_sum] at hg
-      simp only [smul_eq_zero, pow_eq_zero_iff', Prime.ne_zero hp, ne_eq, false_and, false_or,
-        m] at hg
-      use s , g'
-      constructor
-      · use a
-        exact ⟨hSaux _ ha1, hndvd⟩
-      · exact hg
-simp only [not_nonempty_iff] at hnnempty
-simp only [IsEmpty.exists_iff, false_and, exists_const, iff_false, Decidable.not_not]
-exact linearIndependent_empty_type
+  by_cases hnnempty : Nonempty ι
+  rw [linearIndependent_iff']
+  push Not
+  constructor
+  swap
+  · rintro ⟨s , g , ⟨j , hpj1, hpj2⟩ ,hg⟩
+    use s, g
+    refine ⟨hg, ⟨j , ⟨hpj1, ?_ ⟩ ⟩ ⟩
+    by_contra hz
+    rw [hz] at hpj2
+    simp only [dvd_zero, not_true_eq_false] at hpj2
+  · rintro ⟨s , g ,hg ,bhneq⟩
+    by_cases hc : ∃ i ∈ s, ¬ p ∣ (g i)
+    · use s , g
+    · push Not at hc
+      let S := Finset.filter (fun x => g x ≠ 0) s
+      haveI hS : S.Nonempty := by
+        rw [Finset.filter_nonempty_iff]
+        use bhneq.choose
+        simp only [ne_eq]
+        exact bhneq.choose_spec
+      have hSaux : ∀ x, x ∈ S → x ∈ s := by
+        intro x hx
+        exact Finset.mem_of_mem_filter x hx
+      · set m := S.inf' hS (fun i => multiplicity p (g i)) with hmm
+        have hmp : m ≠ 0 := by
+          suffices 1 ≤ m by exact Nat.ne_zero_of_lt this
+          unfold m
+          simp only [Finset.le_inf'_iff]
+          intro j
+          by_cases  hm : FiniteMultiplicity p (g j)
+          · intro hj
+            refine FiniteMultiplicity.le_multiplicity_of_pow_dvd hm ?_
+            rw [pow_one]
+            exact hc j (hSaux _ hj)
+          · intro hj
+            rw [multiplicity_eq_one_of_not_finiteMultiplicity hm]
+        have aux : ∀ i ∈ s , ∃ k, g i = p ^ m * k := by
+          intro i hi
+          by_cases hgi : g i ≠ 0
+          have aux2 : m ≤ multiplicity p (g i) := by
+            simp only [Finset.inf'_le_iff, m]
+            use i
+            exact ⟨Finset.mem_filter.mpr ⟨hi, hgi⟩  , by rfl⟩
+          exact pow_dvd_of_le_multiplicity aux2
+          push Not at hgi
+          use 0
+          rw [hgi, mul_zero]
+        let g' : ι → R := fun i => if hi : i ∈ s then (aux i hi).choose else 0
+        have hgaux :  ∀ i ∈ s, g i = p ^ m  * g' i := by
+          intro i hi
+          simp only [hi, ↓reduceDIte, g', m]
+          exact (aux i hi).choose_spec
+        obtain ⟨a, ha1, ha2⟩ := Finset.exists_mem_eq_inf' hS (fun i => multiplicity p (g i))
+        rw [← hmm] at ha2
+        have hndvd : ¬ p ∣ g' a := by
+          by_contra hdvd
+          obtain ⟨t, ht ⟩ := hdvd
+          specialize hgaux a  (hSaux _ ha1)
+          rw [ht, ← mul_assoc] at hgaux
+          nth_rw 2 [← pow_one (a := p)] at hgaux
+          rw [← pow_add] at hgaux
+          have haux2 := (FiniteMultiplicity.pow_dvd_iff_le_multiplicity ?_).1 (Dvd.intro t (id (Eq.symm hgaux)))
+          rw [← ha2] at haux2
+          simp only [add_le_iff_nonpos_right, nonpos_iff_eq_zero, one_ne_zero, m] at haux2
+          refine FiniteMultiplicity.of_prime_left (α := R) hp ?_
+          rw [Finset.mem_filter] at ha1
+          exact ha1.2
+        have hg' := Finset.sum_congr (s₂ := s) (f := fun x => g x • v x) (g := fun x =>
+          (p ^ m  * g' x) • v x) rfl (fun x hx => by simp only [hgaux x hx] )
+        simp_rw [hg', ← smul_smul, ← Finset.smul_sum] at hg
+        simp only [smul_eq_zero, pow_eq_zero_iff', Prime.ne_zero hp, ne_eq, false_and, false_or,
+          m] at hg
+        use s , g'
+        constructor
+        · use a
+          exact ⟨hSaux _ ha1, hndvd⟩
+        · exact hg
+  simp only [not_nonempty_iff] at hnnempty
+  simp only [IsEmpty.exists_iff, false_and, exists_const, iff_false, Decidable.not_not]
+  exact linearIndependent_empty_type
 
 -- NOTE: We assume integrally closed
 
@@ -433,7 +435,7 @@ exact linearIndependent_empty_type
   Given a collection of ideals `Iᵢ` with `Iᵢ^ nᵢ = ⟨aᵢ⟩` and generators `uᵢ` of the unit group
   modulo `p`-th powers, together with reduction maps `φᵢ : S → Fᵢ`, form the discrete logarithm
   matrix using the elements `aᵢ` if `p ∣ nᵢ` and the elements `uᵢ`. If this matrix is of full
-  rank, then the tuple `([I₁], …, [Iₘ])` is `p`-maximal.  -/
+  rank, then the tuple `(([I₁],n₁) …, ([Iₘ], nₘ))` is `p`-maximal.  -/
 lemma not_principal_of_full_rank_matrix'' {S ι τ κ γ : Type*} {p : ℕ} [hp : Fact $ Nat.Prime p]
     [Fintype ι] [Fintype τ] [Fintype κ] [Fintype γ] (F : τ → Type*)
     [CommRing S] [IsDomain S] [IsIntegrallyClosed S] [∀ i, CommRing (F i)] [∀ i, Fintype (F i)]

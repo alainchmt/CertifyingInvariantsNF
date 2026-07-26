@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import IdealArithmetic.IdealArithmetic.IdealArithmetic
 import IdealArithmetic.DedekindProject.Polynomial.IrreduciblePolynomialZModp
 
@@ -7,10 +9,10 @@ import IdealArithmetic.DedekindProject.Polynomial.IrreduciblePolynomialZModp
 We define a certificate for the primality of an ideal of finite norm.
 
 ## Main definition
-- `PrimeIdeal`: certifying structure for prime ideals.
+- `CertifiedPrimeIdeal'`: certifying structure for prime ideals.
 
 ## Main results
-- `ideal_norm_eq_prod'`: the norm of an ideal given as a lower diagonal matrix.
+- `ideal_norm_eq_prod'`: the norm of an ideal by describing it as a lower diagonal matrix.
 - `PrimeIdeal_isPrime`: an ideal with a primality certificate is prime.  -/
 
 open Polynomial Module
@@ -179,7 +181,6 @@ noncomputable def ZModP_algebra_of_mem {O : Type*} [CommRing O] (I : Ideal O)
 
 attribute [-instance]  Lean.Omega.IntList.instAdd
 
--- Note: we don't include computation tools as part of the parameters of the structure.
 
 /-- This is the type of certified prime ideals above a prime number `p`. The structure bundles an
   ideal `I` with a certifificate of its primality. Even more, it proves that the residue field is
@@ -240,8 +241,10 @@ lemma CertifiedPrimeIdeal.polynomial_degree  {O : Type*} {p : ℕ} [CommRing O]
   exact I.hlen
 
 @[reducible]
-def CertifiedPrimeIdeal.residue_field_finite_dimensional {O : Type*} {p : ℕ}[Fact $ Nat.Prime p] [CommRing O]
-  (I : CertifiedPrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] : FiniteDimensional (ZMod p) (O ⧸ I.I) := by
+def CertifiedPrimeIdeal.residue_field_finite_dimensional {O : Type*}
+    {p : ℕ}[Fact $ Nat.Prime p] [CommRing O]
+    (I : CertifiedPrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
+    FiniteDimensional (ZMod p) (O ⧸ I.I) := by
   have hcardaux :  Nat.card (O ⧸ I.I) = Fintype.card (ZMod p) ^ I.n := by
     rw [I.hcard]
     simp only [ZMod.card]
@@ -249,7 +252,8 @@ def CertifiedPrimeIdeal.residue_field_finite_dimensional {O : Type*} {p : ℕ}[F
   rw [isAdjoinRoot_of_adjoin_root_irreducible_finite  hcardaux]
   exact I.hpos
 
-lemma CertifiedPrimeIdeal.residue_field_dimension {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
+lemma CertifiedPrimeIdeal.residue_field_dimension {O : Type*} {p : ℕ}
+    [Fact $ Nat.Prime p] [CommRing O]
     (I : CertifiedPrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
     Module.finrank (ZMod p) (O ⧸ I.I) = I.f.natDegree := by
   have hcardaux :  Nat.card (O ⧸ I.I) = Fintype.card (ZMod p) ^ I.n := by
@@ -266,8 +270,8 @@ lemma CertifiedPrimeIdeal.quotient_int_smul {O : Type*} {p : ℕ} [Fact $ Nat.Pr
   simp only [map_intCast]
 
 lemma CertifiedPrimeIdeal.polynomial_aeval {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
-  (I : CertifiedPrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
-  (aeval ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a))) I.f = 0 := by
+    (I : CertifiedPrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
+    (aeval ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a))) I.f = 0 := by
   have hPlen : I.P.length = (ofList (List.map (algebraMap ℤ (ZMod p)) I.P)).natDegree + 1 := by
       rw [← I.hfeq, CertifiedPrimeIdeal.polynomial_degree]
       exact I.hlen
@@ -305,12 +309,12 @@ lemma CertifiedPrimeIdeal.polynomial_aeval {O : Type*} {p : ℕ} [Fact $ Nat.Pri
 
 noncomputable def isAdjoinRoot_quot_ofCertifiedPrimeIdeal {O : Type*} {p : ℕ}
     [Fact $ Nat.Prime p] [CommRing O] (I : CertifiedPrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
-    IsAdjoinRoot (O ⧸ I.I) (I.f) := by
-    haveI := CertifiedPrimeIdeal.residue_field_finite_dimensional I
-    refine IsAdjoinRoot_of_adjoin_root_irreducible I.f I.hirr ?_ ?_
-    use Ideal.Quotient.mk I.I (I.TT.basis.equivFun.symm I.a)
-    · exact CertifiedPrimeIdeal.polynomial_aeval I
-    · exact CertifiedPrimeIdeal.residue_field_dimension I
+  IsAdjoinRoot (O ⧸ I.I) (I.f) := by
+  haveI := CertifiedPrimeIdeal.residue_field_finite_dimensional I
+  refine IsAdjoinRoot_of_adjoin_root_irreducible I.f I.hirr ?_ ?_
+  use Ideal.Quotient.mk I.I (I.TT.basis.equivFun.symm I.a)
+  · exact CertifiedPrimeIdeal.polynomial_aeval I
+  · exact CertifiedPrimeIdeal.residue_field_dimension I
 
 noncomputable def CertifiedPrimeIdeal.residue_field_is_field {O : Type*} {p : ℕ}
     [Fact $ Nat.Prime p] [CommRing O] (I : CertifiedPrimeIdeal O p) : IsField (O ⧸ I.I) := by
@@ -329,9 +333,9 @@ noncomputable def CertifiedPrimeIdeal.residue_field_is_field {O : Type*} {p : �
 /-- The underlying ideal of `I : CertifiedPrimeIdeal p O` is a prime ideal. -/
 lemma CertifiedPrimeIdeal.isPrime {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O]
     (I : CertifiedPrimeIdeal O p) : Ideal.IsPrime I.I := by
-    refine Ideal.IsMaximal.isPrime ?_
-    rw [Ideal.Quotient.maximal_ideal_iff_isField_quotient]
-    exact CertifiedPrimeIdeal.residue_field_is_field I
+  refine Ideal.IsMaximal.isPrime ?_
+  rw [Ideal.Quotient.maximal_ideal_iff_isField_quotient]
+  exact CertifiedPrimeIdeal.residue_field_is_field I
 
 
 /- A purely computational version of `CertifiedPrimeIdeal` -/
@@ -342,7 +346,7 @@ structure CertifiedPrimeIdeal' {r m : ℕ} [NeZero r] {T : Fin r → Fin r → L
   hd : ∀ i j, i < j → w i j = 0
   i : Fin r := 0
   j : Fin r := 0
-  hij : w i j ≠ 0 -- One of the entries of the ℤ-generators is non-zero.
+  hij : w i j ≠ 0 -- One of the entries of the `ℤ`-generators is non-zero.
   hcard : (∏ i, w i i).natAbs = p ^ n
   /-- List representing a polynomial-/
   P : List ℤ
@@ -384,12 +388,12 @@ lemma CertifiedPrimeIdeal'.idealNorm {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] 
 
 /-- Correctness of `CertifiedPrimeIdeal` . -/
 lemma CertifiedPrimeIdeal'.isPrime {O : Type*} {p : ℕ} [Fact $ Nat.Prime p] [CommRing O] [IsDomain O]
-  {r m : ℕ} [NeZero r] {TT  : TimesTable (Fin r) ℤ O}
-  {T : Fin r → Fin r → List ℤ} (heq : ∀ i j , T i j = List.ofFn (TT.table i j))
-  {v : Fin m → Fin r → ℤ} {w : Fin r → Fin r → ℤ}
-  {I : Ideal O} (hieq : I = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (v j))))
-  {A : IdealEqSpanCertificate' T v w} (C : CertifiedPrimeIdeal' A p)
-  (hBz : TT.basis.equivFun.symm C.z = 1) :  Ideal.IsPrime I := by
+    {r m : ℕ} [NeZero r] {TT  : TimesTable (Fin r) ℤ O}
+    {T : Fin r → Fin r → List ℤ} (heq : ∀ i j , T i j = List.ofFn (TT.table i j))
+    {v : Fin m → Fin r → ℤ} {w : Fin r → Fin r → ℤ}
+    {I : Ideal O} (hieq : I = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (v j))))
+    {A : IdealEqSpanCertificate' T v w} (C : CertifiedPrimeIdeal' A p)
+    (hBz : TT.basis.equivFun.symm C.z = 1) :  Ideal.IsPrime I := by
   have : NeZero C.u := C.hu
   let CC : CertifiedPrimeIdeal O p :=
     { r := r , n := C.n, hpos := C.hpos, TT := TT
@@ -440,86 +444,3 @@ lemma prime_ideal_of_norm_prime {O : Type*} {p : ℕ} (hp : Nat.Prime p) [CommRi
   refine Ideal.IsMaximal.isPrime ?_
   rw [Ideal.Quotient.maximal_ideal_iff_isField_quotient]
   exact MulEquiv.isField (Field.toIsField (ZMod p)) (modIdealEquivZMod hp I hcard)
-
-
-
-
--- I substituted the q in dedekind criterion with algebra instance, so we can use the isScalarTower
-/- A more general version of isAdjoinRoot_of_adjoin_root_irreducible_finite using the PID index.
-noncomputable def quotient_finrank_of_index {O R F : Type*} {n : ℕ} [CommRing O] [CommRing R]
-    [IsDomain R] [IsPrincipalIdealRing R] [IsDomain O] [Algebra R O] [Field F]
-    (π : R) (hp : Prime π) [Algebra R F] (hqs : Function.Surjective (algebraMap R F))
-    (hqker : RingHom.ker (algebraMap R F) = Ideal.span {π} )
-    [Module.Free R O] [Module.Finite R O] (I : Ideal O) (hnb : I ≠ ⊥) [hI : Module F (O ⧸ I)]
-    [hS : IsScalarTower R F (O ⧸ I)]
-    (hr : Associated (Submodule.indexPID (I.restrictScalars R)) (π ^ n)) :
-    Module.finrank F (O ⧸ I) = n := by
-    haveI : Module F (O ⧸ (I.restrictScalars R)) := hI
-    haveI : IsScalarTower R F (O ⧸ (I.restrictScalars R)) := sorry
-    let B' := Module.Free.chooseBasis R O
-    let b' := Ideal.selfBasis B' I hnb
-    let B := Basis.reindex B' (Fintype.equivFin _)
-    let b := Basis.reindex b' (Fintype.equivFin _)
-    let e := moduleQuotientEquivPiSpan' (I.restrictScalars R) B b
-    have hpi := Associated.trans (prod_moduleSmithCoeffs_associated_index (I.restrictScalars R) B b).symm hr
-    let C := moduleSmithCoeffs (I.restrictScalars R) B b
-    have hs : ∀ i, IsUnit (C i) ∨ Associated (C i) π := by
-      intro i
-      have hdvd : C i ∣ π ^ n := by
-        refine dvd_trans (Finset.dvd_prod_of_mem C (Finset.mem_univ i)) (hpi.dvd)
-      obtain ⟨m, hml, hma⟩ := (dvd_prime_pow hp n).1 hdvd
-      by_cases hz : m = 0
-      · rw [hz] at hma
-        simp only [pow_zero, associated_one_iff_isUnit] at hma
-        left
-        exact hma
-      · by_cases ho : m = 1
-        · rw [ho, pow_one] at hma
-          right
-          exact hma
-        · exfalso
-          have hpi1 : π • e.symm (fun j => if j = i then 1 else 0) ≠ 0 := by
-            by_contra hc
-            rw [← map_smul, (injective_iff_map_eq_zero' _).1 (LinearEquiv.injective e.symm)] at hc
-            have aux := congr_fun hc i
-            simp only [Pi.smul_apply, ↓reduceIte, Pi.zero_apply] at aux
-            erw [Submodule.Quotient.mk_eq_zero] at aux
-            simp only [smul_eq_mul, mul_one] at aux
-            rw  [Ideal.span_singleton_eq_span_singleton.2 hma, Ideal.mem_span_singleton] at aux
-            sorry
-          apply hpi1
-          have heq : (1 : F) • e.symm (fun j => if j = i then 1 else 0) = e.symm (fun j => if j = i then 1 else 0) :=
-            MulAction.one_smul _
-          rw [← heq, ← IsScalarTower.smul_assoc π (1 : F) _]
-          have hsz : π • (1 : F) = 0 := by
-            rw [Algebra.smul_def, mul_one, ← RingHom.mem_ker, hqker]
-            exact Ideal.mem_span_singleton_self π
-          rw [hsz, zero_smul]
-    --let pb : Fin n → Fin (Fintype.card (Module.Free.ChooseBasisIndex R O)) := by
-    let G := { i | ¬ IsUnit (C i) }
-    haveI : Fintype G := Fintype.ofFinite ↑G
-    let B := { i | IsUnit (C i) }
-    haveI : Fintype B := Fintype.ofFinite ↑B
-    have hcard : Fintype.card G = n := by sorry
-    let equivG := Equiv.trans (finCongr hcard.symm) (Fintype.equivFin G).symm
-    let f := fun (i : Fin n) => (equivG i).val
-    have fI : Function.Injective f := by sorry
-    let tF : ∀ i , R ⧸ Ideal.span {C (f i)} ≃+* F := by sorry
-    --let i : Fin n := by sorry
-    let Ba : (O ⧸ I) ≃ₗ[F] Fin n →₀ F :=
-     {toFun := fun x => (Finsupp.ofSupportFinite (fun i => (tF i) ((e x) (f i))) (Set.toFinite _) )
-      map_smul' := sorry
-      invFun := fun c => ∑ i, (c i) • e.symm (fun j => if j = f i then 1 else 0 )
-      left_inv := by
-        intro x
-        simp [Finsupp.ofSupportFinite]
-        sorry
-      right_inv := by
-        intro v
-        simp
-        ext x
-        simp [Finsupp.ofSupportFinite]
-        sorry
-      map_add' := sorry }
-    convert Module.finrank_eq_card_basis ({repr := Ba})
-    simp only [Fintype.card_fin] -/

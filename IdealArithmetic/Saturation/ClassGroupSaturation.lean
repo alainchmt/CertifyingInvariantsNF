@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import Mathlib.NumberTheory.NumberField.ClassNumber
 import Mathlib.NumberTheory.RamificationInertia.Basic
 import Mathlib.Algebra.Group.Subgroup.Finsupp
@@ -119,7 +121,7 @@ def AddHomOfGenerators {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
 lemma AddHomOfGenerators_apply {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
     {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)]
     (h : ∀ i, (n i) • (g i) = 0) (x : ∀ i : ι , (ZMod (n i))) :
-    AddHomOfGenerators h x = ∑ i, (x i).val • (g i) := by rfl
+  AddHomOfGenerators h x = ∑ i, (x i).val • (g i) := by rfl
 
 lemma AddHomOfGenerators_surjective {G : Type*} [AddCommGroup G] {ι : Type*} [Fintype ι]
     {g : ι → G} {n : ι → ℕ} [∀ i, NeZero (n i)]
@@ -192,7 +194,6 @@ lemma card_of_generators_saturated {G : Type*} [CommGroup G] {ι : Type*} [Finty
   simp only [Nat.card_eq_fintype_card, ZMod.card]
 
 
---#count_heartbeats in
 /-- Version of `AddEquivOfGeneratorsMult` for the class group of a Dedekind domain `S`. -/
 noncomputable def equivClassGroupOfSaturated {S : Type*} [CommRing S] [IsDomain S]
     [IsDedekindDomain S] {ι : Type*} [Fintype ι]
@@ -257,8 +258,8 @@ lemma class_number_of_saturated {S : Subalgebra ℤ K} [IsDedekindDomain S]
 
 section Principal
 
--- Some results specialized to the case of a cyclic class group expressed in terms of nonprincipality
--- of the powers of a generator. Somewhat redundant now, might remove.
+-- Some results specialized to the case of a cyclic class group expressed
+-- in terms of nonprincipality of the powers of a generator.
 
 lemma class_order_of_not_principal {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
     {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}

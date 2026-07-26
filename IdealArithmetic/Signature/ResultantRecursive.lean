@@ -1,6 +1,29 @@
+/- Authors: Alain Chavarri Villarello -/
 
 import IdealArithmetic.Signature.Sturm
 import IdealArithmetic.DedekindProject.Discriminant.Discriminant
+
+/- # Recursive resultant formula
+
+Here we prove a recursive formula for computing resultants of polynomaisl, based on
+a pseudo-remainder sequence.
+
+## Main definitions
+- `ResultantOfPRemainder` : a computable function for the resultant of two
+  polynomials given a pseudo-remainder sequence in terms of lists.
+- `DiscriminantOfPRemainder` : a computable function for the discriminant of a
+  polynomial given a pseudo-remainder sequence in terms of lists.
+
+## Main results
+- `resultant_psuedoremainder'`: a recursive formula for the resultant
+  given a pseudo-remainder relation.
+- `resultant_eq_div_of_premainder_sequence`: an expression for the resultant
+  in terms of the constants of in a pseudo-remainder sequence.
+- `resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList`: the resultant
+  given a Sturm sequence.
+- `discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList`: the discriminant
+  given a Sturm sequence.  -/
+
 
 open Polynomial
 
@@ -118,7 +141,8 @@ lemma resultant_pseudoremainder {K : Type*} [Field K] {P₁ P₂ P₃ Q : K[X]}
   · simp only [ne_eq, map_eq_zero, leadingCoeff_eq_zero, hP3, not_false_eq_true]
   · simp only [ne_eq, map_eq_zero, he, not_false_eq_true]
 
-
+/-- Given `C e * P₁ = Q * P₂ - C f * P₃`, an expression for `resultant P₁ P₂` in terms of
+  `P₂` and `P₃`-/
 lemma resultant_psuedoremainder' {R : Type*} [CommRing R] [IsDomain R] {P₁ P₂ P₃ Q : R[X]}
   (hP1 : P₁ ≠ 0) (hP2 : P₂ ≠ 0) (hP3 : P₃ ≠ 0) {e f : R} (he : e ≠ 0)
   (heq : C e * P₁ = Q * P₂ - C f * P₃) (hmono : P₃.natDegree ≤ P₁.natDegree) :
@@ -220,7 +244,8 @@ lemma prod_mul_resultant_of_premainder_sequence {R : Type*} [CommRing R] [IsDoma
     exact hz
 
 
-
+/-- The resultant of `p` and `q` in terms of the constants
+  appearing in a pseudo-remainder sequence. -/
 lemma resultant_eq_div_of_premainder_sequence {R : Type*} [CommRing R] [IsDomain R]
     [Div R] [MulDivCancelClass R] {P : List R[X]}  {p q : R[X]} (hlen : 2 ≤ P.length)
     (h0 : P[0] = p) (h1 : P[1] = q) {c : R} (hcz : c ≠ 0) (hcl : P.getLastD 0 = C c)
@@ -250,6 +275,8 @@ def ResultantOfPRemainderCoeff {R : Type*} [CommRing R] (P : List (List R)) (f :
       ((P[i + 1].getLastD 0) ^ (P[i].length  - P[i + 2].length))
   else 0
 
+/-- A computable function for the resultant given a pseudo-remainder sequence
+in terms of lists. -/
 def ResultantOfPRemainder {R : Type*} [CommRing R] [Div R]  [Inhabited R]
       (P : List (List R)) (e : List R) (f : List R) :=
   if hlen : (2 ≤ P.length ∧ P.length ≤ e.length + 2) then
@@ -264,7 +291,7 @@ def DiscriminantOfPRemainder {R : Type*} [CommRing R] [Div R]  [Inhabited R]
   ((-1) ^ ((P[0].length - 1) * (P[0].length - 2) / 2) *
     ResultantOfPRemainder P e f) / (P[0].getLastD 0) else 0
 
-
+/-- The resultant of `p` and `q` given a Sturm sequence. -/
 theorem resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList {R : Type*} [CommRing R]
     [IsDomain R] [Div R] [MulDivCancelClass R] [LinearOrder R] [Inhabited R]
     {P : List (List R)}  {p q : List R} (h : SturmBuilderOfList P p q) :
@@ -376,8 +403,7 @@ theorem resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList {R : Type*} [Co
 
 
 
-  /-- Should be able to get rid of the no smul divisors with ℕ. -/
-
+/-- The discriminant of `p` in terms of a Sturm sequence starting with `p` and `p'`. -/
 theorem discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList
     {R : Type*} [CommRing R] [IsDomain R] [Div R] [MulDivCancelClass R]
     [IsAddTorsionFree R] [LinearOrder R] [Inhabited R] {P : List (List R)} {p : List R}

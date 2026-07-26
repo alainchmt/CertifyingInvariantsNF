@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import Mathlib.NumberTheory.SmoothNumbers
 import Mathlib.Data.Ordmap.Ordset
 import Batteries.Data.RBMap.WF
@@ -11,7 +13,7 @@ within an interval.
 
 # Main definitions:
 - `PTreeE`: the binary tree with all prime numbers below 20,000.
-- `Ordnode.extractRangeTree` : extracts from an Ordnode, the elements in an interval.
+- `Ordnode.extractRangeTree` : extracts from a balanced tree the elements in an interval.
 
 # Main result:
 - `primes_range` : proves that the primes within an interval corresponds to the corresponding
@@ -75,8 +77,9 @@ lemma survives_of_multiples_aux {P : List ℕ}
 
 
 
-/-- If every prime below `Nat.sqrt B + 1` is included in `L`, and `¬ 1 ∈ L`, then `primesBetween A B L` consists precisely
-on those primes in the interval `A < p ∧ p ≤ B`.  -/
+/-- If every prime below `Nat.sqrt B + 1` is included in `L`, and `¬ 1 ∈ L`,
+  then `primesBetween A B L` consists precisely
+  on those primes in the interval `A < p ∧ p ≤ B`.  -/
 lemma primesBetween_mem (A : ℕ) (B : ℕ) (hA : 1 ≤ A) (L : List ℕ)
     (h : ∀ q, Nat.Prime q → q < Nat.sqrt B + 1 → q ∈ L) (hpL : ¬ 1 ∈ L) (p : ℕ) :
     p ∈ primesBetween A B L ↔ Nat.Prime p ∧ A < p ∧ p ≤ B := by
@@ -126,7 +129,7 @@ lemma primesBetween_mem (A : ℕ) (B : ℕ) (hA : 1 ≤ A) (L : List ℕ)
         simp only [hneq, or_false] at hc
         grind
 
-/-- Specialized version of `PrimeSieve_mem ` where `L` is taken to contain exactly those primes
+/-- Specialized version of `primesBetween_mem` where `L` is taken to contain exactly those primes
 below `Nat.sqrt B + 1`.  -/
 lemma primesBetween_mem_of_primesBelow (A : ℕ) (B C : ℕ) (hC : C ≤ B)
     (hA : 1 ≤ A) (L : List ℕ)
@@ -242,7 +245,8 @@ lemma sqrt20000 : Nat.sqrt 20000  = 141 := by
   rw [Nat.eq_sqrt']
   decide
 
-def primes_below_142 := [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139]
+def primes_below_142 := [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
+  67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139]
 
 lemma primes_below_142_proof : primes_below_142.toFinset = Nat.primesBelow (Nat.sqrt 20000 + 1) := by
   refine list_eq_primesBelow ?_
@@ -275,9 +279,8 @@ def Ordnode.extractRangeTree {α : Type*} [LinearOrder α] [DecidableLT α]
 
 
 lemma Ordnode.extractRangeTree_emem {α : Type*} [LinearOrder α] [DecidableLT α]
-  {t : Ordnode α} (ht : t.Bounded ⊥ ⊤) (l₁ l₂ : α) (x : α) :
-    Ordnode.Emem x (Ordnode.extractRangeTree t l₁ l₂)
-      ↔ Ordnode.Emem x t ∧ l₁ ≤ x ∧ x ≤ l₂ := by
+    {t : Ordnode α} (ht : t.Bounded ⊥ ⊤) (l₁ l₂ : α) (x : α) :
+    Ordnode.Emem x (Ordnode.extractRangeTree t l₁ l₂) ↔ Ordnode.Emem x t ∧ l₁ ≤ x ∧ x ≤ l₂ := by
   induction t with
   | nil => simp [extractRangeTree, Emem, Any]
   | node m t1 v t2 hi1 hi2 =>
@@ -331,7 +334,7 @@ lemma Ordnode.extractRangeTree_emem {α : Type*} [LinearOrder α] [DecidableLT �
 
 
 lemma Ordnode.extractRangeTree_toList_mem {α : Type*} [LinearOrder α] [DecidableLT α]
-  {t : Ordnode α} (ht : t.Bounded ⊥ ⊤) (l₁ l₂ : α) (x : α) :
+    {t : Ordnode α} (ht : t.Bounded ⊥ ⊤) (l₁ l₂ : α) (x : α) :
     x ∈ (Ordnode.extractRangeTree t l₁ l₂).toList  ↔ x ∈ t.toList ∧ l₁ ≤ x ∧ x ≤ l₂ := by
   rw [← Ordnode.emem_iff_mem_toList, ← Ordnode.emem_iff_mem_toList]
   exact Ordnode.extractRangeTree_emem ht l₁ l₂ x
@@ -356,12 +359,11 @@ lemma Ordnode.ofList_bounded {α : Type*} [Preorder α] [Std.Total fun (x1 x2 : 
 /- Primes below 20,000
 
 Compute all the prime numbers up to 20,000. We use a precomputed list of the primes below 140.
-We split things up in intervals of length 300 for smaller proofs and to avoid `maxRecDepth`
-(recursion bound on the elaborator) errors, however longer intervals may be considered
+We split things up in intervals of length 300 for smaller proofs,
+however longer intervals may be considered
 with `decide+kernel`, which directly invokes kernel reduction.  -/
 
-set_option maxRecDepth 10000
-def primesBelow20000 :=
+def primesBelow20000_1 :=
   [[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293],
   [307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599],
   [601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887],
@@ -395,8 +397,10 @@ def primesBelow20000 :=
   [9001, 9007, 9011, 9013, 9029, 9041, 9043, 9049, 9059, 9067, 9091, 9103, 9109, 9127, 9133, 9137, 9151, 9157, 9161, 9173, 9181, 9187, 9199, 9203, 9209, 9221, 9227, 9239, 9241, 9257, 9277, 9281, 9283, 9293],
   [9311, 9319, 9323, 9337, 9341, 9343, 9349, 9371, 9377, 9391, 9397, 9403, 9413, 9419, 9421, 9431, 9433, 9437, 9439, 9461, 9463, 9467, 9473, 9479, 9491, 9497, 9511, 9521, 9533, 9539, 9547, 9551, 9587],
   [9601, 9613, 9619, 9623, 9629, 9631, 9643, 9649, 9661, 9677, 9679, 9689, 9697, 9719, 9721, 9733, 9739, 9743, 9749, 9767, 9769, 9781, 9787, 9791, 9803, 9811, 9817, 9829, 9833, 9839, 9851, 9857, 9859, 9871, 9883, 9887],
-  [9901, 9907, 9923, 9929, 9931, 9941, 9949, 9967, 9973, 10007, 10009, 10037, 10039, 10061, 10067, 10069, 10079, 10091, 10093, 10099, 10103, 10111, 10133, 10139, 10141, 10151, 10159, 10163, 10169, 10177, 10181, 10193],
-  [10211, 10223, 10243, 10247, 10253, 10259, 10267, 10271, 10273, 10289, 10301, 10303, 10313, 10321, 10331, 10333, 10337, 10343, 10357, 10369, 10391, 10399, 10427, 10429, 10433, 10453, 10457, 10459, 10463, 10477, 10487, 10499],
+  [9901, 9907, 9923, 9929, 9931, 9941, 9949, 9967, 9973, 10007, 10009, 10037, 10039, 10061, 10067, 10069, 10079, 10091, 10093, 10099, 10103, 10111, 10133, 10139, 10141, 10151, 10159, 10163, 10169, 10177, 10181, 10193]]
+
+def primesBelow20000_2 :=
+  [[10211, 10223, 10243, 10247, 10253, 10259, 10267, 10271, 10273, 10289, 10301, 10303, 10313, 10321, 10331, 10333, 10337, 10343, 10357, 10369, 10391, 10399, 10427, 10429, 10433, 10453, 10457, 10459, 10463, 10477, 10487, 10499],
   [10501, 10513, 10529, 10531, 10559, 10567, 10589, 10597, 10601, 10607, 10613, 10627, 10631, 10639, 10651, 10657, 10663, 10667, 10687, 10691, 10709, 10711, 10723, 10729, 10733, 10739, 10753, 10771, 10781, 10789, 10799],
   [10831, 10837, 10847, 10853, 10859, 10861, 10867, 10883, 10889, 10891, 10903, 10909, 10937, 10939, 10949, 10957, 10973, 10979, 10987, 10993, 11003, 11027, 11047, 11057, 11059, 11069, 11071, 11083, 11087, 11093],
   [11113, 11117, 11119, 11131, 11149, 11159, 11161, 11171, 11173, 11177, 11197, 11213, 11239, 11243, 11251, 11257, 11261, 11273, 11279, 11287, 11299, 11311, 11317, 11321, 11329, 11351, 11353, 11369, 11383, 11393, 11399],
@@ -429,6 +433,8 @@ def primesBelow20000 :=
   [19207, 19211, 19213, 19219, 19231, 19237, 19249, 19259, 19267, 19273, 19289, 19301, 19309, 19319, 19333, 19373, 19379, 19381, 19387, 19391, 19403, 19417, 19421, 19423, 19427, 19429, 19433, 19441, 19447, 19457, 19463, 19469, 19471, 19477, 19483, 19489],
   [19501, 19507, 19531, 19541, 19543, 19553, 19559, 19571, 19577, 19583, 19597, 19603, 19609, 19661, 19681, 19687, 19697, 19699, 19709, 19717, 19727, 19739, 19751, 19753, 19759, 19763, 19777, 19793],
   [19801, 19813, 19819, 19841, 19843, 19853, 19861, 19867, 19889, 19891, 19913, 19919, 19927, 19937, 19949, 19961, 19963, 19973, 19979, 19991, 19993, 19997]]
+
+def primesBelow20000 := primesBelow20000_1 ++ primesBelow20000_2
 
 
 def e_interval_aux := [1, 300, 600, 900, 1200, 1500, 1800, 2100, 2400, 2700, 3000, 3300, 3600, 3900, 4200, 4500,
@@ -511,7 +517,8 @@ lemma PB19800 : primesBetween 19800 20000 primes_below_142 = primesBelow20000[66
 
 lemma primes_below_20000 (p : ℕ):
   p ∈ primesBelow20000.foldr (fun x y => x ++ y) [] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 20000 := by
-  convert primes_below_append e_interval_aux primes_below_142 (by decide) primesBelow20000 e_sorted ?_ ?_ (by decide) ?_ p
+  convert primes_below_append e_interval_aux primes_below_142 (by decide)
+    primesBelow20000 e_sorted ?_ ?_ (by decide) ?_ p
   · rfl
   · exact primes_below_142_proof
   · intro i hi
@@ -554,7 +561,7 @@ lemma primes_range (l₁ l₂ : ℕ) (hle : l₂ ≤ 20000) {p : ℕ} :
     simp_all only [true_and, and_true]
     exact ⟨⟨Nat.Prime.one_lt left, by omega⟩,  left_1 ⟩
 
-set_option maxRecDepth 512
+
 
 example {p} :
   p ∈ [3511, 3517, 3527, 3529, 3533, 3539, 3541, 3547, 3557, 3559, 3571, 3581, 3583, 3593, 3607,
@@ -562,6 +569,7 @@ example {p} :
     3733, 3739, 3761, 3767, 3769, 3779, 3793, 3797,
     3803]  ↔ Nat.Prime p ∧ 3506 < p ∧ p ≤ 3804 := by
   exact primes_range 3506 3804 (by omega)
+
 
 example {p} :
   p ∈ [13877, 13879, 13883, 13901, 13903, 13907, 13913, 13921, 13931, 13933, 13963, 13967,

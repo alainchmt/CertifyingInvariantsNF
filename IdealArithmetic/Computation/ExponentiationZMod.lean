@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import Mathlib.Tactic
 
 /-!
@@ -84,15 +86,15 @@ macro "zmod_pow" : tactic =>
     try decide
   ))
 
-/-- Tactic for unfolding a product into an interated multiplication. -/
+/-- Tactic for unfolding a product into an interated multiplication.  -/
 macro "unfold_prod" : tactic =>
   `(tactic| (
     simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty,
     Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
     rfl))
 
--- EXAMPLES
 
+-- EXAMPLES
 
 example : (3 : ZMod 30) ^ 11002324556787 = 27  := by
   zmod_pow

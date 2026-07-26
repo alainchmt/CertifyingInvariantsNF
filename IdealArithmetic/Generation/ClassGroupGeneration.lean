@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import Mathlib.NumberTheory.SmoothNumbers
 import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 import IdealArithmetic.Saturation.ClassGroupSaturation
@@ -20,7 +22,7 @@ commutative group based on relations.
 ## Main results
 - `subgroup_closure_eq_classGroup'`: reduce the set of generators of the class group by giving
   relations with prime ideals below a factor base bound.
-- `le_primes_below_bound_of_PrimesBelowBoundCertificate'`: proves that
+- `le_primes_below_bound_of_PrimesBelowBoundCertificate_le'`: proves that
   `PrimesBelowBoundCertificate` contains the prime ideals below a certain bound. -/
 
 
@@ -124,8 +126,6 @@ lemma  minkowskiBoundFB_isFactorBaseBound (K : Type*) [Field K] [NumberField K] 
 variable {K : Type*} [Field K] [NumberField K]
 
 local notation "Oκ" => RingOfIntegers K
-
-
 
 /-- The set of ideals of norm below `B` equals the union of the sets of ideals above `p`
 with norm less than `B`, where `p` ranges over the prime numbers. -/
@@ -931,8 +931,6 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate_le' {O : Type*} [Comm
   erw [← List.map_ofFn (g := Ideal.map φ), ← List.map_ofFn (f := 𝔭)]
   grind
 
-/-- Version of `le_primes_below_bound_of_PrimesBelowBoundCertificate` using a ring isomorphic
-  to `Oκ`. Useful if we have a computational model for it which is not definitionally equal.   -/
 lemma le_primes_below_bound_of_PrimesBelowBoundCertificate_le_of_eq {O : Type*} [CommRing O]
     [IsDedekindDomain O] [Module.Free ℤ O]  {B : ℕ} (φ : O ≃+* Oκ)
     (A : PrimesBelowBoundCertificate O B) :

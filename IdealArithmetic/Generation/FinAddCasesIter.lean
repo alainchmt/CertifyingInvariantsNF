@@ -1,3 +1,5 @@
+/- Authors: Alain Chavarri Villarello -/
+
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.SetTheory.Cardinal.Finite
 
@@ -56,7 +58,7 @@ lemma List.ofFn_addCasesIter {α : Type*} {r : ℕ} (e : Fin (r + 1) → ℕ) (g
     rfl
 
 /-- Send `j : Fin (∑ i, e i)` to `⟨k, t⟩`, where `k` and `t : Fin (e k)` are
-such that `j = t + ∑ i<k, e i` . -/
+such that `j = t + (∑ i<k, e i)` . -/
 def indexPair {r : ℕ} (e : Fin r → ℕ) (j : Fin (∑ i, e i)) : Σ (i : Fin r), Fin (e i) := by
   revert e
   induction r with
@@ -161,11 +163,13 @@ lemma addCasesIter_apply {α : Type*} {r : ℕ} (e : Fin r → ℕ) (g : ∀ i, 
     let e' := (fun (i : Fin r) => e i.castSucc)
     let g' := (fun (i : Fin r) => g i.castSucc)
     let f :=  Fin.addCasesIter e' g'
-    have : Fin.addCasesIter e g = (Fin.addCases f (g (Fin.last r))) ∘ (Fin.cast (Fin.sum_univ_castSucc e))  := rfl
+    have : Fin.addCasesIter e g = (Fin.addCases f (g (Fin.last r))) ∘
+      (Fin.cast (Fin.sum_univ_castSucc e))  := rfl
     rw [this, Function.comp_apply]
     let t := g (Fin.last r)
     by_cases h : j < ∑ (i : Fin r), e i.castSucc
-    · have : (Fin.cast (Fin.sum_univ_castSucc e) j) = (Fin.castAdd (e (Fin.last r)) (⟨j, h⟩ )) := by rfl
+    · have : (Fin.cast (Fin.sum_univ_castSucc e) j) =
+        (Fin.castAdd (e (Fin.last r)) (⟨j, h⟩ )) := by rfl
       rw [this, Fin.addCases_left]
       simp only [hr e' g' ⟨j, h⟩, f, e', g']
       rw [indexPair_left_aux]
