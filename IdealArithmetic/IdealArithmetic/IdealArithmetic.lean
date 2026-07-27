@@ -480,7 +480,8 @@ structure IdealMulLeCertificate [Algebra R O] {r n m s : ℕ}
 /-- Given `O`-generators for `I` and `J`, it certifies that `I * J = ⟨w⟩`. -/
 structure IdealMulEqCertificate [Algebra R O] {r n m s : ℕ}
   (TT  : TimesTable (Fin r) R O) (I₁ I₂ : Ideal O)
-  (u : Fin m → Fin r → R) (v : Fin n → Fin r → R) (w : Fin s → Fin r → R) extends IdealMulLeCertificate TT I₁ I₂ u v w where
+  (u : Fin m → Fin r → R) (v : Fin n → Fin r → R) (w : Fin s → Fin r → R)
+    extends IdealMulLeCertificate TT I₁ I₂ u v w where
   f : Fin s → Fin m → Fin n → Fin r → R
   hle1 : ∀ k , List.ofFn (w k) = List.sum (List.ofFn (fun i => List.sum
     (List.ofFn (fun j => table_mul_list T (List.ofFn (f k i j)) (List.ofFn (M i j) ) ))))
@@ -620,7 +621,7 @@ lemma ideal_eq_prod_IdealMulEqCertificate' [Algebra R O] {r n : ℕ} [NeZero r]
 /- A chain of certificates for multiplications. -/
 inductive IdealMulChainCertificate {R : Type*} [CommRing R] {r m : ℕ}
   (T : Fin r → Fin r → List R) (u : Fin m → Fin r → R) :
-  {s : ℕ} → (Fin s → Fin r → R) → Type (u_4 + 1)
+  {s : ℕ} → (Fin s → Fin r → R) → Type _
   | nil : IdealMulChainCertificate T u u
   | cons {x : ℕ} {v} {uu : Fin x → Fin r → R} {w} : IdealMulChainCertificate T u v →
     IdealMulEqCertificate' T v uu w → IdealMulChainCertificate T u w
@@ -628,7 +629,7 @@ inductive IdealMulChainCertificate {R : Type*} [CommRing R] {r m : ℕ}
 /- A chain of certificates for containment of multiplications. -/
 inductive IdealMulLeChainCertificate {R : Type*} [CommRing R] {r m : ℕ}
   (T : Fin r → Fin r → List R) (u : Fin m → Fin r → R) :
-  {s : ℕ} → (Fin s → Fin r → R) → Type (u_4 + 1)
+  {s : ℕ} → (Fin s → Fin r → R) → Type _
   | nil : IdealMulLeChainCertificate T u u
   | cons {v} {uu} {w} : IdealMulLeChainCertificate T u v →
     IdealMulLeCertificate' T v uu w → IdealMulLeChainCertificate T u w

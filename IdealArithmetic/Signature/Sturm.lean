@@ -63,7 +63,7 @@ section
 
 variable {R : Type*}  [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
 
--- Similar to Coq (residue sequences)
+-- Similar to Coq (residue sequences). Note that we don't require R to have a multiplication.
 def signChanges' (L : List R) : ℕ :=
   match L  with
   | [] => 0
@@ -73,15 +73,16 @@ def signChanges (L : List R) : ℕ  :=
   signChanges' (List.filter (fun x => if x ≠ 0 then true else false) L)
 
 
-lemma signChanges_def (L : List R) : signChanges L = signChanges' (List.filter (fun x => if x ≠ 0 then true else false) L) := by
+lemma signChanges_def (L : List R) :
+    signChanges L = signChanges' (List.filter (fun x => if x ≠ 0 then true else false) L) := by
   rfl
 
-lemma signChanges_eq_signChanges' (L : List R) (hz : ∀ x ∈ L, x ≠ 0) : signChanges L = signChanges' L := by
+lemma signChanges_eq_signChanges' (L : List R) (hz : ∀ x ∈ L, x ≠ 0) :
+    signChanges L = signChanges' L := by
   rw [signChanges_def]
   congr ; simp ; exact hz
 
 end
-
 
 
 section
@@ -1473,7 +1474,7 @@ lemma sign_at_neg_infinity_eq_sign_leading_coeff_mul [Field F] [IsStrictOrderedR
     Count the total number of distinct roots.  -/
 
 theorem sturm_theorem_total [Field F] [IsStrictOrderedRing F]  (hc : IsRealClosedField F)
-    {P : List F[X]} {p : F[X]} (hs : IsSturmSequence P p (derivative p)) :
+      {P : List F[X]} {p : F[X]} (hs : IsSturmSequence P p (derivative p)) :
     #(Multiset.toFinset p.roots) = signChangesNInfty P - signChangesInfty P  := by
   have hlenP := hs.hlen
   let f : F[X] → F := fun q => if h : q ≠ 0 then

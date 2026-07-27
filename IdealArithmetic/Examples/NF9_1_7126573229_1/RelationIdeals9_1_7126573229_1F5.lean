@@ -1,0 +1,6 @@
+import IdealArithmetic.Examples.NF9_1_7126573229_1.PrimesBelow9_1_7126573229_1F5
+import IdealArithmetic.Examples.NF9_1_7126573229_1.ClassGroupData9_1_7126573229_1
+
+set_option linter.all false
+
+noncomputable section

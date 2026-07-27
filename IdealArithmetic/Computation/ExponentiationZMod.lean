@@ -99,6 +99,7 @@ macro "unfold_prod" : tactic =>
 example : (3 : ZMod 30) ^ 11002324556787 = 27  := by
   zmod_pow
 
+/- We can solve goals involving modular exponetiation with `zmod_pow`. -/
 example : (3 : ZMod 10020313) ^ 11002324556787 ≠ 1  := by
   zmod_pow
 
