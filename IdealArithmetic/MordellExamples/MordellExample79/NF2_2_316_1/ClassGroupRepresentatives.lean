@@ -1,4 +1,4 @@
-import IdealArithmetic.MordellExamples.MordellExample79.NF2_2_316_1.Results2_2_316_1
+import IdealArithmetic.MordellExamples.MordellExample79.NF2_2_316_1.Invariants2_2_316_1
 import IdealArithmetic.MordellThueProject.ClassGroupDescent
 
 /-!
