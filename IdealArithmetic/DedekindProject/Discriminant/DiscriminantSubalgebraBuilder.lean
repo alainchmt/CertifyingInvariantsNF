@@ -3,6 +3,7 @@ import IdealArithmetic.DedekindProject.CertifyRingOfIntegers.CertifyAdjoinRoot
 import IdealArithmetic.DedekindProject.CertifyRingOfIntegers.DedekindCriteria
 import Mathlib.NumberTheory.NumberField.Basic
 import Mathlib.NumberTheory.NumberField.Discriminant.Basic
+import Mathlib.RingTheory.Conductor
 
 /-!
 # Discriminant of SubalgebraBuilder

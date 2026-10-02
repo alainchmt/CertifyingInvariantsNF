@@ -18,7 +18,6 @@
 from itertools import combinations
 import itertools
 import os
-import re
 
 # Root of the Lean import path for generated files; set by the
 # `lean_root=` argument of the generate_* entry points.
@@ -3021,3 +3020,446 @@ theorem class_number_K_eq_{prod(t_final)}' : classNumber K = {prod(t_final)} := 
         f.write(_wrap_ns(results_str, num))
 
     print(f"Generated Lean files in {folder}/")
+
+
+# =============================================================================
+# Kummer-Dedekind fork.
+#
+# For a prime `p` coprime to the common denominator `d` of the subalgebra
+# construction, the ideals above `p` can be produced directly from the
+# factorisation of `T mod p` (see `KummerDedekindLean.sage`), instead of via
+# `gens_reduced()` + the minimal-polynomial primality certificate. For `p | d`
+# the classical route is still needed, so these fall back to the existing
+# `PrimesBelowGens`/`PrimesBelowBound` unchanged.
+#
+# Nothing above this line is modified; everything below is additive.
+# =============================================================================
+
+import re
+
+load('KummerDedekindLean.sage')
+
+
+def PrimesBelowGensKummer(K, T, B, p, d):
+    """Like `PrimesBelowGens`, but for `p` coprime to `d` returns the
+    Kummer-Dedekind generators `[p, D_i(alpha)]`, one entry per distinct
+    irreducible factor of `T mod p` (always 2 generators, even if the ideal
+    happens to be principal). Delegates the factorisation itself to
+    `KummerFactorsData`, the same call `KummerPrimeBlockLean` uses to name
+    `I{p}N{i}` -- Sage's `factor()` over `GF(p)` isn't guaranteed to return
+    factors in the same order across independent calls, so a second,
+    separate `factor()` here could silently disagree with which distinct
+    factor is `I{p}N{i}`."""
+    set_random_seed(10)  # match PrimesBelowGens's own reset, so later randomized
+    p = ZZ(p)             # calls (e.g. K.class_group(proof=False)) stay reproducible
+    if gcd(ZZ(d), p) != 1:
+        return PrimesBelowGens(K, p)
+    alpha = K.gen()
+    Df = KummerFactorsData(K, T, B, p)
+    return [[[K(p), _lift_factor_to_K(g, alpha)], e, 0]
+            for g, e in zip(Df['distinct_factors'], Df['distinct_mult'])]
+
+
+def PrimesBelowBoundKummer(K, B, T, d, M1, M2, list_exclude, primes_below_gens):
+    """Like `PrimesBelowBound`, but for primes coprime to `d` emits a
+    `KummerData` block (`K{p}`) instead of the certificate + chain-
+    multiplication proof of `ContainsPrimesAboveP`. Primes dividing `d` fall
+    back to `PrimesBelowBound`, called one prime at a time so its body stays
+    untouched -- reusing the same cached `primes_below_gens` (rather than a
+    fresh `PrimesBelowGens(K, q)` call) is required: `.gens_reduced(proof=False)`
+    is randomized, so a second, independent call can pick different generator
+    representatives for the same ideal, which would desync these `I{p}N{i}`
+    definitions from the ones `RelationsGeneratorIntervalKummer` certifies
+    against."""
+    out = ""
+    for p in primes(M1, M2 + 1):
+        if gcd(ZZ(d), p) == 1:
+            out += KummerPrimeBlockLean(K, T, B, p, d=d, have_fact=(p in list_exclude))
+        else:
+            out += PrimesBelowBound(K, B, p, p, list_exclude, primes_below_gens)
+    return out
+
+
+def PrimesBelowBoundCertificteGenIntervalKummer(K, B, T, d, M, number_interval,
+                                                 primes_below_gens, interval_size=None):
+    """Like `PrimesBelowBoundCertificteGenInterval`, but for primes coprime to
+    `d` patches the `hC`/`hN` branches to `convert (containsPrimesAbove_of_KummerData K{p})`
+    / `exact (card_quot_of_KummerData K{p})`. `primes_below_gens` must already
+    return Kummer-Dedekind generators for those primes (e.g. a closure over
+    `PrimesBelowGensKummer`), so norms/names come out consistent with `K{p}`."""
+    res = PrimesBelowBoundCertificteGenInterval(K, B, M, number_interval, primes_below_gens, interval_size)
+    interval_strings = list(res[0])
+    for p in primes(M):
+        if gcd(ZZ(d), p) != 1:
+            continue
+        hN_pat = re.compile(r'    · dsimp ; intro j\n      fin_cases j\n(?:      exact NI%sN\d+\n)+' % p)
+        for j in range(len(interval_strings)):
+            s = interval_strings[j]
+            s = s.replace('    · exact PBC%s\n' % p,
+                           '    · convert (containsPrimesAbove_of_KummerData K%s)\n' % p)
+            s = hN_pat.sub('    · exact (card_quot_of_KummerData K%s)\n' % p, s, count=1)
+            interval_strings[j] = s
+    return (interval_strings,) + res[1:]
+
+
+def LeanProofKummer(T, basis, nameIrr, num, comment, flagD):
+    """Like `LeanProof`, but also emits the imports and lemmas (`hroot_coord`,
+    `minpoly_hroot`, `conductor_hroot_coprime`) that `K{p}` blocks need."""
+    out, bad, flagl, flaglW, flagD = LeanProof(T, basis, nameIrr, num, comment, flagD)
+    out = out.replace(
+        "import IdealArithmetic.DedekindProject.CertifyRingOfIntegers",
+        "import IdealArithmetic.DedekindProject.CertifyRingOfIntegers\n"
+        "import IdealArithmetic.ConductorSubalgebraBuilder\n"
+        "import IdealArithmetic.PrimeIdealsKummer", 1)
+    C, denom = BasisToMatrix(basis)
+    _, _, auxTemp = SubalgebraBuilderF(T, C, denom)
+    a_lit = "!%s" % auxTemp.list()
+    out += f"""
+lemma hroot_coord :
+    timesTableO.basis.equivFun.symm {a_lit} = ⟨θ, hroot_mem⟩ :=
+  root_coord_subalgebraBuilder BQ {a_lit} [] (by decide)
+
+lemma minpoly_hroot :
+    minpoly ℤ (timesTableO.basis.equivFun.symm {a_lit}) = ofList l := by
+  rw [hroot_coord]
+  exact minpoly_root_subalgebra BQ hroot_mem
+
+lemma conductor_hroot_coprime (p : ℕ) (gcd : Int.gcd BQ.d p = 1) :
+    Ideal.comap (algebraMap ℤ O) (conductor ℤ (timesTableO.basis.equivFun.symm {a_lit}))
+      ⊔ Ideal.span {{(p : ℤ)}} = ⊤ := by
+  rw [hroot_coord]
+  exact conductor_coprime_of_coprime_int BQ hroot_mem p gcd
+"""
+    return out, bad, flagl, flaglW, flagD
+
+
+def PowAllZeroLean(B, s):
+    """The `Pow...` lemma for the all-zero exponent tuple, `J0^0*...*J{s-1}^0
+    = (1)` (`(1 : Ideal O)` itself when `s = 0`). `ClassGroupDataLean`'s own
+    loop skips this tuple as trivial, but a Kummer-Dedekind-represented prime
+    ideal that happens to be principal still needs it (see
+    `RelationsGeneratorIntervalKummer`). Returns (name, lean_str)."""
+    name = 'PowUnit' if s == 0 else 'Pow' + ''.join(f'J{i}_0' for i in range(s))
+    lhs = '(1 : Ideal O)' if s == 0 else '*'.join(f'J{i} ^ 0' for i in range(s))
+    coord = ExList(str([[1] + [0] * (len(B) - 1)]))
+    simp_lemmas = (['pow_zero', 'one_mul'] if s > 0 else []) + ['Set.range_unique', 'Matrix.cons_val_fin_one']
+    out = f"\nlemma {name} : {lhs} = Ideal.span (Set.range fun i ↦ B.equivFun.symm ({coord} i)) := by\n"
+    out += f" simp only [{', '.join(simp_lemmas)}]\n"
+    out += " rw [B_one_repr, Ideal.span_singleton_one, Ideal.one_eq_top]\n"
+    return name, out
+
+
+def RelationsGeneratorIntervalKummer(K, B, M1, M2, J_ideal_gens, J_name, name_cert,
+                                      generators_vec, primes_below_gens, minkowski_bound,
+                                      class_group, is_kummer):
+    """Like `RelationsGeneratorInterval`, but also emits a relation certificate
+    when `is_kummer(p)` even if the ideal is principal (`expon` all zero):
+    Kummer-Dedekind primes always carry two generators, so
+    `ClassGroupOrderProofSplit` always expects an `R{p}N{i}` for them, unlike
+    the flag-based single-generator case that `name_cert_alt` special-cases
+    away as `rfl`. `s = 0` (trivial class group) is handled directly, since
+    `RelationsGeneratorInterval` never exercises it (its gate always skips)."""
+    s = len(J_ideal_gens)
+    BM = []
+    O = K.ring_of_integers()
+    J_name_list = [J_name + str(i) for i in range(s)]
+    J = [K.ideal(J_ideal_gens[i]) for i in range(s)]
+    out = ""
+    for p in primes(M1, M2 + 1):
+        F = primes_below_gens(p)
+        l = len(F)
+        BMp = []
+        for cont in range(l):
+            I = K.ideal(F[cont][0])
+            if I.norm() < minkowski_bound:
+                expon = [(class_group(I)).exponents()[i] for i in range(s)]
+                BMp.append(expon)
+                if expon != [0 for i in range(s)] or is_kummer(p):
+                    set_random_seed(10)
+                    JJ = prod([J[i]**(expon[i]) for i in range(s)]) if s > 0 else K.ideal(1)
+                    genel = (I / JJ).gens_reduced(proof=False)[0]
+                    d = genel.denominator()
+                    for t_p in prime_divisors(d):
+                        while (d % t_p == 0) and ((d // t_p) * genel in O):
+                            d = d // t_p
+                    x = d * genel
+
+                    alpha = elems_to_basis([x], B).list()
+                    JJ_gens_reduced = generators_vec([expon[i] for i in range(s)])
+                    A = [x * i for i in JJ_gens_reduced]
+                    C = ([d * i for i in F[cont][0]])
+                    CC = F[cont][0]
+
+                    Gen1 = [elems_to_basis(A, B).transpose().rows()[j].list() for j in range(len(A))]
+                    Gen2 = [elems_to_basis(C, B).transpose().rows()[j].list() for j in range(len(C))]
+                    before_div = [elems_to_basis(CC, B).transpose().rows()[j].list() for j in range(len(CC))]
+                    JJ_gens = [elems_to_basis(JJ_gens_reduced, B).transpose().rows()[j].list() for j in range(len(JJ_gens_reduced))]
+
+                    h = [IdealLift(K, B, C, A[i]) for i in range(len(A))]
+                    g = [IdealLift(K, B, A, C[i]) for i in range(len(C))]
+
+                    gp = [[elems_to_basis(g[i], B).transpose().rows()[j].list() for j in range(len(A))] for i in range(len(g))]
+                    hp = [[elems_to_basis(h[i], B).transpose().rows()[j].list() for j in range(len(C))] for i in range(len(h))]
+
+                    if s == 0:
+                        J_name_exp = '(1 : Ideal O)'
+                    elif s < 2:
+                        J_name_exp = J_name_list[0] + f' ^ {expon[0]}'
+                    else:
+                        J_name_exp = J_name_list[0] + f' ^ {expon[0]}'
+                        for i in range(1, s):
+                            J_name_exp = J_name_exp + '*' + J_name_list[i] + f'^ {expon[i]}'
+
+                    cont2 = cont
+
+                    out += f"""
+
+noncomputable def E{p}RS{cont} : RelationCertificate Table {d} {ExList(str(before_div))}
+  !{alpha} {ExList(str(JJ_gens))} where
+    su := {ExList(str(Gen2))}
+    hsu := by decide
+    w := {ExList(str(Gen1))}
+    hw := by decide
+    g := {ExList(str(gp))}
+    h := {ExList(str(hp))}
+    hle1 := by decide
+    hle2 := by decide
+
+lemma R{p}N{cont} : Ideal.span {{{d}}} * I{p}N{cont2} =  Ideal.span {{B.equivFun.symm !{alpha}}} * ({J_name_exp}) := by
+  exact relation_of_RelationCertificate timesTableT_eq_Table rfl {name_cert(expon)} E{p}RS{cont} \n"""
+        BM = BM + [BMp]
+    return out, BM
+
+
+def generate_invariants_proof_lean_kummer(T, B_polys, num, out_dir='.', lean_root=None):
+    """Generate all Lean files for the class group certificate.
+
+    T       : irreducible polynomial in ZZ['x']
+    B_polys : list of elements of NumberField(T, 'a') forming the integral basis
+    num     : label string for the output directory and file names
+    """
+    global LEAN_ROOT
+    if lean_root is not None:
+        LEAN_ROOT = lean_root
+    # The Dedekind certificate needs an *integer* Bezout pair; over QQ[x] the gcd is 1
+    # and the cofactors are rational, which silently produces an invalid certificate.
+    T = ZZ['x'](T)
+
+    K = None
+    if len(B_polys) > 1 and hasattr(B_polys[1], 'parent'):
+        parent0 = B_polys[1].parent()
+        if hasattr(parent0, 'number_field'):
+            # parent0 is an order (e.g. from K.maximal_order().basis()); recover the field.
+            K = parent0.number_field()
+        elif isinstance(parent0, NumberField_base):
+            K = parent0
+    if K is None:
+        K = NumberField(T, 'a')
+    B = B_polys
+    T_lean = str(T).replace('x', 'X')
+    _, d = BasisToMatrix(B)  # common denominator; d = 1 unless a scaled basis is used
+
+    folder = os.path.join(out_dir, f"NF{num}")
+    os.makedirs(folder, exist_ok=True)
+
+    # 1. Irreducible{num}.lean
+    irr_str = LeanProofIrreducible(T)
+    with open(f"{folder}/Irreducible{num}.lean", "w") as f:
+        f.write(_wrap_ns(irr_str, num))
+
+    # 2. RI{num}.lean (ring of integers)
+    ri_str, bad, flagl, flaglW, flagD = LeanProofKummer(T, B, f'Irreducible{num}', num, '', 1)
+    with open(f"{folder}/RI{num}.lean", "w") as f:
+        f.write(_wrap_ns(ri_str, num))
+
+    # 3. Global numeric data
+    disc_factors = [factor(T.discriminant())[i][0]
+                    for i in range(len(factor(T.discriminant())))]
+    M = K.minkowski_bound()
+    bound = floor(M + 0.01) + 1
+    PP = list(primes(bound))
+    m = len(PP)
+    NI = ceil(20 / harmonic_number(K.degree()))
+    NF = ceil(m / NI)
+    D = K.discriminant()
+
+    # Precompute PrimesBelowGens for all primes up to bound
+    pbg_list = [0] * (bound + 1)
+    for p in PP:
+        pbg_list[p] = PrimesBelowGensKummer(K, T, B, p, d)
+
+    def primes_below_gens(p):
+        return pbg_list[p]
+
+    # 4. PrimesBelow{num}F{i}.lean + PrimesBelowCert{num}.lean
+    interval_strings, gluing_string, listIint, listPint, listI, listP = \
+        PrimesBelowBoundCertificteGenIntervalKummer(K, B, T, d, bound, NF, primes_below_gens, NI)
+
+    for i in range(NF):
+        lo = PP[i * NI]
+        hi = PP[min((i + 1) * NI - 1, m - 1)]
+        header = f"""
+import {LEAN_ROOT}.NF{num}.RI{num}
+import IdealArithmetic.Generation.ClassGroupGeneration
+import IdealArithmetic.IdealArithmetic
+import IdealArithmetic.Computation.PrimeSieve
+
+set_option linter.all false
+
+open Classical Polynomial
+
+noncomputable section """
+        pb_str = PrimesBelowBoundKummer(K, B, T, d, lo, hi, disc_factors, primes_below_gens)
+        with open(f"{folder}/PrimesBelow{num}F{i}.lean", "w") as f:
+            f.write(_wrap_ns(header + pb_str + "\n" + interval_strings[i], num))
+
+    cert_header = "".join(
+        f"import {LEAN_ROOT}.NF{num}.PrimesBelow{num}F{i}\n"
+        for i in range(NF)
+    ) + "\nnoncomputable section"
+    if NF > 70:
+        cert_header += "\nset_option maxRecDepth 20000"
+        cert_header += "\nset_option maxHeartbeats 400000"
+    with open(f"{folder}/PrimesBelowCert{num}.lean", "w") as f:
+        f.write(_wrap_ns(cert_header + gluing_string, num))
+
+    # 5. Class group data
+    # Computed with proof=False (i.e. assuming GRH) rather than under Sage's default
+    # provably-correct mode, which can be orders of magnitude slower.
+    O = K.ring_of_integers()
+    Cl = K.class_group(proof=False)
+    num_gens = len(list(Cl.gens()))
+    ideal_gens = [Cl.gens()[i].ideal().gens_reduced(proof=False) for i in range(num_gens)]
+    J = [K.ideal(ideal_gens[i]) for i in range(num_gens)]
+    t_orders = [Cl(J[i]).order() for i in range(num_gens)]
+    # x[i] must be the exact value IdealPowLean will independently recompute for
+    # J[i]^t_orders[i] (see IdealPowerGenerator) -- not an independently
+    # gens_reduced() ideal power, which can land on a different associate.
+    x = [IdealPowerGenerator(K, B, ideal_gens[i], t_orders[i])[0] for i in range(num_gens)]
+    u = [K(g) for g in K.unit_group(proof=False).gens()]
+    primesCN = [factor(prod(t_orders))[i][0]
+                for i in range(len(factor(prod(t_orders))))] if t_orders else []
+
+    # 6. ClassGroupData{num}.lean
+    set_random_seed(10)
+    cg_str, giL, MAux = ClassGroupDataLean(K, B, num, J, ideal_gens, 'J', x, t_orders, u)
+    _, allzero_str = PowAllZeroLean(B, num_gens)
+    cg_str += allzero_str
+    with open(f"{folder}/ClassGroupData{num}.lean", "w") as f:
+        f.write(_wrap_ns(cg_str, num))
+
+    # 7. ClassGroupSaturated{num}_{pr}.lean for each prime
+    local_data_sat = []
+    for pr in primesCN:
+        phi, A, Q, elems, flag = MatrixPrimesG(K, O, pr, x, t_orders, 400)
+        elems = [K(r) for r in elems]
+        Ql = [list(Q[j].gens()) for j in range(len(Q))]
+        Qlq = [Ql[j][0] for j in range(len(Ql))]
+        if flag == 0:
+            names = [f'zeta{j + 1}' for j in range(len(elems) - len(phi))] + \
+                    [f'alpha{phi[j]}' for j in range(len(phi))]
+        else:
+            names = [f'zeta{j + 1}' for j in range(len(elems) - len(phi) - 1)] + \
+                    ['v'] + [f'alpha{phi[j]}' for j in range(len(phi))]
+        local_data_sat.append([A, phi, Qlq, names, flag])
+
+        set_random_seed(10)
+        sat_import = f"import {LEAN_ROOT}.NF{num}.ClassGroupData{num}\n"
+        sat_body = SaturatedCertLean(K, B, num, Ql, pr, elems, names, f'Sat{pr}')
+        with open(f"{folder}/ClassGroupSaturated{num}_{pr}.lean", "w") as f:
+            f.write(_wrap_ns(sat_import + sat_body, num))
+
+    # 8. RelationIdeals{num}F{i}.lean
+    def name_cert_kummer(l):
+        if l == []:
+            return 'PowUnit'
+        return 'Pow' + ''.join(f'J{i}_{l[i]}' for i in range(len(l)))
+
+    def generators_vec_kummer(l):
+        if l == [0] * len(l):
+            return [K(1)]
+        return MAux[tuple(l)]
+
+    is_kummer = lambda p: gcd(ZZ(d), p) == 1
+    any_kummer = any(is_kummer(p) for p in primes(bound))
+
+    BMf = []
+    set_random_seed(10)
+    for i in range(NF):
+        lo = PP[i * NI]
+        hi = PP[min((i + 1) * NI - 1, m - 1)]
+        rel_out, BMp = RelationsGeneratorIntervalKummer(
+            K, B, lo, hi, ideal_gens, 'J',
+            name_cert_kummer, generators_vec_kummer, primes_below_gens,
+            bound, Cl, is_kummer
+        )
+        if num_gens > 0 or any_kummer:
+            rel_header = f"""import {LEAN_ROOT}.NF{num}.PrimesBelow{num}F{i}
+import {LEAN_ROOT}.NF{num}.ClassGroupData{num}
+
+set_option linter.all false
+
+noncomputable section
+"""
+            with open(f"{folder}/RelationIdeals{num}F{i}.lean", "w") as f:
+                f.write(_wrap_ns(rel_header + rel_out, num))
+        BMf += BMp
+
+    BM = [e for sublist in BMf for e in sublist]
+
+    # 9. Invariants{num}.lean
+    inv_str = build_invariants_content(
+        T, K, B, num, bad, flagl, flaglW, flagD,
+        t_orders, ideal_gens, u, primesCN, local_data_sat,
+        NF, listIint, listPint, BM, D, num_gens, NI
+    )
+    # `unfold_prod` (from ExponentiationZMod) is needed whenever an interval mixes
+    # Kummer-Dedekind ideals (always flag 0) with old-method principal ideals (flag
+    # 1) -- a case the original driver's import selection never had to cover, since
+    # flags used to be uniform within an interval.
+    extra_imports = "import IdealArithmetic.Computation.ExponentiationZMod\n"
+    if num_gens == 0 and any_kummer:
+        extra_imports += "".join(
+            f"import {LEAN_ROOT}.NF{num}.RelationIdeals{num}F{i}\n"
+            for i in range(NF)
+        )
+    inv_str = inv_str.replace(
+        f"import {LEAN_ROOT}.NF{num}.PrimesBelowCert{num}",
+        extra_imports + f"import {LEAN_ROOT}.NF{num}.PrimesBelowCert{num}", 1)
+    with open(f"{folder}/Invariants{num}.lean", "w") as f:
+        f.write(_wrap_ns(inv_str, num))
+
+    # 10. Results{num}.lean
+    t_final = [1] if t_orders == [] else t_orders
+    results_str = f"""import {LEAN_ROOT}.NF{num}.Invariants{num}
+
+noncomputable section
+
+open Polynomial NumberField
+
+/- Number field `K(α)` with `α` root of the polynomial `{T_lean}`. -/
+
+lemma T_def' : K = AdjoinRoot (map (algebraMap ℤ ℚ) ({T_lean})) := rfl
+
+lemma T_irreducible' : Irreducible ({T_lean} : ℤ[X]) := irreducible_T
+
+theorem O_ringOfIntegers : O = RingOfIntegers K := O_ringOfIntegers'
+"""
+    if flagD == 1:
+        results_str += f"""
+theorem K_discr' : discr K = {D} := K_discr
+
+lemma K_nrComplexPlaces' : InfinitePlace.nrComplexPlaces K = {K.signature()[1]} := K_nrComplexPlaces
+
+lemma K_nrRealPlaces' : InfinitePlace.nrRealPlaces K = {K.signature()[0]} := K_nrRealPlaces
+"""
+    results_str += f"""
+def class_group_equiv' :
+  (∀ i : Fin {len(t_final)} , (ZMod (!{t_final} i))) ≃+ Additive (ClassGroup (RingOfIntegers K)) := class_group_equiv
+
+theorem class_number_K_eq_{prod(t_final)}' : classNumber K = {prod(t_final)} := class_number_K_eq_{prod(t_final)}
+"""
+    with open(f"{folder}/Results{num}.lean", "w") as f:
+        f.write(_wrap_ns(results_str, num))
+
+    print(f"Generated Lean files in {folder}/ (Kummer-Dedekind where p is coprime to d = {d})")
