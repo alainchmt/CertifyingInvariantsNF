@@ -87,23 +87,23 @@ lemma Submodule.eq_top_of_index_isUnit  (N : Submodule R M) [Module.Free R M] [M
 
 omit [IsDomain R] [IsPrincipalIdealRing R]
 lemma LinearMap.toMatrix_eq_of_index_equiv {N : Type*} [AddCommMonoid N]
-    [Module R N] (B : Basis ι R M) (b : Basis ι R N) (f : N →ₗ[R] M )
-    (e : ι ≃ ι') :
+    [DecidableEq ι] [DecidableEq ι'] [Module R N] (B : Basis ι R M) (b : Basis ι R N)
+    (f : N →ₗ[R] M ) (e : ι ≃ ι') :
     (LinearMap.toMatrix b B f).det = (LinearMap.toMatrix (b.reindex e) (B.reindex e) f).det := by
   have : Matrix.reindexAlgEquiv R _ e (LinearMap.toMatrix b B f) = (LinearMap.toMatrix
     (b.reindex e) (B.reindex e) f) := by
-    simp only [Matrix.reindexAlgEquiv_apply, Matrix.reindex_apply]
+    simp only [Matrix.coe_reindexAlgEquiv, Matrix.reindex_apply]
     ext
     simp only [Matrix.submatrix_apply, LinearMap.toMatrix_apply,Basis.coe_reindex,
     Function.comp_apply, Basis.repr_reindex,
-      Finsupp.mapDomain_equiv_apply]
+      Finsupp.equivMapDomain_apply]
   rw [← this, Matrix.det_reindexAlgEquiv]
 
 variable [IsDomain R] [IsPrincipalIdealRing R]
 
 /-- Given bases for `N` and  `M`, the determinant of the matrix representing
 `N → M` is an associate to `[M : N]` -/
-lemma associated_index_of_basis  [Module.Free R M]
+lemma associated_index_of_basis [DecidableEq ι] [Module.Free R M]
     [Module.Finite R M] (N : Submodule R M) (B : Basis ι R M ) (b : Basis ι R N ) :
     Associated (Submodule.indexPID N) ((LinearMap.toMatrix b B (Submodule.subtype N)).det) := by
   if heq : Module.rank R M ≠ Module.rank R N then
@@ -136,7 +136,6 @@ lemma associated_index_of_basis  [Module.Free R M]
     rw [this, Matrix.det_mul, Matrix.det_mul,
       LinearMap.toMatrix_eq_of_index_equiv B b _ (Basis.indexEquiv B B'),
       associated_isUnit_mul_left_iff aux1, associated_mul_isUnit_left_iff aux2]
-    convert Associated.refl _
 
 /-- If `N₁ ≤ N₂ ≤ M`, then `[M : N₂]` divides `[M : N₁]`. -/
 lemma Submodule.indexPID_dvd_of_le [Module.Free R M]

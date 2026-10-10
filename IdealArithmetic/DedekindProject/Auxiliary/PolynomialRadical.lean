@@ -83,7 +83,7 @@ lemma dvd_pow_of_isRadicalPart {R : Type*} [Nontrivial R] [CommMonoidWithZero R]
     [UniqueFactorizationMonoid R] {a b : R} (hf : a ≠ 0)
     (hr : IsRadicalPart b a ) :  ∃ n : ℕ, a ∣ b ^ n := by
   classical
-  haveI :NormalizationMonoid R := UniqueFactorizationMonoid.normalizationMonoid
+  haveI :StrongNormalizationMonoid R := UniqueFactorizationMonoid.normalizationMonoid
   have : b ≠ 0 := Squarefree.ne_zero hr.2
   use Multiset.card (UniqueFactorizationMonoid.normalizedFactors a)
   rw [UniqueFactorizationMonoid.dvd_iff_normalizedFactors_le_normalizedFactors hf,
@@ -119,7 +119,7 @@ lemma isRadicalPart_dvd_of_prime_dvd {R : Type*} [Nontrivial R] [CommMonoidWithZ
      [UniqueFactorizationMonoid R] {a b c : R}
     (hr : IsRadicalPart b a) (hpdvd : ∀ p : R, Prime p → p ∣ a → p ∣ c) : b ∣ c := by
   classical
-  haveI :NormalizationMonoid R := UniqueFactorizationMonoid.normalizationMonoid
+  haveI :StrongNormalizationMonoid R := UniqueFactorizationMonoid.normalizationMonoid
   have hgz : b ≠ 0 := Squarefree.ne_zero hr.2
   by_cases hc : c = 0
   rw [hc]; simp only [dvd_zero]
@@ -248,7 +248,7 @@ lemma degree_ne_zero_of_isRadicalPart_of_degree_ne_zero {K : Type*} [CommRing K]
     [IsDomain K] [UniqueFactorizationMonoid  K] (f g : Polynomial K)
     (hdeg : f.natDegree ≠ 0 ) (hrad : IsRadicalPart g f) : g.natDegree ≠ 0 := by
   by_contra hc
-  haveI : NormalizationMonoid K[X] := UniqueFactorizationMonoid.normalizationMonoid
+  haveI : StrongNormalizationMonoid K[X] := UniqueFactorizationMonoid.normalizationMonoid
   have hfz : f ≠ 0 := Ne.symm (ne_of_apply_ne natDegree fun a => hdeg (id (Eq.symm a)))
   choose n hn using (dvd_pow_of_isRadicalPart hfz hrad)
   have hgz : g ≠ 0 := by

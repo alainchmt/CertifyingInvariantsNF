@@ -623,9 +623,8 @@ lemma square_and_multiply_algorithm {R : Type*} [Monoid R] {s t : ℕ} (y : Fin 
       simp_rw [mul_comm, ← mul_assoc, pow_succ, mul_comm]
     rw [aux, mul_comm, pow_add, pow_mul]
     have aux2 := hsucc y' bit' ?_ ?_
-    swap
-    convert hs
     · rw [← aux2] ; exact (hmul 0)
+    · exact hs
     · intro i
       exact hmul (Fin.succ i)
 
@@ -751,6 +750,7 @@ lemma irreducible_of_CertificateIrreducibleZMod (p n t s: ℕ)[Fact $ Nat.Prime 
     exact (C.hhz).symm
     use (C.a ⟨m, hmlt1⟩ ) , (C.b ⟨m, hmlt1⟩ )
     convert C.hgcd ⟨m, hmlt1⟩ hmdvd
+    rfl
 
 
 /-- Certificate for irreducibility of a polynomial `f` over `(ZMod p)`.

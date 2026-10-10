@@ -91,13 +91,13 @@ lemma mul_eq_two_mul_sq_sub_one_of_isMaxOn {y0 a : ℝ} (ha : 1 < a) (hy0 : y0 �
     (isMaxOn_iff.mpr h).isLocalMax (Icc_mem_nhds hlt2 hlt1)
   have hderiv : HasDerivAt (fun y => 16 * (1 - y ^ 2) * (a - y) ^ 2)
       (32 * (a - y0) * (2 * y0 ^ 2 - a * y0 - 1)) y0 := by
-    have key : HasDerivAt (fun y => 16 * (1 - y ^ 2) * (a - y) ^ 2)
-        (16 * -(2 * y0) * (a - y0) ^ 2 + 16 * (1 - y0 ^ 2) * (2 * (a - y0) ^ (2 - 1) * (-1))) y0 := by
-      apply HasDerivAt.mul
-      · apply HasDerivAt.const_mul
-        simpa using (hasDerivAt_const y0 1).sub ((hasDerivAt_id y0).pow 2)
-      · simpa using ((hasDerivAt_const y0 a).sub (hasDerivAt_id y0)).pow 2
+    have key : HasDerivAt (fun y => 16 * (1 - y ^ 2) * (a - y) ^ 2) _ y0 :=
+      (HasDerivAt.const_mul (16 : ℝ)
+        ((hasDerivAt_const y0 (1 : ℝ)).sub ((hasDerivAt_id y0).pow 2))).mul
+        (((hasDerivAt_const y0 a).sub (hasDerivAt_id y0)).pow 2)
     convert key using 1
+    simp only [Pi.sub_apply, Pi.pow_apply, id_eq]
+    push_cast
     ring
   have h' : 2 * y0 ^ 2 - a * y0 - 1 = 0 :=
     (mul_eq_zero.mp (hmax.hasDerivAt_eq_zero hderiv)).resolve_left
@@ -132,7 +132,7 @@ lemma norm_eq_mul_normSq (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+* ℂ)
         NumberField.Embeddings.card K ℂ, hdeg]
   have hprod : algebraMap ℚ ℂ (Algebra.norm ℚ a) = φ a * (σ a * conjugate σ a) := by
     rw [Algebra.norm_eq_prod_embeddings ℚ ℂ a,
-        ← Fintype.prod_equiv RingHom.equivRatAlgHom (fun f => f a) (fun τ => τ a)
+        ← Fintype.prod_equiv (RingHom.equivRatAlgHom K ℂ) (fun f => f a) (fun τ => τ a)
           (fun _ => by simp [RingHom.equivRatAlgHom_apply]),
         huniv, Finset.prod_insert (by simp [hne1.symm, hne2.symm]),
         Finset.prod_insert (by simp [hne3]), Finset.prod_singleton]
@@ -177,7 +177,8 @@ lemma algebraMap_discr_eq_sq_prod_sub (hdeg : Module.finrank ℚ K = 3) (σ φ :
   obtain ⟨hne1, hne2, hne3⟩ := embeddings_ne hφ hσ
   have hcardK : Fintype.card (K →ₐ[ℚ] ℂ) = 3 := by rw [AlgHom.card, hdeg]
   set e0 : Fin 3 → (K →ₐ[ℚ] ℂ) :=
-    ![RingHom.equivRatAlgHom φ, RingHom.equivRatAlgHom σ, RingHom.equivRatAlgHom (conjugate σ)]
+    ![RingHom.equivRatAlgHom K ℂ φ, RingHom.equivRatAlgHom K ℂ σ,
+      RingHom.equivRatAlgHom K ℂ (conjugate σ)]
     with he0
   have hinj : Function.Injective e0 := by
     intro i j hij

@@ -375,8 +375,9 @@ theorem resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList {R : Type*} [Co
   · simp only [List.getElem_map]
     erw [h.h1]
   · convert List.getLastD_map (a := 0) (f := ofList)
-    erw [hc]
-    simp only [ofList_cons, ofList_nil, mul_zero, add_zero]
+    · rfl
+    · erw [hc]
+      simp only [ofList_cons, ofList_nil, mul_zero, add_zero]
   · intro i hi
     simp at hi
     rw [List.getElem_map, List.getElem_map, ← Nat.succ_lt_succ_iff, Nat.succ_eq_add_one,
@@ -406,7 +407,7 @@ theorem resultant_eq_ResultantOfPRemainder_of_SturmBuilderOfList {R : Type*} [Co
 /-- The discriminant of `p` in terms of a Sturm sequence starting with `p` and `p'`. -/
 theorem discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList
     {R : Type*} [CommRing R] [IsDomain R] [Div R] [MulDivCancelClass R]
-    [IsAddTorsionFree R] [LinearOrder R] [Inhabited R] {P : List (List R)} {p : List R}
+    [HasUniqueDiv R] [LinearOrder R] [Inhabited R] {P : List (List R)} {p : List R}
     (h : SturmBuilderOfList P p (List.derivative p).dropTrailingZeros) :
       discr (ofList p) = DiscriminantOfPRemainder P h.e h.f := by
   have := h.hlen
@@ -474,6 +475,7 @@ theorem discr12 : discr (C (-1) + C (-3) * X + C 4 * X ^ 2 + C (-3) * X ^ 3
 C 2 * X ^ 8 + C (-1) * X ^ 9 + C 2 * X ^ 10 + C (-2) * X ^ 11 + X ^ 12) = -2638220867575926287 := by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList T12
   simp ; ring
+  · decide
 
 
 def T8 : SturmBuilderOfList [[-1, 2, 56, 2, 3, 4, 5, -7, 1], [2, 112, 6, 12, 20, 30, -49, 8], [50, -896, -2730, -164, -236, -306, 263], [-10317, 26744, 409348, -75968, 11487, 9730], [118039, -210658, -4396196, 3136696, -497669], [-891307726, 226789062, 30505154223, -38072891440], [-45100387975686, 152751896379902, 1843938372217163], [159617440905728815, 8192722259337557422], [1]] [-1, 2, 56, 2, 3, 4, 5, -7, 1] [2, 112, 6, 12, 20, 30, -49, 8] where
@@ -506,3 +508,4 @@ theorem discr8 : discr (C (-1) + C 2 * X + C 56 * X ^ 2 + C 2 * X ^ 3 +
   C 3 * X ^ 4 + C 4 * X ^ 5 + C 5 * X ^ 6 + C (-7) * X ^ 7 + X ^ 8) = 935247748453823378961 := by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList T8
   simp ; ring
+  · decide

@@ -215,7 +215,7 @@ lemma q_ne_zero {P : List R[X]} {p q : R[X]}
     IsSturmSequence (List.map (Polynomial.map f) P) (map f p) (map f q) where
   hlen := by simp[h.hlen]
   h0 := by simp [h.h0]
-  h1 := by simp only [List.getElem_map]  ; simp_rw [← h.h1] ; rfl
+  h1 := by simp only [List.getElem_map]  ; simp_rw [← h.h1]
   hc := by
     obtain ⟨c, hc1, hc2⟩ := h.hc
     use f c
@@ -348,23 +348,23 @@ lemma signChanges_length_two  [DecidableEq R] [Ring R] [LinearOrder R] [IsStrict
 
 lemma signChanges_cons_eq_add' [Zero R] [Preorder R] [DecidableLT R] (a b : R) (as : List R) :
   signChanges' (a :: b :: as) = signChanges' [a, b] + signChanges' (b :: as) := by
-by_cases hc : sign a * sign b = -1
-· simp [signChanges', hc]
-· simp [signChanges', hc]
+  by_cases hc : sign a * sign b = -1
+  · simp [signChanges', hc]
+  · simp [signChanges', hc]
 
 lemma signChanges_cons_eq_add [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
   (a b : R) (as : List R) (hb : b ≠ 0) :
   signChanges (a :: b :: as) = signChanges [a, b] + signChanges (b :: as) := by
-have aux : ∀ x y : R, ∀ L : List R,  x :: y :: L = [x, y] ++ L := by simp
-by_cases ha : a ≠ 0
-· have aux2 : (List.filter (fun x ↦ if x ≠ 0 then true else false) [a, b]) = [a, b] := by
-    simp[ha, hb]
-  unfold signChanges
-  rw [aux, List.filter_append, aux2, ← aux, signChanges_cons_eq_add']
-  congr ; simp [hb]
-· push Not at ha
-  rw [ha]
-  simp[signChanges_zero_head, signChanges_single]
+  have aux : ∀ x y : R, ∀ L : List R,  x :: y :: L = [x, y] ++ L := by simp
+  by_cases ha : a ≠ 0
+  · have aux2 : (List.filter (fun x ↦ if x ≠ 0 then true else false) [a, b]) = [a, b] := by
+      simp[ha, hb]
+    unfold signChanges
+    rw [aux, List.filter_append, aux2, ← aux, signChanges_cons_eq_add']
+    congr ; simp [hb]
+  · push Not at ha
+    rw [ha]
+    simp[signChanges_zero_head, signChanges_single]
 
 
 lemma signChanges_modify_zero [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
@@ -402,31 +402,31 @@ lemma signChanges_map' [Zero R] [Preorder R] [DecidableLT R] [DecidableEq R]
   [Zero S] [Preorder S] [DecidableLT S] [DecidableEq S] (f : R → S)
   (hmono1 : ∀ a , 0 < a ↔ 0 < f a ) (hmono2 : ∀ a , a < 0 ↔ f a < 0 ) (L : List R) :
   signChanges' L = signChanges' (L.map f) := by
-have aux : ∀ x, sign (f x) = sign x := by
-  intro x
-  simp_rw [sign_apply, hmono1, hmono2]
-induction L with
-| nil => rfl
-| cons a as hi =>
-  match as with
-  | [] => simp [signChanges']
-  | (b :: bs) =>
-  simp
-  by_cases ha : sign a * sign b = -1
-  · have hac := ha
-    have ha : sign (f a) * sign (f b) = -1 := by
-       rw [aux a, aux b]
-       exact ha
-    unfold signChanges'
-    simp [ha, hac]
-    simp[hi]
-  · have hac := ha
-    have ha : ¬ sign (f a) * sign (f b) = -1 := by
-      rw [aux a, aux b]
-      exact ha
-    unfold signChanges'
-    simp [ha, hac]
-    simp[hi]
+  have aux : ∀ x, sign (f x) = sign x := by
+    intro x
+    simp_rw [sign_apply, hmono1, hmono2]
+  induction L with
+  | nil => rfl
+  | cons a as hi =>
+    match as with
+    | [] => simp [signChanges']
+    | (b :: bs) =>
+    simp
+    by_cases ha : sign a * sign b = -1
+    · have hac := ha
+      have ha : sign (f a) * sign (f b) = -1 := by
+         rw [aux a, aux b]
+         exact ha
+      unfold signChanges'
+      simp [ha, hac]
+      simp[hi]
+    · have hac := ha
+      have ha : ¬ sign (f a) * sign (f b) = -1 := by
+        rw [aux a, aux b]
+        exact ha
+      unfold signChanges'
+      simp [ha, hac]
+      simp[hi]
 
 lemma signChanges_map [Zero R] [LinearOrder R] [DecidableLT R] [DecidableEq R]
     [Zero S] [LinearOrder S] [DecidableLT S] [DecidableEq S] (f : R → S)
@@ -1790,6 +1790,7 @@ theorem real_roots1 :
   convert sturm_theorem_total_map_ofList ℝ (Real.IsRealClosedField) (algebraMap ℤ ℝ) (Int.cast_strictMono)
     (this ▸ SturmBuilderExample1)
   · simp ; ring
+  · decide
 
 
 /-- EXAMPLE 2:  `X^8 - X^7 - 3*X^6 + 3*X^5 + 3*X^4 - 6*X^3 - 2*X^2 + 3*X + 1` -/
@@ -1835,3 +1836,4 @@ theorem real_roots2 :
   convert sturm_theorem_total_map_ofList ℝ (Real.IsRealClosedField) (algebraMap ℤ ℝ) (Int.cast_strictMono)
      (this ▸ SturmBuilderExample2)
   · simp ; ring
+  · decide

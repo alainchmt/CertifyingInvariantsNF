@@ -257,5 +257,5 @@ lemma ker_eq_bot_of_linearMap_to_linearMaps_eval {B C : Type*} [AddCommGroup B] 
   (f : A →ₗ[R] (B →ₗ[R] C )) (b : Basis τ₁ R A) (b' : Basis τ₂ R C) (v : τ₁ → A )
   (β : B) (hi :  ∀ (i : τ₁), (∃ (j : τ₂), b'.repr (((f ∘ v) i) β) j ≠ 0 ∧
     (∀ (k : τ₁), k ≠ i →  b'.repr (((f ∘ v) k) β) j = 0))): LinearMap.ker f = ⊥ := by
-refine kernel_eq_bot_of_linearIndependent_im b f v ?_
-exact linearIndependent_of_linearIndependent_eval_repr (fun i => (f ∘ v) i) β b' hi
+  refine kernel_eq_bot_of_linearIndependent_im b f v ?_
+  exact linearIndependent_of_linearIndependent_eval_repr (fun i => (f ∘ v) i) β b' hi

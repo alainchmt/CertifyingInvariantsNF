@@ -125,6 +125,9 @@ lemma  minkowskiBoundFB_isFactorBaseBound (K : Type*) [Field K] [NumberField K] 
 
 variable {K : Type*} [Field K] [NumberField K]
 
+local instance infinite_of_free_int {S : Type*} [CommRing S] [Nontrivial S]
+    [Module.Free ℤ S] : Infinite S := Module.Free.infinite ℤ S
+
 local notation "Oκ" => RingOfIntegers K
 
 /-- The set of ideals of norm below `B` equals the union of the sets of ideals above `p`
@@ -136,72 +139,72 @@ lemma primes_below_bound_of_factorization' (B : ℕ)
     (hPpord : ∀ p, (F p).prod ≤ Ideal.span {↑p}) :
     {I : Ideal Oκ | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < B} =
       ⋃ (p : Nat.primesBelow B), {q ∈ F p | q.absNorm < B} := by
-refine le_antisymm ?_ ?_
-· intro I hIn
-  rcases hIn with ⟨hIn1, hIn2, hIn3 ⟩
-  let P := Ideal.under ℤ I
-  have hPP: P.IsPrime :=  Ideal.IsPrime.under ℤ P
-  let p := Submodule.IsPrincipal.generator P
-  have hPeq : P = Ideal.span {p} := (Ideal.span_singleton_generator _ ).symm
-  have : I.LiesOver (Ideal.span {p}) := by
-    rw [← hPeq]
-    simp only [Ideal.over_under, P]
-  have hpn : p ≠ 0 := by
-    intro hc
-    erw [hc, Ideal.span_zero] at this
-    have hIaux : I ∈ (⊥ : Ideal ℤ).primesOver Oκ := by
-      exact ⟨hIn2, this ⟩
-    rw [Ideal.primesOver_bot] at hIaux
-    simp only [Set.mem_singleton_iff] at hIaux
-    rw [hIaux] at hIn1
-    simp only [Ideal.absNorm_bot, lt_self_iff_false] at hIn1
-  have hpp : Prime p := by
-    rw [← Ideal.span_singleton_prime, ← (Ideal.span_singleton_generator _ ).symm]
-    exact hPP
-    · exact hpn
-  haveI hpM : Ideal.IsMaximal (Ideal.span {p} ):= by
-    rw [← hPeq]
-    refine IsPrime.to_maximal_ideal ?_
-    rw [hPeq]
-    simp only [ne_eq, Ideal.span_singleton_eq_bot, hpn, not_false_eq_true]
-  simp only [Set.mem_iUnion,  Subtype.exists]
-  use p.natAbs
-  have hlB : p.natAbs < B := by
-    rw [Ideal.absNorm_eq_pow_inertiaDeg I hpp] at hIn3
-    refine lt_of_le_of_lt ?_ hIn3
-    nth_rw 1 [← pow_one (p.natAbs)]
-    refine Nat.pow_le_pow_of_le ?_ ?_
-    · exact Nat.Prime.one_lt (Int.prime_iff_natAbs_prime.1 hpp)
-    · exact (Ideal.inertiaDeg_pos (Ideal.span {p}) I)
-  have hBm : p.natAbs ∈ B.primesBelow := by
-    rw [Nat.mem_primesBelow]
-    exact ⟨hlB, Int.prime_iff_natAbs_prime.1 hpp⟩
-  use hBm
-  constructor
-  · dsimp
-    have hprod : (F ⟨p.natAbs, hBm⟩).prod ≤ I := by
-      refine le_trans (hPpord ⟨p.natAbs, hBm⟩) ?_
-      rw [Ideal.span_singleton_le_iff_mem]
-      convert (Ideal.mem_of_liesOver I (Ideal.span {p}) ↑p.natAbs).1 ?_
-      exact Eq.symm (algebraMap.coe_natCast p.natAbs)
-      simp only [Int.natCast_natAbs, abs_mem_iff]
-      exact Ideal.mem_span_singleton_self p
-    obtain ⟨J, hJ1, hJ2⟩ := (Ideal.IsPrime.multiset_prod_le hIn2).1 hprod
-    have hJp : J.IsPrime := hP _ J hJ1
-    rw [Ring.DimensionLeOne.prime_le_prime_iff_eq ?_] at hJ2
-    rw [← hJ2]
-    exact hJ1
-    · grind
-  · exact hIn3
-· intro I hI
-  simp only [Set.mem_iUnion] at hI
-  obtain ⟨p, hp1, hp2⟩ := hI
-  constructor
-  · refine Nat.pos_of_ne_zero ?_
-    intro hc
-    rw [Ideal.absNorm_eq_zero_iff] at hc
-    grind
-  · exact ⟨hP _ _ hp1,  hp2⟩
+  refine le_antisymm ?_ ?_
+  · intro I hIn
+    rcases hIn with ⟨hIn1, hIn2, hIn3 ⟩
+    let P := Ideal.under ℤ I
+    have hPP: P.IsPrime :=  Ideal.IsPrime.under ℤ P
+    let p := Submodule.IsPrincipal.generator P
+    have hPeq : P = Ideal.span {p} := (Ideal.span_singleton_generator _ ).symm
+    have : I.LiesOver (Ideal.span {p}) := by
+      rw [← hPeq]
+      simp only [Ideal.over_under, P]
+    have hpn : p ≠ 0 := by
+      intro hc
+      erw [hc, Ideal.span_zero] at this
+      have hIaux : I ∈ (⊥ : Ideal ℤ).primesOver Oκ := by
+        exact ⟨hIn2, this ⟩
+      rw [Ideal.primesOver_bot] at hIaux
+      simp only [Set.mem_singleton_iff] at hIaux
+      rw [hIaux] at hIn1
+      simp only [Ideal.absNorm_bot, lt_self_iff_false] at hIn1
+    have hpp : Prime p := by
+      rw [← Ideal.span_singleton_prime, ← (Ideal.span_singleton_generator _ ).symm]
+      exact hPP
+      · exact hpn
+    haveI hpM : Ideal.IsMaximal (Ideal.span {p} ):= by
+      rw [← hPeq]
+      refine IsPrime.to_maximal_ideal ?_
+      rw [hPeq]
+      simp only [ne_eq, Ideal.span_singleton_eq_bot, hpn, not_false_eq_true]
+    simp only [Set.mem_iUnion,  Subtype.exists]
+    use p.natAbs
+    have hlB : p.natAbs < B := by
+      rw [← Ideal.natAbs_pow_inertiaDeg p I] at hIn3
+      refine lt_of_le_of_lt ?_ hIn3
+      nth_rw 1 [← pow_one (p.natAbs)]
+      refine Nat.pow_le_pow_of_le ?_ ?_
+      · exact Nat.Prime.one_lt (Int.prime_iff_natAbs_prime.1 hpp)
+      · exact (Ideal.inertiaDeg_pos I ℤ)
+    have hBm : p.natAbs ∈ B.primesBelow := by
+      rw [Nat.mem_primesBelow]
+      exact ⟨hlB, Int.prime_iff_natAbs_prime.1 hpp⟩
+    use hBm
+    constructor
+    ·
+      have hprod : (F ⟨p.natAbs, hBm⟩).prod ≤ I := by
+        refine le_trans (hPpord ⟨p.natAbs, hBm⟩) ?_
+        rw [Ideal.span_singleton_le_iff_mem]
+        convert (Ideal.mem_of_liesOver I (Ideal.span {p}) ↑p.natAbs).1 ?_
+        exact Eq.symm (algebraMap.coe_natCast p.natAbs)
+        simp only [Int.natCast_natAbs, abs_mem_iff]
+        exact Ideal.mem_span_singleton_self p
+      obtain ⟨J, hJ1, hJ2⟩ := (Ideal.IsPrime.multiset_prod_le hIn2).1 hprod
+      have hJp : J.IsPrime := hP _ J hJ1
+      rw [Ring.DimensionLeOne.prime_le_prime_iff_eq ?_] at hJ2
+      rw [← hJ2]
+      exact hJ1
+      · grind
+    · exact hIn3
+  · intro I hI
+    simp only [Set.mem_iUnion] at hI
+    obtain ⟨p, hp1, hp2⟩ := hI
+    constructor
+    · refine Nat.pos_of_ne_zero ?_
+      intro hc
+      rw [Ideal.absNorm_eq_zero_iff] at hc
+      grind
+    · exact ⟨hP _ _ hp1,  hp2⟩
 
 /-- The set of ideals of norm below `B` equals the union of the sets of ideals above `p`
 with norm less than `B`, where `p` ranges over the prime numbers. -/
@@ -481,7 +484,11 @@ lemma subgroup_closure_eq_classGroup' {m n : Type} {D : ℝ} {C : ℕ}
     · intro i
       simp only [hx', xx, xx']
     · convert primes_below_bound_of_equiv φ.symm (𝔭 := gg) C ?_
+      · rfl
+      · rfl
       convert hg
+      · rfl
+      · rfl
       ext i
       simp only [Function.comp_apply, Ideal.map_symm, Ideal.mem_comap, Ideal.apply_mem_of_equiv_iff,
         gg]
@@ -820,7 +827,6 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate_le {B r : ℕ}
         simp only [List.length_ofFn, min_self]
     · rintro ⟨⟨j, hj⟩, hx⟩
       use A.N i j
-      dsimp
       rw [← A.hN i j, hj]
       constructor
       · use j

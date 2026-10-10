@@ -49,10 +49,7 @@ lemma iter_Frob (R : Type*) (p : ℕ) [CommRing R]
     [Module (ZMod p) R] [CharP R p] [hp : Fact $ Nat.Prime p] (x : R) (n : ℕ) :
     ( (Frob R p) ^ n) x = x ^ (p ^ n) := by
   unfold Frob
-  convert iterate_frobenius p n x
-  induction n with
-  | zero => simp only [pow_zero, Function.iterate_zero] ; rfl
-  | succ n hn => simp only [pow_add, pow_one, Function.iterate_succ, ← hn] ; rfl
+  simpa [Module.End.pow_apply] using iterate_frobenius p n x
 
 
 /--If `M` is an `R`-submodule, then an element is in `y • ⊤` if and only if it can be written as `y • a` for `a` in `M`· -/
@@ -150,46 +147,46 @@ lemma smul_p_eq_zero (b : M mod' n) :  n • b = 0 := by
 /-- The `(ZMod n)-module` instance on `M/nM`· -/
 instance module_modp_is_zmodp_module [NeZero n] :
 Module (ZMod n) (M mod' n) := by
-exact
-{ smul := fun ( s : ZMod n) (x : M mod' n ) => (s.val) • x
-  one_smul := by
-    · by_cases ho : 1 < n
-      · haveI : Fact (1 < n) := { out := ho }
-        intro s
-        show (1 : ZMod n).val • s = s
-        rw [ZMod.val_one , one_smul]
-      · have : n = 1 :=
-          Eq.symm (Nat.le_antisymm (NeZero.one_le ) (not_lt.1 ho))
-        intro s
-        show (1 : ZMod n).val • s = s
-        haveI : Subsingleton (M mod' n) := by
-          rw [this, Nat.cast_one, one_smul]
-          infer_instance
-        rw [Subsingleton.eq_zero s, nsmul_zero]
-  mul_smul := by
-    · intros x y b
-      show (x * y).val • b = x.val • y.val • b
-      rw [ZMod.val_mul, ← mul_smul]
-      nth_rw 2 [← Nat.mod_add_div (x.val * y.val) n]
-      rw [add_smul, mul_smul, smul_p_eq_zero R M n, add_zero]
-  smul_zero := by
-    · intro a
-      show a.val • (0 : M mod' n) = 0
-      refine smul_zero _
-  add_smul := by
-    · intros r s x
-      show (r + s).val • x = r.val • x + s.val • x
-      rw [← add_smul, ZMod.val_add]
-      nth_rw 2 [← Nat.mod_add_div (r.val + s.val) n]
-      rw [add_smul, mul_smul, smul_p_eq_zero R M n, add_zero]
-  zero_smul := by
-    · intro x
-      show (0 : ZMod n).val • x = 0
-      rw [ZMod.val_zero, zero_smul]
-  smul_add := by
-    · intro a x y
-      show a.val • (x + y) = a.val • x + a.val • y
-      exact smul_add _ _ _ }
+  exact
+  { smul := fun ( s : ZMod n) (x : M mod' n ) => (s.val) • x
+    one_smul := by
+      · by_cases ho : 1 < n
+        · haveI : Fact (1 < n) := { out := ho }
+          intro s
+          show (1 : ZMod n).val • s = s
+          rw [ZMod.val_one , one_smul]
+        · have : n = 1 :=
+            Eq.symm (Nat.le_antisymm (NeZero.one_le ) (not_lt.1 ho))
+          intro s
+          show (1 : ZMod n).val • s = s
+          haveI : Subsingleton (M mod' n) := by
+            rw [this, Nat.cast_one, one_smul]
+            infer_instance
+          rw [Subsingleton.eq_zero s, nsmul_zero]
+    mul_smul := by
+      · intros x y b
+        show (x * y).val • b = x.val • y.val • b
+        rw [ZMod.val_mul, ← mul_smul]
+        nth_rw 2 [← Nat.mod_add_div (x.val * y.val) n]
+        rw [add_smul, mul_smul, smul_p_eq_zero R M n, add_zero]
+    smul_zero := by
+      · intro a
+        show a.val • (0 : M mod' n) = 0
+        refine smul_zero _
+    add_smul := by
+      · intros r s x
+        show (r + s).val • x = r.val • x + s.val • x
+        rw [← add_smul, ZMod.val_add]
+        nth_rw 2 [← Nat.mod_add_div (r.val + s.val) n]
+        rw [add_smul, mul_smul, smul_p_eq_zero R M n, add_zero]
+    zero_smul := by
+      · intro x
+        show (0 : ZMod n).val • x = 0
+        rw [ZMod.val_zero, zero_smul]
+    smul_add := by
+      · intro a x y
+        show a.val • (x + y) = a.val • x + a.val • y
+        exact smul_add _ _ _ }
 
 
 lemma zmodp_smul_def [NeZero n] (x : M mod' n) (r : ZMod n) :
@@ -207,10 +204,10 @@ lemma zsmul_eq_zmod_smul [NeZero n] (x : M) (r : ℤ ) :
 
 /-- The quotient map `M → M/nM` as a `ℤ → (ZMod n)`- semilinear map· -/
 def quotientMkToSemilinear [NeZero n] : M →ₛₗ[Int.castRingHom (ZMod n)] (M mod' n) := by
-exact
- {toFun := (@Submodule.Quotient.mk R M _ _ _ ((n : R) • (⊤ : Submodule R M ) ))
-  map_add' := by simp only [Submodule.Quotient.mk_add, forall_const]
-  map_smul' := by simp only [zsmul_eq_zmod_smul, eq_intCast, forall_const]  }
+  exact
+   {toFun := (@Submodule.Quotient.mk R M _ _ _ ((n : R) • (⊤ : Submodule R M ) ))
+    map_add' := by simp only [Submodule.Quotient.mk_add, forall_const]
+    map_smul' := by simp only [zsmul_eq_zmod_smul, eq_intCast, forall_const]  }
 
 lemma quotientMkToSemilinear_apply [NeZero n] (x : M) :
   quotientMkToSemilinear R M n x = (@Submodule.Quotient.mk R M _ _ _ ((n : R) • (⊤ : Submodule R M ) )) x := rfl
@@ -273,17 +270,17 @@ local notation x "mod" p => (Ideal.Quotient.mk ((p : O) • (⊤ : Submodule O O
 
 /-- The `(ZMod p)`-algebra instance of `O/pO`· -/
 instance ringModpIsZModpAlgebra [NeZero p] : Algebra (ZMod p) R := by
-refine Algebra.ofModule ?_ ?_
-· intros r x y
-  rw [zmodp_smul_def , zmodp_smul_def]
-  simp only [nsmul_eq_mul, ZMod.natCast_val, mul_assoc]
-· intros r x y
-  rw [zmodp_smul_def , zmodp_smul_def]
-  simp only [nsmul_eq_mul, ZMod.natCast_val]
-  ring
+  refine Algebra.ofModule ?_ ?_
+  · intros r x y
+    rw [zmodp_smul_def , zmodp_smul_def]
+    simp only [nsmul_eq_mul, ZMod.natCast_val, mul_assoc]
+  · intros r x y
+    rw [zmodp_smul_def , zmodp_smul_def]
+    simp only [nsmul_eq_mul, ZMod.natCast_val]
+    ring
 
--- It's good to have a version of this for the ideal quotient map.
--- which is def_eq to the submodule quotient map, but we can use the map API·  -/
+  -- It's good to have a version of this for the ideal quotient map.
+  -- which is def_eq to the submodule quotient map, but we can use the map API·  -/
 
 @[simp]
 lemma zsmul_map_zmodsmul [NeZero p] (x : O) (m : ℤ) :
@@ -302,7 +299,7 @@ instance char_R_eq_p [hp : Fact $ Nat.Prime p] [Nontrivial R]: CharP R p := by
   exact ZMod.charP p
 
 /-- If `O` is nontrivial, free as a ℤ module, and `p ≠ 0, 1`, then `O / pO` is nontrivial·  -/
-instance nontrivial_R [NeZero p] (hpo : p ≠ 1)
+lemma nontrivial_R [NeZero p] (hpo : p ≠ 1)
     [Nontrivial O] [Module.Free ℤ O]  : Nontrivial R  := by
   by_contra h
   erw [not_nontrivial_iff_subsingleton, Submodule.Quotient.subsingleton_iff] at h
@@ -856,7 +853,9 @@ lemma map_smul' {r : ZMod p} {x : R} :
   dsimp [Submodule.Quotient.quot_mk_eq_mk]
   refine LinearMap.ext ?_
   rintro ⟨b⟩
-  rw [map_to_end_mod_def, LinearMap.smul_apply, map_to_end_eq]
+  rw [map_to_end_mod_def]
+  erw [LinearMap.smul_apply]
+  rw [map_to_end_eq]
   erw [map_mul_α_def, map_mul_α_def, mul_α_aux_def, mul_α_aux_def, zmodp_smul_def,  ]
   simp only [ nsmul_eq_mul, ZMod.natCast_val]
   congr
@@ -900,9 +899,9 @@ lemma mul_ideal_in_p_mul_of_kernel (α : O) :
     use ⟨j, ?_⟩
     constructor
     . simp only [Submodule.top_coe, Set.mem_univ]
-    . dsimp
-      rw [← Subtype.coe_inj]
-      simp only [natCast_zsmul, Submodule.coe_smul_of_tower, nsmul_eq_mul]
+    . rw [← Subtype.coe_inj]
+      simp only [DistribSMul.toLinearMap_apply, natCast_zsmul,
+        Submodule.coe_smul_of_tower, nsmul_eq_mul]
     · exact hj1
 
 omit [Nontrivial O] in
@@ -976,32 +975,32 @@ local notation x "mod''" p => (Ideal.Quotient.mk (Ideal.span {(p : O)} )) x
 theorem mult_ring_eq_ring_of_trivial_ker_map_to_end_lin
     (hk : LinearMap.ker (map_to_end_lin O p) = ⊥ ) :
     O = multiplierRing Ip := by
-refine le_antisymm (subalgebra_le_multiplierRing Ip) ?_
-· intros α ha
-  rw [multiplierRing_mem] at ha
-  have hpsmul : p • α ∈ O := by
-    obtain ⟨j, _, hj2⟩ := ha (p : O) (by {use 1 ; rw [pow_one] ;  exact Ideal.mem_span_singleton_self (p : O) })
-    rw [nsmul_eq_mul]
-    erw [hj2]
-    simp only [SetLike.coe_mem]
-  have hmem : ∀ (x : O), x ∈ Ip → (∃ (j : O), j ∈ Ip ∧ (⟨(p • α), hpsmul⟩ : O) * x = p * j ) := by
-    intros x hx
-    obtain ⟨j, hj1, hj2⟩ := ha x hx
-    refine ⟨j, hj1, ?_⟩
-    rw [← Subtype.val_inj]
-    simp only [nsmul_eq_mul, MulMemClass.coe_mul, SubringClass.coe_natCast]
-    rw [← hj2]
-    ring
-  rw [ideal_span_eq_smul_top] at hmem
-  have := ( mul_ideal_in_p_mul_of_kernel O p ⟨(p • α), hpsmul⟩ ).2 hmem
-  simp only [nsmul_eq_mul, hk, Submodule.mem_bot] at this
-  erw [Submodule.Quotient.mk_eq_zero, ← ideal_span_eq_smul_top, Ideal.mem_span_singleton] at this
-  choose k hk using this
-  rw [← Subtype.val_inj] at hk
-  simp only [MulMemClass.coe_mul, SubringClass.coe_natCast] at hk
-  rw [← Int.cast_natCast, ← zsmul_eq_mul,  ← zsmul_eq_mul, smul_right_inj] at hk
-  rw [hk] ; refine SetLike.coe_mem _
-  exact NeZero.natCast_ne p ℤ
+  refine le_antisymm (subalgebra_le_multiplierRing Ip) ?_
+  · intros α ha
+    rw [multiplierRing_mem] at ha
+    have hpsmul : p • α ∈ O := by
+      obtain ⟨j, _, hj2⟩ := ha (p : O) (by {use 1 ; rw [pow_one] ;  exact Ideal.mem_span_singleton_self (p : O) })
+      rw [nsmul_eq_mul]
+      erw [hj2]
+      simp only [SetLike.coe_mem]
+    have hmem : ∀ (x : O), x ∈ Ip → (∃ (j : O), j ∈ Ip ∧ (⟨(p • α), hpsmul⟩ : O) * x = p * j ) := by
+      intros x hx
+      obtain ⟨j, hj1, hj2⟩ := ha x hx
+      refine ⟨j, hj1, ?_⟩
+      rw [← Subtype.val_inj]
+      simp only [nsmul_eq_mul, MulMemClass.coe_mul, SubringClass.coe_natCast]
+      rw [← hj2]
+      ring
+    rw [ideal_span_eq_smul_top] at hmem
+    have := ( mul_ideal_in_p_mul_of_kernel O p ⟨(p • α), hpsmul⟩ ).2 hmem
+    simp only [nsmul_eq_mul, hk, Submodule.mem_bot] at this
+    erw [Submodule.Quotient.mk_eq_zero, ← ideal_span_eq_smul_top, Ideal.mem_span_singleton] at this
+    choose k hk using this
+    rw [← Subtype.val_inj] at hk
+    simp only [MulMemClass.coe_mul, SubringClass.coe_natCast] at hk
+    rw [← Int.cast_natCast, ← zsmul_eq_mul,  ← zsmul_eq_mul, smul_right_inj] at hk
+    rw [hk] ; refine SetLike.coe_mem _
+    exact NeZero.natCast_ne p ℤ
 
 variable {Om : Subalgebra ℤ K}(hm : O ≤ Om) {ι : Type* } [Fintype ι]
 

@@ -51,6 +51,7 @@ lemma FractionalIdeal.den_mul_self_eq_num'' {R S P : Type*} [CommRing R] [CommRi
     simp_rw [Set.mem_smul_set, Algebra.smul_def,
       Eq.symm (IsScalarTower.algebraMap_apply R S P _), ← Algebra.smul_def]
     rfl
+  · rfl
   · unfold Ideal.map Ideal.span
     rw [Ideal.submodule_span_eq, IsLocalization.coeSubmodule_span,
       ← Set.image_comp, Submodule.span_mul_span, ← Submodule.span_smul (algebraMap R S (I.den )) _]
@@ -63,10 +64,10 @@ lemma FractionalIdeal.den_mul_self_eq_num'' {R S P : Type*} [CommRing R] [CommRi
     ext x
     rw [Set.mem_smul_set]
     simp only [Set.mem_image, SetLike.mem_coe, exists_exists_and_eq_and, algebraMap_smul]
-    simp_rw [Algebra.smul_def, ← mul_assoc, IsUnit.mul_val_inv, one_mul]
+    simp_rw [Algebra.smul_def, ← mul_assoc, IsUnit.mul_val_inv, one_mul,
+      Algebra.linearMap_apply]
   · refine Function.Injective.of_eq_imp_le ( f := fun x ↦ (algebraMap R S) ↑I.den • x) ?_
     intro x y hxy i hi
-    dsimp at hxy
     have :=  hxy ▸ (Submodule.smul_mem_pointwise_smul i ((algebraMap R S) ↑I.den) x hi)
     rw [Submodule.mem_smul_pointwise_iff_exists] at this
     obtain ⟨b, hb1, hb2⟩ := this
@@ -132,14 +133,17 @@ lemma FractionalIdeal.map_map_apply_int {R S P : Type*} [CommRing R] [CommRing S
     (S₁ : Submonoid R) (S₂ : Submonoid S) [IsLocalization S₂ P]
     (h : (algebraMap R S)'' S₁ ≤ S₂) (I : Ideal R) :
     FractionalIdeal.map_map h (I : FractionalIdeal S₁ P) = I.map (algebraMap R S) := by
-      apply_fun FractionalIdeal.coeToSubmodule
+      refine coeToSubmodule_injective ?_
+      dsimp only
       rw [FractionalIdeal.map_map_apply, Ideal.map, coe_coeIdeal, IsLocalization.coeSubmodule_span]
       have : (↑(↑I : FractionalIdeal S₁ P) : Set P) =
         ↑(↑(↑I : FractionalIdeal S₁ P) : Submodule R P) := by rfl
       rw [this, FractionalIdeal.coe_coeIdeal, IsLocalization.coeSubmodule]
       simp only [Submodule.map_coe, Algebra.linearMap_apply, ←
         Eq.symm (IsScalarTower.algebraMap_apply R S P _), ← Set.image_comp, Function.comp_apply]
-      exact coeToSubmodule_injective
+      congr 1
+      ext x
+      simp [Algebra.linearMap_apply, IsScalarTower.algebraMap_apply R S P]
 
 /-- Given an injective `R →+* S` and `P` a fraction field of `S`, map fractional ideals of `R`
   to fractional ideals of `S` (both living in `P`).  -/
@@ -188,10 +192,10 @@ lemma FractionalIdeal.mapOfInjective_apply' {R S : Type*} (F K : Type*) [CommRin
     (I : FractionalIdeal (nonZeroDivisors R) F) :
     FractionalIdeal.mapOfInjective' F K hinj I =
     (Submodule.span S ((IsFractionRing.map hinj)'' (↑I : Set F)) : Submodule S K) := by
-  unfold mapOfInjective' mapOfInjective
-  dsimp
-  simp_rw [FractionalIdeal.map_map_apply]
-  rfl
+  letI : Algebra R K := ((algebraMap S K).comp (algebraMap R S)).toAlgebra
+  haveI : IsScalarTower R S K := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  simp only [mapOfInjective', mapOfInjective, MonoidHom.coe_mk, OneHom.coe_mk]
+  exact (FractionalIdeal.map_map_apply _ _ _ _).trans rfl
 
 /-- The map `FractionalIdeal.mapOfInjective'` on integral ideals is simply
   `Ideal.map (algebraMap R S)`.  -/
@@ -240,7 +244,8 @@ noncomputable def ClassGroup.map {R S : Type*} [CommRing R]
     simp only [FractionalIdeal.map, *]
     unfold FractionalIdeal.mapOfInjective
     apply_fun FractionalIdeal.coeToSubmodule
-    simp_rw [FractionalIdeal.map_map_apply,  ← ha, coe_spanSingleton, Submodule.map_span]
+    refine Eq.trans ?_ (FractionalIdeal.map_map_apply _ _ _ _).symm
+    simp_rw [← ha, coe_spanSingleton, Submodule.map_span]
     simp only [AlgHom.toLinearMap_apply, Set.image_singleton, *]
     rw [← @Submodule.span_span_of_tower (R := R) _ (S:= S) _ _ _ _ _ ]
     rfl
@@ -251,8 +256,8 @@ noncomputable def ClassGroup.map {R S : Type*} [CommRing R]
 def ClassGroup.map_apply {R S : Type*} [CommRing R]
     [CommRing S] [IsDomain R] [IsDomain S] [Algebra R S] (hinj : Function.Injective (algebraMap R S))
     (I : (FractionalIdeal (nonZeroDivisors R) (FractionRing R))ˣ) :
-    ClassGroup.map hinj (ClassGroup.mk I) =
-      ClassGroup.mk ((Units.map (FractionalIdeal.mapOfInjective' _ (FractionRing S) hinj)) I) := by
+    ClassGroup.map hinj (ClassGroup.mk _ I) =
+      ClassGroup.mk _ ((Units.map (FractionalIdeal.mapOfInjective' _ (FractionRing S) hinj)) I) := by
   unfold ClassGroup.map
   unfold ClassGroup.mk
   simp only [canonicalEquiv_self]
@@ -284,7 +289,10 @@ lemma ClassGroup.map_inverse_apply {R S : Type*} [CommRing R]
   letI : Algebra R S := φ.toRingHom.toAlgebra
   letI : Algebra S R := φ.symm.toRingHom.toAlgebra
   let J := Quot.out I
-  have : ClassGroup.mk J = I := by rw [← ClassGroup.Quot_mk_eq_mk, Quot.out_eq]
+  have : ClassGroup.mk _ J = I := by
+    rw [← ClassGroup.Quot_mk_eq_mk]
+    simp only [J]
+    exact Quot.out_eq I
   erw [← this, ClassGroup.map_apply (RingEquiv.injective φ) J,
     ClassGroup.map_apply (RingEquiv.injective φ.symm) _]
   congr

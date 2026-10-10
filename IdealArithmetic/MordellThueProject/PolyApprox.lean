@@ -3,7 +3,7 @@ import Mathlib.Algebra.Polynomial.Degree.SmallDegree
 import Mathlib.Algebra.Order.AbsoluteValue.Basic
 import Mathlib.Algebra.Ring.GeomSum
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
-import Mathlib.Data.Real.Basic
+import Mathlib.Basic.Real.Basic
 import Mathlib.Topology.Order.IntermediateValue
 import Mathlib.Topology.Instances.Real.Lemmas
 import Mathlib.RingTheory.IsAdjoinRoot
@@ -257,7 +257,7 @@ lemma realEmbeddingOfRealRootCubic_embedding {K : Type*} [Field K] [NumberField 
       simp only [map_add, map_mul, aeval_C, eq_ratCast, map_pow, aeval_X]
       exact realRootCubic_eval_eq_zero hε h1)
   simpa [map_add, map_mul, map_pow, ← hf.algebraMap_apply,
-    IsReal.coe_embedding_apply] using h2
+    IsReal.coe_embedding_apply, realEmbeddingOfRealRootCubic] using h2
 
 lemma realEmbeddingOfRealRootCubic_bound_ge {K : Type*} [Field K] [NumberField K]
     {a₀ a₁ a₂ b₀ b₁ b₂ b₃ ε : ℚ} (ha₂ : a₂ ≠ 0) (hε : 0 < ε) {f : ℚ[X]}

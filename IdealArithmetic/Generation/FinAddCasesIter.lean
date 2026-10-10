@@ -55,7 +55,6 @@ lemma List.ofFn_addCasesIter {α : Type*} {r : ℕ} (e : Fin (r + 1) → ℕ) (g
   | r =>
     unfold Fin.addCasesIter
     simp_rw [List.addCases_comp, List.ofFn_addCases]
-    rfl
 
 /-- Send `j : Fin (∑ i, e i)` to `⟨k, t⟩`, where `k` and `t : Fin (e k)` are
 such that `j = t + (∑ i<k, e i)` . -/
@@ -108,7 +107,7 @@ def indexPair_inv {r : ℕ} (e : Fin r → ℕ) : (Σ (i : Fin r), Fin (e i)) �
     refine lt_add_of_lt_of_nonneg ?_ ?_
     · show x < e i
       omega
-    · exact zero_le _
+    · exact zero_le
 
 lemma indexPair_left_inverse {r : ℕ} (e : Fin r → ℕ) (j : Fin (∑ i, e i)) :
     indexPair_inv e (indexPair e j) = j := by
@@ -123,7 +122,6 @@ lemma indexPair_left_inverse {r : ℕ} (e : Fin r → ℕ) (j : Fin (∑ i, e i)
     by_cases h1 : x < ∑ (i : Fin r), e i.castSucc
     · rw [indexPair_left_aux h1]
       specialize hr (fun i ↦ e i.castSucc) ⟨x, h1⟩
-      dsimp at hr
       simp only [← Fin.val_inj] at hr ⊢
       exact hr
     · rw [indexPair_right_aux h1]
@@ -133,7 +131,8 @@ lemma indexPair_left_inverse {r : ℕ} (e : Fin r → ℕ) (j : Fin (∑ i, e i)
       simp
       convert add_tsub_cancel_of_le (b := x.1) _
       simp only [not_lt] at h1
-      exact h1
+      · rfl
+      · simpa [Fin.castSucc, Fin.castAdd] using h1
 
 def indexPairEquiv {r : ℕ} (e : Fin r → ℕ) : Fin (∑ i, e i) ≃  Σ (i : Fin r), Fin (e i) := by
   refine Equiv.ofLeftInverseOfCardLE ?_ (indexPair e) (indexPair_inv e) ?_

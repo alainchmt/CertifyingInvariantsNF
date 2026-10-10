@@ -220,7 +220,8 @@ lemma exponent_vec_eq_zero_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [Fact
   have hzM : (MatrixLogProd p F φ x ζ hr) * E = 0 := by
     ext i j
     fin_cases j
-    simp only [mul_apply', zero_apply, E]
+    simp only [Matrix.zero_apply, E]
+    erw [Matrix.mul_apply']
     erw [← LogFiniteRing_hom_prod_eq_dot_product (hr i) (hdvd i) (φ i) _ (hu i), hy,
     map_pow, LogFiniteRing_p_power_eq_zero (hr i) (hdvd i) ]
   have hle := Matrix.rank_add_rank_le_card_of_mul_eq_zero hzM
@@ -383,7 +384,7 @@ lemma linearIndependent_int_iff_no_common_divisor {M ι R: Type*} [AddCommGroup 
             rw [pow_one]
             exact hc j (hSaux _ hj)
           · intro hj
-            rw [multiplicity_eq_one_of_not_finiteMultiplicity hm]
+            exact absurd (FiniteMultiplicity.of_prime_left hp (Finset.mem_filter.mp hj).2) hm
         have aux : ∀ i ∈ s , ∃ k, g i = p ^ m * k := by
           intro i hi
           by_cases hgi : g i ≠ 0
@@ -568,7 +569,9 @@ lemma units_linear_independent_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ
    LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk
     (s := (CommGroup.torsion Sˣ)) (hu i).unit)) := by
   by_contra hi
-  · rw [linearIndependent_int_iff_no_common_divisor (Nat.prime_iff_prime_int.1 hp.out)] at hi
+  · haveI : HasUniqueDiv (Additive (Sˣ ⧸ CommGroup.torsion Sˣ)) :=
+      ⟨fun _ hn _ _ hab => eq_of_nsmul_eq_nsmul_of_addCommute hn (AddCommute.all _ _) hab⟩
+    rw [linearIndependent_int_iff_no_common_divisor (Nat.prime_iff_prime_int.1 hp.out)] at hi
     obtain ⟨ s , g , ⟨k, hk,  hdvdp⟩ , hg⟩ := hi
     simp_rw [← ofMul_zpow, ← ofMul_prod, ofMul_eq_zero] at hg
     have : ∏ i ∈ s, ((QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) (hu i).unit) ^ (g i)) =
@@ -742,7 +745,9 @@ lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ:
     LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk
       (s := (CommGroup.torsion Sˣ)) (hu i).unit)) := by
   by_contra hi
-  · rw [linearIndependent_int_iff_no_common_divisor (Nat.prime_iff_prime_int.1 hp.out)] at hi
+  · haveI : HasUniqueDiv (Additive (Sˣ ⧸ CommGroup.torsion Sˣ)) :=
+      ⟨fun _ hn _ _ hab => eq_of_nsmul_eq_nsmul_of_addCommute hn (AddCommute.all _ _) hab⟩
+    rw [linearIndependent_int_iff_no_common_divisor (Nat.prime_iff_prime_int.1 hp.out)] at hi
     obtain ⟨ s , g , ⟨k, hk,  hdvdp⟩ , hg⟩ := hi
     simp_rw [← ofMul_zpow, ← ofMul_prod, ofMul_eq_zero] at hg
     have : ∏ i ∈ s, ((QuotientGroup.mk (s := (CommGroup.torsion Sˣ)) (hu i).unit) ^ (g i)) =

@@ -261,13 +261,12 @@ lemma discr_eq_discr_fraction_field_powerBasis {R Q K : Type*} {n : ℕ} [NeZero
   rw [discr_eq_discr_fraction_field hkdim]
   congr
   ext i
-  simp only [Subalgebra.coe_val, IsAdjoinRootMonic.powerBasis_dim,
-    IsAdjoinRootMonic.powerBasis_basis, Algebra.adjoinRootEquivOfRootMem, Basis.coe_reindex,
+  simp only [Subalgebra.coe_val, Algebra.adjoinRootEquivOfRootMem, Basis.coe_reindex,
     finCongr_symm, Function.comp_apply, finCongr_apply, Basis.map_apply,
     IsAdjoinRootMonic.basis_apply, Fin.val_cast, AlgEquiv.toLinearEquiv_apply, map_pow,
     SubmonoidClass.coe_pow, B, IsAdjoinRoot.algEquiv_root]
-  erw [Algebra.adjoin_isAdjoinRoot_root, IsAdjoinRootMonic.basis_apply k]
-  rfl
+  simp only [PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen]
+  simp [map_pow, IsAdjoinRoot.algEquiv_root, Algebra.adjoin_isAdjoinRoot_root]
 
 
 

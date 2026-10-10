@@ -299,7 +299,7 @@ theorem prime_sub_dvd_finrank_of_prime_dvd_card_torsion {K : Type*} [Field K]
     [NumberField K] {p : ℕ} [hp : Fact $ Nat.Prime p]
     (hpdvd : p ∣ torsionOrder K) : p - 1 ∣ Module.finrank ℚ K := by
   simp [torsionOrder] at hpdvd
-  obtain ⟨x, hx⟩ := exists_prime_orderOf_dvd_card p hpdvd
+  obtain ⟨x, hx⟩ := exists_prime_orderOf_dvd_card' p hpdvd
   have aux : IsPrimitiveRoot ((x : (RingOfIntegers K)ˣ) : K) p := by
     erw [← orderOf_submonoid, ← orderOf_units, ← orderOf_submonoid] at hx
     rw [← hx]

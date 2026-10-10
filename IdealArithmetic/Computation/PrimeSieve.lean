@@ -193,8 +193,9 @@ lemma primes_below_append  (e P : List ℕ) (hneq : e ≠ []) (L : List (List �
         haveI : NeZero (e :: es).length := Nat.instNeZeroSucc
         have hlees : e <  es[0]'(List.length_pos_iff.mpr hess) := by
           convert List.Pairwise.rel_get_of_lt he (a := 0) (b := ⟨1, by simp[List.length_pos_iff.mpr hess]⟩ ) ?_
-          · refine Fin.val_pos_iff.mp ?_
-            simp only [Nat.lt_one_iff, pos_of_gt]
+          · rfl
+          · rfl
+          · simp [Fin.lt_def]
         have hleql : es[0]'(List.length_pos_iff.mpr hess) ≤ es.getLast hess := by
           simp at he
           have : es.length ≠ 0 := by
@@ -206,9 +207,8 @@ lemma primes_below_append  (e P : List ℕ) (hneq : e ≠ []) (L : List (List �
           · refine le_of_lt ?_
             convert List.Pairwise.rel_get_of_lt he.2 (a := 0) (b := ⟨es.length - 1, by omega⟩ ) ?_
             · simp
-              exact List.getLast_eq_getElem hess
-            · refine Fin.val_pos_iff.mp ?_
-              rw [tsub_pos_iff_lt]
+            · simp [List.getLast_eq_getElem]
+            · simp [Fin.lt_def]
               omega
           · refine le_of_eq ?_
             obtain ⟨b, hb⟩ := (List.length_eq_one_iff  (l := es) ).1 (by omega)
@@ -520,7 +520,10 @@ lemma primes_below_20000 (p : ℕ):
   convert primes_below_append e_interval_aux primes_below_142 (by decide)
     primesBelow20000 e_sorted ?_ ?_ (by decide) ?_ p
   · rfl
-  · exact primes_below_142_proof
+  · decide
+  · decide
+  · rw [show e_interval_aux.getLast (by decide) = 20000 from by decide]
+    exact primes_below_142_proof
   · intro i hi
     have : e_interval_aux.length = 68 := by decide
     have hif : i < 67 := by omega

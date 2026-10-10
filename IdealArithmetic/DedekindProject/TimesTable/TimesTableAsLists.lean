@@ -401,7 +401,7 @@ lemma table_polynomial_eval {S : Type*} [Semiring S] [Module R S] [SMulCommClass
       intro i
       by_cases hz : i = 0
       · simp only [hz, ↓reduceIte, Fin.getElem_fin, Fin.val_zero, ↓reduceDIte, x]
-        rw [listOfFn_of_FnOfList]
+        erw [listOfFn_of_FnOfList]
         rfl
       · simp only [hz, ↓reduceIte, Fin.getElem_fin, ↓reduceDIte, x]
         rw [listOfFn_of_FnOfList]

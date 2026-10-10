@@ -107,7 +107,7 @@ lemma subalgebraOfPolys_top_le :
   rw [← SetLike.mem_coe , LinearMap.coe_range, SMulMemClass.coe_subtype, Subtype.range_coe_subtype,
       Set.mem_setOf_eq, ← Subalgebra.mem_carrier] at hx
   rw [← SetLike.mem_coe]
-  convert hx
+  exact hx
 
 noncomputable def basisSubalgebraOfPolys [IsFractionRing R Q]
     (hlin : LinearIndependent Q (λ i => h.map (b i))) :
@@ -149,7 +149,7 @@ end PartI
 section IntPoly
 
 variable {Q K: Type*} [Field Q][CommRing K][Algebra Q K]
-{R ι: Type*} [Fintype ι][CommRing R][Algebra R Q][Algebra R K][IsScalarTower R Q K]
+  {R ι: Type*} [Fintype ι][CommRing R][Algebra R Q][Algebra R K][IsScalarTower R Q K]
 
 
 variable
@@ -177,7 +177,7 @@ lemma poly_identities_aux [IsFractionRing R Q] (i j : ι) :
   mul_comm (C (algebraMap R Q d)⁻¹) _, ← mul_assoc, ← Polynomial.map_mul, hc i j]
   simp only [map_mul, Polynomial.map_sub, Polynomial.map_mul, Polynomial.map_sum]
   rw [mul_assoc, sq, sub_mul, mul_comm, mul_assoc, Finset.mul_sum, Finset.mul_sum]
-  congr 1
+  refine congrArg₂ (· - ·) ?_ ?_
   . congr
     refine funext ?_
     intro l
@@ -227,6 +227,7 @@ noncomputable def basisSubalgebraOfPolysInt [IsFractionRing R Q] :
   simp_rw [← Algebra.smul_def]
   convert LinearIndependent.units_smul hlin (fun _ => IsUnit.unit
     (Ne.isUnit (algebra_map_d_ne_zero d hd)))
+  rfl
 
 local notation "BB" => basisSubalgebraOfPolysInt T B d hd s a hc h j honed hlin
 
@@ -244,7 +245,7 @@ end IntPoly
 section LinInd
 
 variable {Q K: Type*} [Field Q][CommRing K][Algebra Q K]
-{R : Type*} [CommRing R][Algebra R Q][Algebra R K][IsScalarTower R Q K]
+  {R : Type*} [CommRing R][Algebra R Q][Algebra R K][IsScalarTower R Q K]
 
 variable
   {n : ℕ}
@@ -253,13 +254,13 @@ variable
 lemma is_det_ne_zero_of_upper_triangular [IsDomain R] (hc : ∀ i j, j < i → c i j = 0 )
   (hin : ∀ i, c i i ≠ 0) :
   c.det ≠ 0 := by
-have : Matrix.BlockTriangular c id := by
-  intro i j
-  simp only [id_eq]
-  exact hc i j
-rw [Matrix.det_of_upperTriangular this, Finset.prod_ne_zero_iff]
-simp only [Finset.mem_univ, ne_eq, forall_true_left]
-exact hin
+  have : Matrix.BlockTriangular c id := by
+    intro i j
+    simp only [id_eq]
+    exact hc i j
+  rw [Matrix.det_of_upperTriangular this, Finset.prod_ne_zero_iff]
+  simp only [Finset.mem_univ, ne_eq, forall_true_left]
+  exact hin
 
 variable
   (B : Fin n →  R[X])
@@ -283,7 +284,7 @@ lemma linearIndependentOfUpperTriangular [IsFractionRing R Q] :
   let feq : K ≃ₗ[Q] K := by
     refine LinearEquiv.ofIsUnitDet (f := f) (v := Ba) (v' := Ba) (ι := Fin n) ?_
     rw [hf]
-    simp only [LinearMap.toMatrix_symm, LinearMap.toMatrix_toLin]
+    erw [LinearEquiv.apply_symm_apply]
     have auxeq : RingHom.mapMatrix (algebraMap R Q) c =  λ i j => (algebraMap R Q) (c i j) := rfl
     rw [← auxeq, ← RingHom.map_det]
     apply Ne.isUnit
@@ -291,7 +292,9 @@ lemma linearIndependentOfUpperTriangular [IsFractionRing R Q] :
   have aux : ∀ i, feq (Ba i) = h.map (map (algebraMap R Q) (B i)) := by
     intro i
     rw [LinearEquiv.ofIsUnitDet_apply, hpoly, hf]
-    simp only [LinearMap.toMatrix_symm, Matrix.toLin_self, algebraMap_smul]
+    simp only [LinearMap.toMatrix_symm]
+    erw [Matrix.toLin_self]
+    simp only [algebraMap_smul]
     rw [Polynomial.map_sum, map_sum]
     simp_rw [Polynomial.map_mul, Polynomial.map_C, map_mul,
       ← IsAdjoinRoot.algebraMap_apply, ← Algebra.smul_def]
@@ -405,11 +408,11 @@ structure SubalgebraBuilderLists
 
 
 variable {n : ℕ} [NeZero n] {R Q K : Type*} [CommRing R]
-[IsDomain R]
-[Field Q][CommRing K][Algebra Q K]
-[Algebra R Q][Algebra R K]
-[IsScalarTower R Q K]
-[IsFractionRing R Q]
+  [IsDomain R]
+  [Field Q][CommRing K][Algebra Q K]
+  [Algebra R Q][Algebra R K]
+  [IsScalarTower R Q K]
+  [IsFractionRing R Q]
 
 /-- The subalgebra obtained from the `SubalgebraBuilder`· -/
 noncomputable def subalgebraOfBuilder
@@ -588,6 +591,7 @@ lemma root_in_subalgebra_lists [DecidableEq R](T : R[X])(l : List R)
   simp only [← dropTrailingZeros_eq_dropTrailingZeros', ofList_dropTrailingZeros_eq_ofList,
     list_sum_eq_ofList_sum, ofList_convolve_eq_mul, ofList_singleton] at h
   convert h
+  · rfl
   erw [ofList_addPointwise_eq_add, List.neg_eq_neg_one_mul , ofList_convolve_eq_mul,
   ofList_convolve_eq_mul, ofList_convolve_eq_mul, ← A.hofL]
   simp only [ofList_cons, ofList_nil, mul_zero, add_zero, map_zero,
@@ -635,16 +639,15 @@ lemma OfBuilderList_discr_eq_prod_discr' :
   let B := AdjM.powerBasis.3
   let B' := B.reindex (finCongr (Eq.trans (IsAdjoinRootMonic.powerBasis_dim AdjM)
    ((SubalgebraBuilderOfList T l A).hdeg) ))
-  let M : Matrix (Fin n) (Fin n) Q := ((algebraMap R Q A.d)⁻¹ • (fun i j => (algebraMap R Q )
-  (A.B i j) : Matrix (Fin n) (Fin n) Q))
+  let M : Matrix (Fin n) (Fin n) Q := (algebraMap R Q A.d)⁻¹ • Matrix.of (fun i j => (algebraMap R Q )
+  (A.B i j))
   have : (Oₖ).val ∘ (basisOfBuilderLists T l A) =  Matrix.mulVec (M.map (algebraMap Q K))
     ((Algebra.adjoin R {A.h.root}).val ∘ B') := by
     ext i
-    unfold Matrix.mulVec ; unfold dotProduct
+    rw [Matrix.mulVec_apply_eq_sum]
     simp only [Subalgebra.coe_val, Function.comp_apply, basisOfBuilderLists_apply, map_mul,
-      Matrix.map_apply, Pi.smul_apply, smul_eq_mul, IsAdjoinRootMonic.powerBasis_dim,
-      IsAdjoinRootMonic.powerBasis_basis, Basis.coe_reindex, finCongr_symm, finCongr_apply,
-      IsAdjoinRootMonic.basis_apply, Fin.val_cast,
+      Matrix.map_apply, Matrix.smul_apply, smul_eq_mul, Basis.coe_reindex, finCongr_symm,
+      finCongr_apply, PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen, Fin.val_cast,
       SubmonoidClass.coe_pow, M, B', B]
     rw [ofList_eq_sum', Polynomial.map_sum, map_sum, Finset.mul_sum]
     simp only [Polynomial.map_mul, map_C, Polynomial.map_pow, map_X, map_mul, map_pow,
@@ -659,7 +662,7 @@ lemma OfBuilderList_discr_eq_prod_discr' :
     swap
     intro i j hij
     simp only [OrderDual.toDual_lt_toDual] at hij
-    simp only [Pi.smul_apply, hij, A.hcc, map_zero, smul_eq_mul, mul_zero, M]
+    simp only [Matrix.smul_apply, Matrix.of_apply, hij, A.hcc, map_zero, smul_eq_mul, mul_zero, M]
     · simp [M]
       rw [← Finset.pow_card_mul_prod, ← map_prod, inv_pow]
       congr
@@ -668,11 +671,11 @@ lemma OfBuilderList_discr_eq_prod_discr' :
   rw [← Algebra.discr_reindex _ (((isAMK A).powerBasis).basis ) (finCongr pbdim)]
   congr
   · ext i
-    simp only [AdjM, Subalgebra.coe_val, IsAdjoinRootMonic.powerBasis_dim,
-      IsAdjoinRootMonic.powerBasis_basis, Basis.coe_reindex, finCongr_symm, Function.comp_apply,
-      finCongr_apply, IsAdjoinRootMonic.basis_apply, Algebra.adjoin_isAdjoinRootOfIsAdjoinRoot,
-      SubmonoidClass.coe_pow, Algebra.adjoin_isAdjoinRoot_root, isAMK, B', B]
-    erw [IsAdjoinRootMonic.basis_apply]
+    simp only [AdjM, Subalgebra.coe_val, Basis.coe_reindex, finCongr_symm, Function.comp_apply,
+      finCongr_apply, PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen,
+      Algebra.adjoin_isAdjoinRootOfIsAdjoinRoot, SubmonoidClass.coe_pow,
+      Algebra.adjoin_isAdjoinRoot_root, isAMK, B', B]
+    erw [PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen]
     rfl
 
 
@@ -692,17 +695,17 @@ lemma OfBuilderList_discr_eq_prod_discr_int {K : Type*} [CommRing K] [Algebra �
   (f : IsAdjoinRootMonic O T) :
   Algebra.discr ℤ (basisOfBuilderLists T l A) =
     ((∏ i, (A.B i i)) ^ 2  * (Algebra.discr ℤ (f.powerBasis).basis)) / A.d ^ (2 * n) := by
-symm
-have haux : A.d ^ (2 * n) ≠ 0 := by
-  simp only [ne_eq, pow_eq_zero_iff', A.hd, mul_eq_zero, OfNat.ofNat_ne_zero, false_or,
-  false_and, not_false_eq_true]
-refine Int.ediv_eq_of_eq_mul_left ?_ ?_
-· exact haux
-· apply_fun (algebraMap ℤ ℚ)
-  rw [map_mul, map_mul, OfBuilderList_discr_eq_prod_discr A f, mul_pow]
-  cancel_denoms
-  ring_nf
-  rw [mul_assoc, inv_pow, mul_inv_cancel₀, mul_one]
-  erw [mul_comm, ← Int.cast_pow, Int.cast_ne_zero]
-  exact haux
-  exact RingHom.injective_int (algebraMap ℤ ℚ)
+  symm
+  have haux : A.d ^ (2 * n) ≠ 0 := by
+    simp only [ne_eq, pow_eq_zero_iff', A.hd, mul_eq_zero, OfNat.ofNat_ne_zero, false_or,
+    false_and, not_false_eq_true]
+  refine Int.ediv_eq_of_eq_mul_left ?_ ?_
+  · exact haux
+  · apply_fun (algebraMap ℤ ℚ)
+    rw [map_mul, map_mul, OfBuilderList_discr_eq_prod_discr A f, mul_pow]
+    cancel_denoms
+    ring_nf
+    rw [mul_assoc, inv_pow, mul_inv_cancel₀, mul_one]
+    erw [mul_comm, ← Int.cast_pow, Int.cast_ne_zero]
+    exact haux
+    exact RingHom.injective_int (algebraMap ℤ ℚ)

@@ -156,8 +156,9 @@ noncomputable def φ : Π i : τ, O →+* (ZMod (q i)) := by
 def hr_aux : ∀ i , IsPrimitiveRoot (ζ i : ZMod (q i)) (Fintype.card (F q i)ˣ) := by
   intro i
   convert hr i
+  rw [Fintype.card_eq_nat_card]
   unfold F
-  simp only [ZMod.card_units_eq_totient, Nat.totient_prime (hF i).out]
+  rw [Nat.card_eq_fintype_card, ZMod.card_units_eq_totient, Nat.totient_prime (hF i).out]
 
 
 noncomputable def MatrixLogZMod : Matrix τ ι (ZMod p) :=

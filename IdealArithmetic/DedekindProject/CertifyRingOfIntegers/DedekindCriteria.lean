@@ -347,13 +347,11 @@ lemma exists_radical_pow_not_in_order {O : Subalgebra R K}  {Om : Subalgebra R K
   have := exists_min_nat_prop_true m (λ n => ∀ (x : K) (y : O), x ∈ overRing α hm →
     y ∈ (Ideal.span ({(algebraMap R O α)}: Set O)).radical^(n) → x * y ∈ O) ?_ hm'
   swap
-  · dsimp
-    push Not
+  · push Not
     use hn.choose
     use 1
     simp only [pow_zero, Ideal.one_eq_top, Submodule.mem_top, OneMemClass.coe_one, mul_one, true_and]
     exact hn.choose_spec
-  push Not at this
   push Not at this
   exact this
 

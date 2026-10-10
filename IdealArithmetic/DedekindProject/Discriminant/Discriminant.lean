@@ -76,7 +76,7 @@ theorem resultant_map_injective {S R : Type*} [CommRing R] [CommRing S] {φ : R 
   rw [Polynomial.natDegree_map_eq_of_injective hφ]
   rw [Polynomial.natDegree_map_eq_of_injective hφ]
 
-lemma Polynomial.discr_def {R : Type*} [CommRing R] [IsAddTorsionFree R]
+lemma Polynomial.discr_def {R : Type*} [CommRing R] [HasUniqueDiv R]
     (f : R[X]) (hf : natDegree f ≠ 0) :
     f.leadingCoeff * discr f =
       (-1) ^ (f.natDegree * (f.natDegree - 1) / 2) * resultant f (derivative f) := by
@@ -118,7 +118,7 @@ lemma Polynomial.discr_def' {R : Type*} [CommRing R]
 
 @[simp]
 theorem discriminant_map' {R : Type*} [CommRing R]
-  [IsAddTorsionFree R] {S : Type*} [CommRing S] [IsDomain S] [IsAddTorsionFree S] (φ : R →+* S)
+  [HasUniqueDiv R] {S : Type*} [CommRing S] [IsDomain S] [HasUniqueDiv S] (φ : R →+* S)
     (hφ : Function.Injective φ) (f : R[X]) :
     discr (f.map φ) = φ (discr f) := by
   by_cases hf0 : f.natDegree = 0
@@ -188,7 +188,7 @@ theorem discriminant_map {K : Type*} [Field K] [CharZero K] {L : Type*}
   · rwa [natDegree_map]
 
 
-lemma Monic.discr_def {R : Type*} [CommRing R]  [IsAddTorsionFree R] (f : R[X]) (hf : Monic f) :
+lemma Monic.discr_def {R : Type*} [CommRing R]  [HasUniqueDiv R] (f : R[X]) (hf : Monic f) :
     discr f = (-1) ^ (f.natDegree * (f.natDegree - 1) / 2) * resultant f (derivative f) := by
   by_cases hf0 : natDegree f = 0
   · obtain ⟨r, hr⟩ := Polynomial.natDegree_eq_zero.1 hf0
@@ -299,12 +299,10 @@ theorem Algebra.discr_of_isAdjoinRootMonic {K F : Type*} [Field K] [Field F] [Ch
   have e_apply : ∀ i, e i f.root =
       (T.aroots (AlgebraicClosure F)).toList.get (Fin.cast (by simp [card_aroots]) i) := by
     intro i
-    simp only [e, Equiv.trans_apply, finCongr_apply, PowerBasis.liftEquiv', PowerBasis.liftEquiv]
-    simp only [IsAdjoinRootMonic.powerBasis_gen, IsAdjoinRootMonic.powerBasis_dim,
-        Equiv.symm_trans_apply, Equiv.subtypeEquiv_symm, Equiv.refl_symm, Equiv.subtypeEquiv_apply,
-        Multiset.equivFin_symm_apply_coe, Fin.val_cast, Equiv.refl_apply, Equiv.coe_fn_symm_mk,
-        List.get_eq_getElem]
-    simp_rw [← f.powerBasis_gen, f.powerBasis.lift_gen, f.powerBasis_gen, f.minpoly_eq hT]
+    erw [f.powerBasis.lift_gen]
+    · erw [Multiset.equivFin_symm_apply_coe]
+      exacts [by simp [f.minpoly_eq hT, List.get_eq_getElem], nd_aroots']
+    · exact (Polynomial.mem_aroots.mp ((Multiset.equivFin nd_aroots').symm ((finCongr aux_card) i)).2).2
   rw [Algebra.discr_powerBasis_eq_prod _ _ _ e]
   let aux := (finCongr (natDegree_eq_of_degree_eq_some  (Polynomial.Splits.degree_eq_card_roots
     (IsAlgClosed.splits (k := AlgebraicClosure F) _ )
@@ -325,12 +323,12 @@ theorem Algebra.discr_of_isAdjoinRootMonic {K F : Type*} [Field K] [Field F] [Ch
     rw [mul_left_comm]
     congr 1
     · simp only [aux] ; dsimp
-      rw [Finset.prod_univ_prod_Iio]
+      rw [← Finset.prod_univ_prod_Iio]
       refine Finset.prod_equiv (finCongr aux_card') ?_ ?_
       · simp
       · intro i hi
         refine Finset.prod_equiv (finCongr aux_card') ?_ ?_
-        · simp only [Finset.mem_Ioi, finCongr_apply, Fin.cast_lt_cast] ; exact fun i_2 ↦ gt_iff_lt
+        · simp [Finset.mem_Iio, finCongr_apply, Fin.cast_lt_cast]
         · intro i hi
           erw [e_apply, e_apply, ← neg_sub, ← neg_one_mul]
     · have subaux :  ∏ x, ∏ x_1 ∈ Finset.Ioi x, (- ((e x_1) f.root - (e x) f.root)) =
@@ -348,7 +346,7 @@ theorem Algebra.discr_of_isAdjoinRootMonic {K F : Type*} [Field K] [Field F] [Ch
         · intro i ; simp
         · intro i hi
           refine Finset.prod_equiv (finCongr aux_card') ?_ ?_
-          · simp only [Finset.mem_Ioi, finCongr_apply, Fin.cast_lt_cast] ; exact fun i_2 ↦ gt_iff_lt
+          · simp [Finset.mem_Ioi, finCongr_apply, Fin.cast_lt_cast]
           · intro i hi
             erw [e_apply, e_apply, neg_sub]
             simp only [IsAdjoinRootMonic.powerBasis_dim, List.get_eq_getElem, Fin.val_cast,
@@ -360,6 +358,5 @@ theorem Algebra.discr_of_isAdjoinRootMonic {K F : Type*} [Field K] [Field F] [Ch
       simp_rw [aux_card', ← hdeg]
       rw [← mul_assoc, ← sq, ← pow_mul, Even.neg_one_pow (by simp only [even_two,
         Even.mul_left]), one_mul]
-      rfl
     · exact (IsAlgClosed.splits (k := AlgebraicClosure F) _ )
     · simp [hT0]

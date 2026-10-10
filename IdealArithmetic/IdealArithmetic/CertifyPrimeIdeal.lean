@@ -95,7 +95,7 @@ lemma ideal_index_associated_det (O R : Type*) [CommRing O]
     exact congrFun aux i
   rw [← Matrix.det_transpose]
   convert associated_index_of_basis (I.restrictScalars R) B BI
-  convert eqV.symm
+  exact eqV.symm
 
 /-- If `O` is an `R`-algebra with a basis, and `I` is a nonzero ideal with the coordinates of
   the `ℤ`-generators given as the rows of a matrix `V`, which is lower triangular,

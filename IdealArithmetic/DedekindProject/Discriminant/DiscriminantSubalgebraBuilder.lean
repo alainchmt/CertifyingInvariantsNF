@@ -20,8 +20,8 @@ open Polynomial
 
 section Part1
 variable {n : ℕ} [NeZero n] {K : Type*}
-[Field K] [CharZero K] {T : ℤ[X]}
-{l : List ℤ}
+    [Field K] [CharZero K] {T : ℤ[X]}
+    {l : List ℤ}
 
 lemma algebraBuilder_discr_eq_mul_polynomial_discr (hi : Irreducible T)
 (A : SubalgebraBuilderLists n ℤ ℚ K T l) :
@@ -91,5 +91,7 @@ lemma discr_numberField_eq_discrSubalgebraBuilder (hi : Irreducible T)
     ← Algebra.discr_reindex ℤ (basisOfBuilderLists T l A) icongr.symm ,
     Algebra.discr_eq_discr_of_algEquiv _ f]
   congr
-  simp only [Basis.coe_reindex, Equiv.symm_symm, Baux', Baux, Bi]
-  rfl
+  simp only [Baux', Baux, Bi]
+  ext i
+  erw [Basis.reindex_apply, Basis.map_apply]
+  simp

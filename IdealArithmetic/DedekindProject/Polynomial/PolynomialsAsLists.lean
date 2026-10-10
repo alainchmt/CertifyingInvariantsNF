@@ -30,7 +30,7 @@ def Finsupp.ofList {R : Type*} [DecidableEq R] [Zero R] (xs : List R) : ℕ →�
 
 /-- Sends the list `[a₀, …, aₙ]` to the polynomial `a₀ + … + aₙ * X ^ n`.  -/
 def Polynomial.ofList {R : Type*} [Semiring R] [DecidableEq R] (xs : List R) : R[X] :=
-  ⟨Finsupp.ofList xs⟩
+  ⟨⟨Finsupp.ofList xs⟩⟩
 
 @[simp] lemma Polynomial.coeff_ofList {R : Type*} [Semiring R] [DecidableEq R] (xs : List R)
     (n : ℕ) : (ofList xs).coeff n = xs.getD n 0 := by
@@ -153,17 +153,14 @@ lemma List.dropTrailingZeros_of_zero [Zero R] [DecidableEq R]
 
 lemma ofList_eq_zero_iff [Semiring R] [DecidableEq R] (l : List R) :
   ofList l = 0 ↔ ∀ x ∈ l, x = 0 := by
-constructor
-· intro hl x hxmem
-  obtain ⟨i, hi, hia⟩ := List.mem_iff_getElem.mp hxmem
-  have hl' : (ofList l).toFinsupp i = 0 := by
-    rw [hl, toFinsupp_zero]
-    exact Finsupp.zero_apply
-  simp only [ofList, Finsupp.ofList, ne_eq, Finsupp.coe_mk] at hl'
-  rw [List.getD_eq_getElem _ _ hi] at hl'
-  rw [← hia, hl']
-· intro h
-  exact ofList_zeros l h
+  constructor
+  · intro hl x hxmem
+    obtain ⟨i, hi, hia⟩ := List.mem_iff_getElem.mp hxmem
+    have hl' : (ofList l).coeff i = 0 := by rw [hl, coeff_zero]
+    rw [coeff_ofList, List.getD_eq_getElem _ _ hi] at hl'
+    rw [← hia, hl']
+  · intro h
+    exact ofList_zeros l h
 
 lemma List.dropTrailingZeros_ne_zero_of_ne_zero [Zero R] [DecidableEq R]
     (l : List R) (h : ∃ x ∈ l, x ≠ 0) : ∃ x ∈ l.dropTrailingZeros, x ≠ 0 := by
@@ -214,7 +211,7 @@ lemma dropTrailingZeros_iter [Zero R] (l : List R) [DecidableEq R] :
 
 @[simp]
 lemma dropTrailingZeros_zero [Zero R] [DecidableEq R] : ([0] : List R).dropTrailingZeros = [] := by
-  simp only [List.all_nil, List.dropTrailingZeros_eq_empty]
+  simp [List.dropTrailingZeros]
 
 lemma dropTrailingZeros_cons [Zero R] [DecidableEq R] (a : R) (as : List R) :
     (a :: as).dropTrailingZeros =  (a :: as.dropTrailingZeros).dropTrailingZeros:= by
@@ -578,7 +575,7 @@ lemma toList_comp_ofList (l : List R) :
 lemma toList_zero : toList (0 : R[X]) = [] := by
   simp only [toList, natDegree_zero, zero_add, List.ofFn_succ, Nat.reduceAdd, Fin.isValue,
     Fin.cast_eq_self, Fin.val_eq_zero, coeff_zero, List.ofFn_zero, List.all_nil,
-    List.dropTrailingZeros_eq_empty]
+    List.dropTrailingZeros_eq_empty, dropTrailingZeros_zero]
 
 lemma nil_of_ofList_eq_zero (l : List R)
     (hdt : l = l.dropTrailingZeros) (hz : ofList l = 0) : l = [] := by
@@ -689,7 +686,7 @@ lemma List.self_eq_dropTrailingZeros_append_zero {R : Type*} [DecidableEq R] [Ze
       push Not at h
       simp only [h, replicate, cons.injEq, true_and]
       rw [List.eq_replicate_length]
-      exact h.2
+      exact List.forall_mem_cons.mpr ⟨rfl, h.2⟩
 
 lemma ofList_eq_zero {R : Type u} [Semiring R] [DecidableEq R]
     (l : List R) (h : ofList l = 0) : ∃ (n : ℕ) , l = List.replicate n 0 := by

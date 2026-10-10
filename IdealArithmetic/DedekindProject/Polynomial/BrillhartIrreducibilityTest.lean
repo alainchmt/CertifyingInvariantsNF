@@ -518,9 +518,9 @@ lemma irreducible_of_CertificateIrreducibleIntOfPrimeDegrees (f : Polynomial ℤ
     exact ofList_map _ _
   · exact C.hinter
   · convert (Rat.cast_le (K := ℝ)).2 C.hrho
-    norm_num
+    all_goals norm_num
   · convert (Rat.cast_lt (K := ℝ)).2 C.hs
-    norm_num
+    all_goals norm_num
   · rw [← C.hpol]
     exact C.heval
 
@@ -568,8 +568,8 @@ lemma irreducible_of_CertificateIrreducibleIntOfPrime (f : Polynomial ℤ) (l : 
     rw [Polynomial.eq_C_of_natDegree_eq_zero hc] at hqdvd hqu
     exact hqu (isUnit_C.2 (ofList_isPrimitive 1 l C.hprim (isUnit_one) _ hqdvd))
   · convert (Rat.cast_le (K := ℝ)).2 C.hrho
-    norm_num
+    all_goals norm_num
   · convert (Rat.cast_lt (K := ℝ)).2 C.hs
-    norm_num
+    all_goals norm_num
   · rw [← C.hpol]
     exact C.heval

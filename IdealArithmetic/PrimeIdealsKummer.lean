@@ -90,6 +90,7 @@ lemma quotMapEquivQuotQuotMap_symm_apply' (Q : R[X]) :
     RingEquiv.symm_trans_apply, quotEquivOfEq_symm, quotEquivOfEq_mk]
   congr
   convert (adjoin.powerBasis' hx').quotientEquivQuotientMinpolyMap_symm_apply_mk I Q
+  · rfl
   apply (quotAdjoinEquivQuotMap hx
     (FaithfulSMul.algebraMap_injective ((adjoin R {x})) S)).injective
   simp only [RingEquiv.apply_symm_apply, adjoin.powerBasis'_gen, quotAdjoinEquivQuotMap_apply_mk,
@@ -108,26 +109,27 @@ lemma quotMapHom_ker (d : R[X])
   (hd : Polynomial.map (Ideal.Quotient.mk I) d ∣ (Polynomial.map (Ideal.Quotient.mk I) (minpoly R x))) :
   RingHom.ker (quotMapHom hx hx' (d.map (Ideal.Quotient.mk I)) hd) =
     Ideal.span (I.map (algebraMap R S) ∪ {d.aeval x}) := by
-erw [← RingHom.comap_ker, ← RingHom.comap_ker, AdjoinRoot.algHomDvd_ker, ← Ideal.map_symm]
-conv =>
-  left ; right
-  erw [Ideal.map_span, Set.image_singleton, quotMapEquivQuotQuotMap_symm_apply' hx hx' d]
-refine le_antisymm ?_ ?_
-· intro y hy
-  simp only [mem_comap, mem_span_singleton] at hy
-  obtain ⟨t, ht⟩ := hy
-  obtain ⟨l, hl⟩ := Ideal.Quotient.mk_surjective t
-  rw [← hl, ← map_mul, Ideal.Quotient.mk_eq_mk_iff_sub_mem] at ht
-  rw [Set.union_singleton, Ideal.mem_span_insert]
-  use l , (y - (aeval x) d * l )
-  refine ⟨by simp only [span_eq, ht], by ring⟩
-· intro y hy
-  rw [Set.union_singleton, Ideal.mem_span_insert] at hy
-  obtain ⟨a, z, hz, hy⟩ := hy
-  rw [span_eq] at hz
-  rw [mem_comap, hy, map_add, map_mul, Ideal.Quotient.eq_zero_iff_mem.2 hz, add_zero,
-    mem_span_singleton]
-  simp only [dvd_mul_left]
+  have key := Ideal.map_span (quotMapEquivQuotQuotMap' hx hx').symm
+    {((Ideal.Quotient.mk (span {(minpoly R x).map (Ideal.Quotient.mk I)}))
+      (d.map (Ideal.Quotient.mk I)))}
+  rw [Set.image_singleton, quotMapEquivQuotQuotMap_symm_apply' hx hx' d] at key
+  erw [← RingHom.comap_ker, ← RingHom.comap_ker, AdjoinRoot.algHomDvd_ker, ← Ideal.map_symm, key]
+  refine le_antisymm ?_ ?_
+  · intro y hy
+    simp only [mem_comap, mem_span_singleton] at hy
+    obtain ⟨t, ht⟩ := hy
+    obtain ⟨l, hl⟩ := Ideal.Quotient.mk_surjective t
+    rw [← hl, ← map_mul, Ideal.Quotient.mk_eq_mk_iff_sub_mem] at ht
+    rw [Set.union_singleton, Ideal.mem_span_insert]
+    use l , (y - (aeval x) d * l )
+    refine ⟨by simp only [span_eq, ht], by ring⟩
+  · intro y hy
+    rw [Set.union_singleton, Ideal.mem_span_insert] at hy
+    obtain ⟨a, z, hz, hy⟩ := hy
+    rw [span_eq] at hz
+    rw [mem_comap, hy, map_add, map_mul, Ideal.Quotient.eq_zero_iff_mem.2 hz, add_zero,
+      mem_span_singleton]
+    simp only [dvd_mul_left]
 
 def quotMapEquiv (d : R[X])
     (hd : Polynomial.map (Ideal.Quotient.mk I) d ∣ (Polynomial.map (Ideal.Quotient.mk I) (minpoly R x))) :
@@ -135,11 +137,10 @@ def quotMapEquiv (d : R[X])
   refine RingEquiv.trans (quotEquivOfEq (quotMapHom_ker hx hx' d hd).symm) ?_
   refine RingHom.quotientKerEquivOfSurjective ?_
   unfold quotMapHom
-  simp only [AlgHom.toRingHom_eq_coe, RingEquiv.toRingHom_eq_coe, coe_comp, coe_coe]
-  convert Function.Surjective.comp (Function.Surjective.comp ?_ ?_) ?_
-  apply AdjoinRoot.algHomDvd_surjective _ _ hd
-  exact RingEquiv.surjective (quotMapEquivQuotQuotMap' hx hx')
-  exact Ideal.Quotient.mk_surjective
+  simp only [AlgHom.toRingHom_eq_coe, RingEquiv.toRingHom_eq_coe, coe_comp]
+  refine Function.Surjective.comp ?_ Ideal.Quotient.mk_surjective
+  exact (AdjoinRoot.algHomDvd_surjective _ _ hd).comp
+    (RingEquiv.surjective (quotMapEquivQuotQuotMap' hx hx'))
 
 include hx hx'
 

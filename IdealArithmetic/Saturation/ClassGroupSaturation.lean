@@ -207,7 +207,6 @@ noncomputable def equivClassGroupOfSaturated {S : Type*} [CommRing S] [IsDomain 
   refine AddEquivOfGeneratorsMult (G := ClassGroup S) (g := (fun i => ClassGroup.mk0 (I' i)))
     (n := n) ?_ hgen ?_
   · intro i
-    dsimp
     rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI']
     use (a i)
     exact h i
@@ -270,13 +269,11 @@ lemma class_order_of_not_principal {S : Type*} [CommRing S] [IsDomain S] [IsDede
   · exact Nat.pos_of_neZero n
   · rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI']
     use α
-    exact h
   · intro p hp hpdvd hc
     rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI'] at hc
     apply hdvd p hp hpdvd
     obtain ⟨b, hb⟩ := hc
     use b
-    exact hb
 
 noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsDomain S]
     [IsDedekindDomain S] {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
@@ -297,7 +294,6 @@ noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsD
     have : (ClassGroup.mk0 I') ^ (a 0) = 1 := by
        rw [← map_pow, ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, hI']
        exact ⟨b, heq⟩
-    dsimp
     convert orderOf_dvd_of_pow_eq_one this
     exact (class_order_of_not_principal hI' h hdvd).symm
 
