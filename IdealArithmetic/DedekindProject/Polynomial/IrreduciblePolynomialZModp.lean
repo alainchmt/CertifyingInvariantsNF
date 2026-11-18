@@ -33,6 +33,14 @@ open BigOperators Polynomial
 
 section AuxiliaryLemmas
 
+theorem Nat.exists_prime_dvd_and_dvd_div {m n : ℕ} (hmn : m ∣ n) (hne : m ≠ n) :
+    ∃ p, p.Prime ∧ p ∣ n ∧ m ∣ n / p := by
+  obtain ⟨c, rfl⟩ := hmn
+  refine ⟨c.minFac, Nat.minFac_prime (by grind), Nat.dvd_mul_left_of_dvd (Nat.minFac_dvd c) m, ?_⟩
+  rw [Nat.mul_div_assoc m (Nat.minFac_dvd c)]
+  exact Nat.dvd_mul_right _ _
+
+
 lemma isCoprime_sub_of_isCoprime_sub_dvd_sub {R : Type}[CommRing R]
     {a b c f : R}(h1: f ∣ a - b) (h2 : IsCoprime f (b - c)) :
     IsCoprime f (a - c) := by
@@ -57,138 +65,53 @@ end Morphisms
 
 section IrreducibilityTheory
 
-variable {p : ℕ} {F : Type*} [hf : Field F]  [CharP F p]
- {f : F[X]} (K : Type) [Field K] [Fintype K] [CharP K p] (hd : 0 < f.natDegree)
- (φ : F →+* K)
+variable {p : ℕ} {F : Type*} [hf : Field F]
+ {f : F[X]}
 
-variable [DecidableEq F]
-
-lemma dvd_X_pow_natDegree_sub_X [Fintype F] (hi : Irreducible f) :
-     f ∣ (X ^ ((Fintype.card F) ^ (f.natDegree)) - X : F[X]) := by
-  haveI := fact_iff.2 hi
-  set m := f.natDegree with hmdef
-  haveI hfinite : FiniteDimensional F (AdjoinRoot f) :=
-  PowerBasis.finite (AdjoinRoot.powerBasis (Irreducible.ne_zero hi))
-  have hdim1: Module.finrank F (AdjoinRoot f)= f.natDegree := by
-    rw [PowerBasis.finrank (AdjoinRoot.powerBasis (Irreducible.ne_zero hi)),
-        AdjoinRoot.powerBasis_dim (Irreducible.ne_zero hi)]
-  haveI hfin : Finite (AdjoinRoot f) := Module.finite_of_finite F
-  haveI hfin : Fintype (AdjoinRoot f) := Fintype.ofFinite _
-  have hcard := @Module.card_eq_pow_finrank F (AdjoinRoot f) _ _ _ _ _
-  rw [hdim1, ← hmdef] at hcard
-  set a := AdjoinRoot.root f
-  have hpeval2 :
-    Polynomial.eval₂ (AdjoinRoot.of f) a (X ^ (Fintype.card F) ^ f.natDegree - X) = 0 := by
-    simp only [eval₂_sub, eval₂_X_pow, eval₂_X]
-    rw [← hmdef, ← hcard, FiniteField.pow_card, sub_self]
-  have hgcdeval := Polynomial.eval₂_gcd_eq_zero (AdjoinRoot.eval₂_root f) hpeval2
-  have hgcdnun: ¬ IsUnit (EuclideanDomain.gcd f (X ^ ( (Fintype.card F) ^ m) - X)) := by
-    by_contra h
-    rw [Polynomial.isUnit_iff] at h
-    obtain ⟨r,hr1,hrp⟩:= h
-    rw [←hmdef, ← hrp] at hgcdeval
-    simp only [eval₂_C, _root_.map_eq_zero] at hgcdeval
-    exact IsUnit.ne_zero hr1 hgcdeval
-  obtain ⟨g, hg⟩:= EuclideanDomain.gcd_dvd_left f (X ^ ((Fintype.card F) ^ m) - X)
-  have hunits:= Irreducible.isUnit_or_isUnit hi hg
-  simp only [hgcdnun, false_or] at hunits
-  obtain ⟨t, ht⟩:=  EuclideanDomain.gcd_dvd_right f (X ^ ((Fintype.card F) ^ m) - X)
-  obtain ⟨gi, hgi⟩:= IsUnit.exists_right_inv hunits
-  use (gi * t)
-  rw [hg,  mul_assoc, ← mul_assoc g gi, hgi, one_mul]
-  exact ht
-
-variable [Fintype F]
-
-lemma dvd_X_pow_natDegree_sub_X_of_natDegree_dvd {n : ℕ} (hi : Irreducible f)
-    (hdvd : f.natDegree ∣ n) : f ∣ (X ^ ((Fintype.card F) ^ n) - X : F[X]) :=
-  dvd_trans (dvd_X_pow_natDegree_sub_X hi)
-  (dvd_pow_pow_sub_self_of_dvd hdvd)
-
-/-- If `f` is irreducible, then its degree divides `n` if and only if `f` divides
-  `X ^ ((Fintype.card F) ^ n) - X` -/
-theorem natDegree_dvd_iff_dvd_X_pow_sub_X {n : ℕ} (hi : Irreducible f) :
-    f.natDegree ∣ n ↔ f ∣ (X ^ ((Fintype.card F) ^ n) - X : F[X]) := by
-  by_cases hn : n = 0
-  · rw [hn]
-    simp only [dvd_zero, pow_zero, pow_one, sub_self]
-  · have hd : 0 < f.natDegree :=
-      natDegree_pos_iff_degree_pos.mpr (Polynomial.degree_pos_of_irreducible hi)
-    constructor
-    · exact dvd_X_pow_natDegree_sub_X_of_natDegree_dvd hi
-    · rw [Fintype.card_eq_nat_card]
-      refine Irreducible.natDegree_dvd_of_dvd_X_pow_card_pow_sub_X hi
+theorem Irreducible.dvd_X_pow_card_pow_natDegree_sub_X [Finite F] (hi : Irreducible f) :
+    f ∣ (X ^ ((Nat.card F) ^ (f.natDegree)) - X) :=
+  hi.natDegree_dvd_iff_dvd_X_pow_card_pow_sub_X.1 dvd_rfl
 
 /-- A useful result to prove irreducibility of polynomials over finite fields. -/
-theorem irreducible_iff_dvd_X_pow_sub_X (f : F[X]) (hd : 0 < f.natDegree) :
+theorem irreducible_iff_dvd_X_pow_sub_X [Finite F] {f : F[X]} (hd : 0 < f.natDegree) :
     Irreducible f ↔
-    f ∣ (X ^ ((Fintype.card F) ^ (f.natDegree)) - X) ∧
-    (∀ (m : ℕ), m ∣ (f.natDegree) →
-      m ≠ f.natDegree → IsCoprime f (X ^ (((Fintype.card F)) ^ m) - X)) := by
+      f ∣ (X ^ ((Nat.card F) ^ (f.natDegree)) - X) ∧
+        (∀ (m : ℕ), m ∣ (f.natDegree) → m ≠ f.natDegree →
+          IsCoprime f (X ^ ((Nat.card F) ^ m) - X)) := by
   constructor
   · intro hi
-    refine ⟨(natDegree_dvd_iff_dvd_X_pow_sub_X hi).1 dvd_rfl, ?_⟩
-    intro m hmdvd hmne
-    rcases (EuclideanDomain.dvd_or_coprime f (X ^ ((Fintype.card F) ^ m) - X) hi ) with h1 | h2
-    · exfalso
-      exact hmne (dvd_antisymm hmdvd ((natDegree_dvd_iff_dvd_X_pow_sub_X hi).2 h1))
-    · exact h2
-  · rintro ⟨hfdvd, hmh⟩
-    obtain ⟨a, hai, b , heq⟩ := Polynomial.exists_irreducible_of_natDegree_pos hd
-    have hadvd : natDegree a ∣ natDegree f :=
-      (natDegree_dvd_iff_dvd_X_pow_sub_X hai).2 (dvd_trans ⟨b, heq⟩ hfdvd)
-    have aux2: ¬ IsCoprime f (X^(Fintype.card F)^(natDegree a) - X) := by
-      by_contra hc
-      exact (Irreducible.not_isUnit hai )
-        (IsCoprime.isUnit_of_dvd' hc ⟨b, heq⟩ ((natDegree_dvd_iff_dvd_X_pow_sub_X hai).1 dvd_rfl ))
-    have hdeq := Not.imp aux2 (hmh (a.natDegree) hadvd)
-    simp only [ne_eq, not_not] at hdeq
-    exact Associated.irreducible
-      (Polynomial.associated_of_dvd_of_natDegree_le ⟨b, heq⟩
-        (ne_zero_of_natDegree_gt hd) (Nat.le_of_eq (id hdeq.symm)) ) hai
-
-omit [DecidableEq F] in
-lemma isCoprime_X_pow_sub_X_of_dvd_of_maximal_dvd (f : F[X])
-  (h : ∀ (p : ℕ), Nat.Prime p → p ∣ (f.natDegree) →
-  IsCoprime f (X ^ (((Fintype.card F)) ^ ((f.natDegree) / p)) - X)) :
-  ∀ (m : ℕ), m ∣ (f.natDegree) →
-      m ≠ f.natDegree → IsCoprime f (X ^ (((Fintype.card F)) ^ m) - X) := by
-  intro m hmdvd hmne
-  have hno : (f.natDegree) / m ≠ 1 := fun hc2 => hmne (Nat.eq_of_dvd_of_div_eq_one hmdvd hc2)
-  have haux : m ∣ (f.natDegree / (f.natDegree / m).minFac) := by
-    rw [Nat.dvd_div_iff_mul_dvd]
-    nth_rw 2 [← Nat.div_mul_cancel hmdvd]
-    refine mul_dvd_mul (Nat.minFac_dvd _) (dvd_rfl)
-    refine dvd_trans (b := f.natDegree / m) (Nat.minFac_dvd _ )
-      (Nat.div_dvd_of_dvd hmdvd)
-  exact (IsCoprime.of_isCoprime_of_dvd_right ((h (f.natDegree / m).minFac
-    (Nat.minFac_prime hno)
-        (dvd_trans (b := f.natDegree / m) (Nat.minFac_dvd _ )
-        (Nat.div_dvd_of_dvd hmdvd)) ))
-        (dvd_pow_pow_sub_self_of_dvd (haux)))
+    refine ⟨hi.dvd_X_pow_card_pow_natDegree_sub_X, fun m hm hmne => ?_⟩
+    refine (EuclideanDomain.dvd_or_coprime _ _ hi).resolve_left ?_
+    exact fun h =>
+      hmne (dvd_antisymm hm (hi.natDegree_dvd_iff_dvd_X_pow_card_pow_sub_X.2 h))
+  · rintro ⟨hfdvd, h⟩
+    obtain ⟨a, hai, advd⟩ := Polynomial.exists_irreducible_of_natDegree_pos hd
+    have hadvd : a.natDegree ∣ f.natDegree :=
+      hai.natDegree_dvd_iff_dvd_X_pow_card_pow_sub_X.2 (dvd_trans advd hfdvd)
+    have heqd : a.natDegree = f.natDegree := by
+      by_contra hne
+      exact hai.not_isUnit ((h a.natDegree hadvd hne).isUnit_of_dvd' advd
+        (hai.dvd_X_pow_card_pow_natDegree_sub_X))
+    exact (Polynomial.associated_of_dvd_of_natDegree_le advd
+      (ne_zero_of_natDegree_gt hd) heqd.ge).irreducible hai
 
 /-- A version of `irreducible_iff_dvd_X_pow_sub_X` which only ranges through maximal proper
   divisors of the degree of `f`. This is the statament used for Rabin's test. -/
-theorem irreducible_iff_dvd_X_pow_sub_X' (f : F[X]) (hd : 0 < f.natDegree) :
+theorem irreducible_iff_dvd_X_pow_sub_X' [Finite F] {f : F[X]} (hd : 0 < f.natDegree) :
     Irreducible f ↔
-    f ∣ (X ^ ((Fintype.card F) ^ (f.natDegree)) - X) ∧
-    (∀ (p : ℕ), Nat.Prime p → p ∣ (f.natDegree) →
-      IsCoprime f (X ^ (((Fintype.card F)) ^ ((f.natDegree) / p)) - X)) := by
+        f ∣ (X ^ ((Nat.card F) ^ (f.natDegree)) - X) ∧
+          (∀ (p : ℕ), p.Prime → p ∣ f.natDegree →
+           IsCoprime f (X ^ ((Nat.card F) ^ (f.natDegree / p)) - X)) := by
+  rw [irreducible_iff_dvd_X_pow_sub_X hd]
+  refine and_congr_right' ?_
   constructor
-  · intro hi
-    refine ⟨(natDegree_dvd_iff_dvd_X_pow_sub_X hi).1 dvd_rfl, ?_⟩
-    intro p hp hpne
-    rcases (EuclideanDomain.dvd_or_coprime f (X ^ ((Fintype.card F) ^ ((f.natDegree) / p)) - X) hi )
-      with h1 | h2
-    · exfalso
-      have hpdvd : (f.natDegree / p) ∣ f.natDegree := by exact Nat.div_dvd_of_dvd hpne
-      have := (dvd_antisymm hpdvd ((natDegree_dvd_iff_dvd_X_pow_sub_X hi).2 h1))
-      have := Nat.div_lt_self hd (Nat.Prime.one_lt hp)
-      linarith
-    · exact h2
-  · rintro ⟨hfdvd, hmh'⟩
-    exact (irreducible_iff_dvd_X_pow_sub_X f hd).2
-      ⟨hfdvd , isCoprime_X_pow_sub_X_of_dvd_of_maximal_dvd f hmh'⟩
+  · intro hm p hp hpdvd
+    exact hm (f.natDegree / p) (Nat.div_dvd_of_dvd hpdvd)
+      (Nat.ne_of_lt (Nat.div_lt_self hd (Nat.Prime.one_lt hp)))
+  · intro h m hmdvd hmne
+    obtain ⟨p, hp, hpdvd, hmdvd⟩ := Nat.exists_prime_dvd_and_dvd_div hmdvd hmne
+    exact (h p hp hpdvd).of_isCoprime_of_dvd_right (dvd_pow_pow_sub_self_of_dvd hmdvd)
+
 
 end IrreducibilityTheory
 
@@ -521,10 +444,10 @@ structure IrreducibleCertificateIntPolynomial (T : Polynomial ℤ) (l : List ℤ
 lemma irreducible_of_CertificateIntPolynomial (T : Polynomial ℤ) (l : List ℤ)
     (C : IrreducibleCertificateIntPolynomial T l) : Irreducible T := by
   rw [C.hpol]
-  haveI : ∀ i , Fact $ Nat.Prime (C.p i) := by
+  have : ∀ i , Fact $ Nat.Prime (C.p i) := by
     intro i
     exact fact_iff.2 (C.hp i)
-  haveI : NeZero (C.n) := neZero_iff.2 C.hnn
+  have : NeZero (C.n) := neZero_iff.2 C.hnn
   have hlnnil : l ≠ 0 := List.ne_nil_of_length_eq_add_one C.hdeg
   have hldrop : l = l.dropTrailingZeros := by
     rw [eq_dropTrailingZeros_iff_last_entry_ne_zero _ hlnnil]
@@ -737,7 +660,7 @@ lemma irreducible_of_CertificateIrreducibleZMod (p n t s: ℕ)[Fact $ Nat.Prime 
   have hd : 0 < f.natDegree := by
     rw [C.hdeg]
     exact Fin.pos'
-  rw [irreducible_iff_dvd_X_pow_sub_X f hd, ZMod.card, C.hdeg]
+  rw [irreducible_iff_dvd_X_pow_sub_X hd, Nat.card_zmod, C.hdeg]
   have aux := certificate_aux' p n t s f C.bit C.hbits C.h C.g C.h' C.hs C.hz C.hmul
   constructor
   · have aux1 := aux (Fin.last n)
@@ -785,7 +708,7 @@ lemma irreducible_of_CertificateIrreducibleZMod' (p n t s: ℕ)[Fact $ Nat.Prime
   have hd : 0 < f.natDegree := by
     rw [C.hdeg]
     exact Fin.pos'
-  rw [irreducible_iff_dvd_X_pow_sub_X' f hd, ZMod.card, C.hdeg]
+  rw [irreducible_iff_dvd_X_pow_sub_X' hd, Nat.card_zmod, C.hdeg]
   have aux := certificate_aux' p n t s f C.bit C.hbits C.h C.g C.h' C.hs C.hz C.hmul
   constructor
   · have aux1 := aux (Fin.last n)
@@ -799,7 +722,7 @@ lemma irreducible_of_CertificateIrreducibleZMod' (p n t s: ℕ)[Fact $ Nat.Prime
     convert isCoprime_sub_of_isCoprime_sub_dvd_sub (aux ⟨(n / q), hmlt⟩) ?_
     exact (C.hhz).symm
     use (C.a ⟨(n / q), hmlt1⟩ ) , (C.b ⟨(n / q), hmlt1⟩ )
-    rw [← C.hneq, Prime.dvd_finset_prod_iff (Nat.prime_iff.mp hq)] at hqdvd
+    rw [← C.hneq, Prime.dvd_finsetProd_iff (Nat.prime_iff.mp hq)] at hqdvd
     obtain ⟨i, _, hi2⟩ := hqdvd
     simp_rw [(Nat.prime_dvd_prime_iff_eq hq (C.hP i)).1 (Nat.Prime.dvd_of_dvd_pow hq hi2)]
       at hmlt1 hmlt ⊢

@@ -131,7 +131,7 @@ lemma ne_mul_prime (s p : ℕ) (hp : Nat.Prime p) (q r : ℤ)
       by_contra hct
       rw [hct, mul_zero] at ht
       rw [ht] at hq
-      simp only [not_lt_zero'] at hq
+      simp only [not_lt_zero] at hq
     have := Nat.mul_lt_mul_of_pos_left hr (show (t > 0) by exact Nat.zero_lt_of_ne_zero htz)
     rw [hc, ← not_le] at this
     have aux := Nat.mul_le_mul_left s (show (1 ≤ t) by exact Nat.one_le_iff_ne_zero.mpr htz)
@@ -223,7 +223,7 @@ lemma maxCoeffsAux_nonneg (P : Polynomial ℂ) : 0 ≤ maxCoeffsAux P := by
   unfold maxCoeffsAux
   by_cases h : P.natDegree = 0
   · simp only [h, ↓reduceDIte, le_refl]
-  · haveI : NeZero (P.natDegree) := { out := h }
+  · have : NeZero (P.natDegree) := { out := h }
     simp only [h, ↓reduceDIte]
     rw [WithBot.le_unbot_iff, List.coe_le_maximum_iff]
     use (‖(P.coeff ↑0)‖)
@@ -489,10 +489,10 @@ structure CertificateIrreducibleIntOfPrimeDegreeAnalysis (f : Polynomial ℤ) (l
 lemma irreducible_of_CertificateIrreducibleIntOfPrimeDegrees (f : Polynomial ℤ) (l : List ℤ)
  (C : CertificateIrreducibleIntOfPrimeDegreeAnalysis f l) : Irreducible f := by
   rw [C.hpol]
-  haveI : ∀ i , Fact $ Nat.Prime (C.p i) := by
+  have : ∀ i , Fact $ Nat.Prime (C.p i) := by
     intro i
     exact fact_iff.2 (C.hp i)
-  haveI : NeZero (C.n) := neZero_iff.2 C.hnn
+  have : NeZero (C.n) := neZero_iff.2 C.hnn
   have hlnnil : l ≠ 0 := List.ne_nil_of_length_pos (lt_trans (zero_lt_one) (C.hdeg))
   have hldrop : l = l.dropTrailingZeros := by
     rw [eq_dropTrailingZeros_iff_last_entry_ne_zero _ hlnnil]
