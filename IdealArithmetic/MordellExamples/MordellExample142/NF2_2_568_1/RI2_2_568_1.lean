@@ -20,12 +20,14 @@ def K := AdjoinRoot (map (algebraMap ℤ ℚ) T)
 
 noncomputable instance : CommRing K := by
   unfold K
-  exact AdjoinRoot.instCommRing _
-
+  infer_instance
 
 noncomputable instance : Algebra ℚ K := by
   unfold K
   exact AdjoinRoot.instAlgebra _
+
+noncomputable instance : IsScalarTower ℤ ℚ K :=
+  IsScalarTower.of_algebraMap_eq (congrFun rfl)
 
 local notation "l" => [-142, 0, 1]
 
@@ -36,7 +38,7 @@ local notation "θ" => Adj.root
 
 lemma T_ofList : ofList l = T := by
   rw [T_def] ; norm_num ; ring
--- We build the subalgebra with integral basis [1, s]
+-- We build the subalgebra with integral basis [1, s] 
 
 noncomputable def BQ : SubalgebraBuilderLists 2 ℤ  ℚ K T l where
  d := 1
@@ -45,7 +47,7 @@ noncomputable def BQ : SubalgebraBuilderLists 2 ℤ  ℚ K T l where
  hofL := T_ofList.symm
  hm := rfl
  B := ![![1, 0], ![0, 1]]
- a := ![ ![![1, 0],![0, 1]],
+ a := ![ ![![1, 0],![0, 1]], 
 ![![0, 1],![142, 0]]]
  s := ![![[], []],![[], [-1]]]
  h := Adj
@@ -54,7 +56,7 @@ noncomputable def BQ : SubalgebraBuilderLists 2 ℤ  ℚ K T l where
  hcc := by decide
  hin := by decide
  hsymma := by decide
- hc_le := by decide
+ hc_le := by decide 
 
 lemma T_degree : T.natDegree = 2 := (SubalgebraBuilderOfList T l BQ).hdeg
 
@@ -68,7 +70,7 @@ noncomputable def Om : Subalgebra ℤ K := integralClosure ℤ K
 
 noncomputable def O := subalgebraOfBuilderLists T l BQ
 
-def hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
+theorem hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
 
 noncomputable def B' : Basis (Fin 2) ℤ Om :=
   Basis.reindex (AdjoinRoot.basisIntegralClosure T_monic
@@ -81,8 +83,8 @@ noncomputable def timesTableO : TimesTable (Fin 2) ℤ O :=
   timesTableOfSubalgebraBuilderLists T l BQ
 
 noncomputable def B : Basis (Fin 2) ℤ O := timesTableO.basis
-def Table : Fin 2 → Fin 2 → List ℤ :=
- ![ ![[1, 0], [0, 1]],
+def Table : Fin 2 → Fin 2 → List ℤ := 
+ ![ ![[1, 0], [0, 1]], 
  ![[0, 1], [142, 0]]]
 
 lemma timesTableT_eq_Table :  ∀ i j , Table i j = List.ofFn (timesTableO.table i j) := by decide
@@ -137,8 +139,8 @@ noncomputable def D : CertificateDedekindAlmostAllLists T l [] where
  a := [-4]
  b := [0, 2]
  hab := by decide
- hd := by
-  intro p hp
+ hd := by 
+  intro p hp 
   fin_cases hp
   exact satisfiesDedekindCriterion_of_certificate_lists T l 2 T_ofList CD2
   exact satisfiesDedekindCriterion_of_certificate_lists T l 71 T_ofList CD71
@@ -159,17 +161,17 @@ lemma B_one_repr : B.equivFun.symm ![1, 0] = 1 := by
   · exact LinearEquiv.injective B.repr
 
 instance : IsDomain O := by
-  haveI hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
+  have hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
   {out := (Polynomial.Monic.irreducible_iff_irreducible_map_fraction_map (T_monic)).1 T_irreducible}
-  letI hola : Field K := by
+  let hola : Field K := by
     unfold K
     exact AdjoinRoot.instField
-  haveI : IsDomain K := by infer_instance
+  have : IsDomain K := by infer_instance
   refine Subalgebra.isDomain O
 
  noncomputable instance : Mul (Ideal ↥O) := Submodule.mul (R := O) (A := O)
  noncomputable instance  : AddCommMonoid ↥O := AddSubmonoidClass.toAddCommMonoid O
- noncomputable instance : Module ℤ O := O.instModuleSubtypeMem
+ noncomputable instance : Module ℤ O := inferInstance
  noncomputable instance  : Algebra ℤ O := O.algebra'
 
 

@@ -11,7 +11,9 @@ The Skolem certificate is at `p = 349`, `f = 116`; the two surviving residue cla
 `115` hold the two solutions `n = 0` and `n = -1`, each pinned down by the re-centering
 hypothesis `349 ∤ mu (zeta1 ^ r δ)`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

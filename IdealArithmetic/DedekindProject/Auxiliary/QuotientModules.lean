@@ -85,7 +85,7 @@ lemma Submodule.eq_top_of_index_isUnit  (N : Submodule R M) [Module.Free R M] [M
   rw [← LinearEquiv.apply_symm_apply (LinearEquiv.ofIsUnitDet hu) x, aux]
   simp only [LinearEquiv.ofIsUnitDet_symm_apply, SetLike.coe_mem]
 
-omit [IsDomain R] [IsPrincipalIdealRing R]
+omit [IsDomain R] [IsPrincipalIdealRing R] in
 lemma LinearMap.toMatrix_eq_of_index_equiv {N : Type*} [AddCommMonoid N]
     [DecidableEq ι] [DecidableEq ι'] [Module R N] (B : Basis ι R M) (b : Basis ι R N)
     (f : N →ₗ[R] M ) (e : ι ≃ ι') :
@@ -98,8 +98,6 @@ lemma LinearMap.toMatrix_eq_of_index_equiv {N : Type*} [AddCommMonoid N]
     Function.comp_apply, Basis.repr_reindex,
       Finsupp.equivMapDomain_apply]
   rw [← this, Matrix.det_reindexAlgEquiv]
-
-variable [IsDomain R] [IsPrincipalIdealRing R]
 
 /-- Given bases for `N` and  `M`, the determinant of the matrix representing
 `N → M` is an associate to `[M : N]` -/
@@ -149,8 +147,8 @@ lemma Submodule.indexPID_dvd_of_le [Module.Free R M]
     have heqc := heq
     let B := Basis.reindex (Module.Free.chooseBasis R M)
        (Fintype.equivFin (Module.Free.ChooseBasisIndex R M))
-    haveI aux : Module.Finite R N₁ := Module.Finite.of_basis (Submodule.basisOfPid B N₁).2
-    haveI : Module.Finite R N₂ := Module.Finite.of_basis  (Submodule.basisOfPid B N₂).2
+    have aux : Module.Finite R N₁ := Module.Finite.of_basis (Submodule.basisOfPid B N₁).2
+    have : Module.Finite R N₂ := Module.Finite.of_basis  (Submodule.basisOfPid B N₂).2
     rw [← Module.finrank_eq_rank, ← Module.finrank_eq_rank] at heq
     norm_cast at heq
     have heq2': Module.rank R M = Module.rank R N₂ := by
@@ -249,7 +247,7 @@ lemma Submodule.prime_dvd_index [Module.Free R M]
     (B : Basis ι R M) (b : Basis ι R N) (hdvd : π ∣ Submodule.indexPID N) :
       ∃ m : M, m ∉ N ∧ π • m ∈ N := by
   rw [Associated.dvd_iff_dvd_right (prod_moduleSmithCoeffs_associated_index N B b),
-    Prime.dvd_finset_prod_iff hp] at hdvd
+    Prime.dvd_finsetProd_iff hp] at hdvd
   obtain ⟨i, _, ⟨t , ht⟩⟩  := hdvd
   use (t • smithBasisModule N B b i)
   constructor

@@ -194,6 +194,7 @@ lemma PB4853I72_primes (p : ℕ) :
   p ∈ Set.range ![4817, 4831] ↔ Nat.Prime p ∧ 4813 < p ∧ p ≤ 4852 := by
   rw [← List.mem_ofFn']
   convert primes_range 4813 4852 (by omega)
+  decide
 
 def PB4853I72 : PrimesBelowBoundCertificateInterval O 4813 4852 4853 where
   m := 2

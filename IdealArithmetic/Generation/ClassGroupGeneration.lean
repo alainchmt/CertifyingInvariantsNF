@@ -73,7 +73,7 @@ lemma  minkowskiBoundFB_isFactorBaseBound (K : Type*) [Field K] [NumberField K] 
   refine le_antisymm (le_top) ?_
   intro C hC
   obtain ⟨J , hJC, hJnorm⟩ := exists_ideal_in_class_of_norm_le C
-  have hJp := prod_normalizedFactors_eq_self (nonZeroDivisors.coe_ne_zero J)
+  have hJp := Ideal.prod_normalizedFactors_eq_self (nonZeroDivisors.coe_ne_zero J)
   have hJn := Ideal.absNorm_pos_iff_mem_nonZeroDivisors.2 J.2
   have hPf : ∀ p, p ∈ UniqueFactorizationMonoid.normalizedFactors
     (↑J : Ideal (RingOfIntegers K)) → p.IsPrime ∧ J ≤ p :=
@@ -109,7 +109,7 @@ lemma  minkowskiBoundFB_isFactorBaseBound (K : Type*) [Field K] [NumberField K] 
   obtain ⟨p, hp1, hp2⟩ := Multiset.mem_map.1 hP
   simp only [List.pmap_eq_attachWith, Multiset.mem_coe, List.mem_attachWith,
     Multiset.mem_toList, M] at hp1
-  simp only [Set.mem_image, Set.mem_setOf_eq, Subtype.exists, mem_nonZeroDivisors_iff_ne_zero,
+  simp only [Set.mem_image, Set.mem_ofPred_eq, Subtype.exists, mem_nonZeroDivisors_iff_ne_zero,
   exists_and_left]
   use (p : Ideal (RingOfIntegers K))
   constructor
@@ -162,7 +162,7 @@ lemma primes_below_bound_of_factorization' (B : ℕ)
       rw [← Ideal.span_singleton_prime, ← (Ideal.span_singleton_generator _ ).symm]
       exact hPP
       · exact hpn
-    haveI hpM : Ideal.IsMaximal (Ideal.span {p} ):= by
+    have hpM : Ideal.IsMaximal (Ideal.span {p} ):= by
       rw [← hPeq]
       refine IsPrime.to_maximal_ideal ?_
       rw [hPeq]
@@ -336,7 +336,7 @@ lemma subgroup_closure_eq_classGroup_of_bound {m n r : Type} {D : ℝ} {b : ℕ}
   have aux1 : ClassGroup.mk0 '' {I : ↥(nonZeroDivisors (Ideal (Oκ))) | (I : Ideal Oκ).IsPrime ∧
     Ideal.absNorm (I : Ideal Oκ) < b } ⊆ Set.range (fun i => ClassGroup.mk0 (𝔭' i)) := by
       intro x
-      simp only [Set.mem_image, Set.mem_setOf_eq, Subtype.exists,
+      simp only [Set.mem_image, Set.mem_ofPred_eq, Subtype.exists,
          exists_and_left, Set.mem_range, forall_exists_index, and_imp]
       intro I hIp hIn hIz hIc
       have hmem : I ∈ Set.range 𝔭 := by
@@ -364,8 +364,8 @@ lemma subgroup_closure_eq_classGroup_of_bound {m n r : Type} {D : ℝ} {b : ℕ}
     simp only [Matrix.map_apply, eq_natCast, zpow_natCast]
     simp_rw [← map_pow, ← map_prod, ClassGroup.mk0_eq_mk0_iff]
     convert hgmul i
-    · simp only [SubmonoidClass.coe_finset_prod, SubmonoidClass.coe_pow, hg']
-    · simp only [SubmonoidClass.coe_finset_prod, SubmonoidClass.coe_pow, hx']
+    · simp only [SubmonoidClass.coe_finsetProd, SubmonoidClass.coe_pow, hg']
+    · simp only [SubmonoidClass.coe_finsetProd, SubmonoidClass.coe_pow, hx']
   · rw [← htop]
     simp only [Subgroup.mem_top, implies_true]
 
@@ -437,7 +437,7 @@ lemma primes_below_bound_of_equiv {m} {R S : Type*} [CommRing R] [CommRing S]
   computational model which is not definitionally equal. -/
 lemma subgroup_closure_eq_classGroup' {m n : Type} {D : ℝ} {C : ℕ}
     [hn : Fintype n] [hm : Fintype m] [DecidableEq m] {S : Type*}
-    [CommRing S] [Nontrivial S] [IsDedekindDomain S] [Module.Free ℤ S]
+    [CommRing S] [IsDedekindDomain S] [Module.Free ℤ S]
     ( φ : S ≃+* Oκ)
     {𝔭 : m → Ideal S} {𝔭' : m → nonZeroDivisors (Ideal (S))}
     {J : n → Ideal S} {J' : n → nonZeroDivisors (Ideal (S))}
@@ -476,7 +476,7 @@ lemma subgroup_closure_eq_classGroup' {m n : Type} {D : ℝ} {C : ℕ}
     · rw [← Set.range_comp]
       refine (congr_arg _ ?_)
       ext i
-      simp only [ClassGroup.congr, MonoidHom.coe_coe, Function.comp_apply, E]
+      simp only [ClassGroup.congr, MonoidHom.coe_ofClass, Function.comp_apply, E]
       apply ClassGroup.map_apply'
       rfl
     · intro i
@@ -511,7 +511,7 @@ lemma subgroup_closure_eq_classGroup' {m n : Type} {D : ℝ} {C : ℕ}
 /-- A version of `subgroup_closure_eq_classGroup'` using the Minkowski bound-/
 lemma subgroup_closure_eq_classGroup'' {m n : Type} {b : ℕ}
     [hn : Fintype n] [hm : Fintype m] [DecidableEq m]
-    {S : Type*} [CommRing S] [Nontrivial S] [IsDedekindDomain S] [Module.Free ℤ S]
+    {S : Type*} [CommRing S] [IsDedekindDomain S] [Module.Free ℤ S]
     ( φ : S ≃+* Oκ)
     {𝔭 : m → Ideal S} {𝔭' : m → nonZeroDivisors (Ideal (S))}
     {J : n → Ideal S} {J' : n → nonZeroDivisors (Ideal (S))}
@@ -840,7 +840,7 @@ lemma le_primes_below_bound_of_PrimesBelowBoundCertificate_le {B r : ℕ}
   rw [Set.mem_range, ← List.mem_ofFn]
   intro hc ; apply h ; revert hc
   rw [List.mem_flatten, primes_below_bound_of_factorization' B F]
-  simp only [Set.mem_iUnion, Set.mem_setOf_eq, exists_and_right, Subtype.exists, List.mem_ofFn,
+  simp only [Set.mem_iUnion, Set.mem_ofPred_eq, exists_and_right, Subtype.exists, List.mem_ofFn,
     exists_exists_eq_and, and_imp, forall_exists_index]
   intro p hpmem hF hn
   simp only [F, Multiset.mem_coe, List.mem_ofFn] at hF

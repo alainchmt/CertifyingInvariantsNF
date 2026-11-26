@@ -13,17 +13,21 @@ to `zeta1 = a₂θ² + a₁θ + a₀` gives
 in particular `φ(zeta1) > 1`, which is the hypothesis needed by the Artin
 inequality.  (The true value is `4.84447…e29`; the approximation costs about `2.2e27`.)
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false
 
 open BigOperators Classical Matrix Polynomial Module NumberField
 
+namespace NF3_1_24312_1
+
 noncomputable section
 
 /-- The defining polynomial of `K`, in the `C b₃ * X ^ 3 + …` shape. -/
-lemma T_map_eq : map (algebraMap ℤ ℚ) T = C 1 * X ^ 3 + C 0 * X ^ 2 + C 3 * X + C (-90) := by
+lemma T_map_eq : map (algebraMap ℤ ℚ) T = Polynomial.C 1 * X ^ 3 + Polynomial.C 0 * X ^ 2 + Polynomial.C 3 * X + Polynomial.C (-90) := by
   rw [T_def]
   simp only [Polynomial.map_add, Polynomial.map_sub, Polynomial.map_mul, Polynomial.map_pow,
     Polynomial.map_X, Polynomial.map_ofNat, map_ofNat, Polynomial.C_1, Polynomial.C_0,
@@ -113,3 +117,5 @@ lemma zeta1_embedding_one_lt :
   norm_num
 
 end
+
+end NF3_1_24312_1

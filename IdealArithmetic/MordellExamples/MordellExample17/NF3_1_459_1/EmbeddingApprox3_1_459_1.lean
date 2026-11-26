@@ -13,7 +13,9 @@ import IdealArithmetic.MordellThueProject.PolyApprox
 The Artin index bound uses `a/b = 9/4` (`8⁹ ≤ ((459-24)/4)⁴`) and `c/d = 11/2`
 (`φ(zeta1)² ≤ 2¹¹`), so `(c*b)/(a*d) = 44/18 = 2`: only `p = 2` has to be certified.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

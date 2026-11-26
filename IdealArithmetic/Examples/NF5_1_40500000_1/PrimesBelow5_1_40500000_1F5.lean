@@ -1155,6 +1155,7 @@ lemma PB397I5_primes (p : ℕ) :
   p ∈ Set.range ![199, 211, 223, 227, 229, 233, 239, 241, 251] ↔ Nat.Prime p ∧ 197 < p ∧ p ≤ 251 := by
   rw [← List.mem_ofFn']
   convert primes_range 197 251 (by omega)
+  decide
 
 def PB397I5 : PrimesBelowBoundCertificateInterval O 197 251 397 where
   m := 9

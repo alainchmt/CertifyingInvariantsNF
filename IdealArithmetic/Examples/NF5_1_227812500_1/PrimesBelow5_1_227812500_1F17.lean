@@ -746,6 +746,7 @@ lemma PB940I17_primes (p : ℕ) :
   p ∈ Set.range ![887, 907, 911, 919, 929, 937] ↔ Nat.Prime p ∧ 883 < p ∧ p ≤ 939 := by
   rw [← List.mem_ofFn']
   convert primes_range 883 939 (by omega)
+  decide
 
 def PB940I17 : PrimesBelowBoundCertificateInterval O 883 939 940 where
   m := 6

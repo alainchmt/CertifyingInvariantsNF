@@ -967,6 +967,7 @@ lemma PB5943I50_primes (p : ℕ) :
   p ∈ Set.range ![3187, 3191, 3203, 3209, 3217, 3221, 3229, 3251, 3253] ↔ Nat.Prime p ∧ 3181 < p ∧ p ≤ 3253 := by
   rw [← List.mem_ofFn']
   convert primes_range 3181 3253 (by omega)
+  decide
 
 def PB5943I50 : PrimesBelowBoundCertificateInterval O 3181 3253 5943 where
   m := 9

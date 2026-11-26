@@ -151,7 +151,7 @@ Module (ZMod n) (M mod' n) := by
   { smul := fun ( s : ZMod n) (x : M mod' n ) => (s.val) • x
     one_smul := by
       · by_cases ho : 1 < n
-        · haveI : Fact (1 < n) := { out := ho }
+        · have : Fact (1 < n) := { out := ho }
           intro s
           show (1 : ZMod n).val • s = s
           rw [ZMod.val_one , one_smul]
@@ -159,7 +159,7 @@ Module (ZMod n) (M mod' n) := by
             Eq.symm (Nat.le_antisymm (NeZero.one_le ) (not_lt.1 ho))
           intro s
           show (1 : ZMod n).val • s = s
-          haveI : Subsingleton (M mod' n) := by
+          have : Subsingleton (M mod' n) := by
             rw [this, Nat.cast_one, one_smul]
             infer_instance
           rw [Subsingleton.eq_zero s, nsmul_zero]
@@ -305,7 +305,7 @@ lemma nontrivial_R [NeZero p] (hpo : p ≠ 1)
   erw [not_nontrivial_iff_subsingleton, Submodule.Quotient.subsingleton_iff] at h
   let b := Module.Free.chooseBasis ℤ O
   let τ := Module.Free.ChooseBasisIndex ℤ O
-  haveI := Classical.inhabited_of_nonempty (Basis.index_nonempty b)
+  have := Classical.inhabited_of_nonempty (Basis.index_nonempty b)
   let i := Classical.arbitrary τ
   have : b i ∈ (⊤ : Ideal O) := Submodule.mem_top
   rw [← h] at this
@@ -344,7 +344,7 @@ lemma basis_zmodp_repr_eq_zmodp_basis_repr {τ : Type* } [NeZero p] (b : Basis �
   unfold zmodpBasisOfIntBasis
   have : (x mod p) = quotientMkToSemilinear O O p x := rfl
   rw [this]
-  haveI : RingHomSurjective (Int.castRingHom (ZMod p)) := ⟨ZMod.ringHom_surjective (Int.castRingHom (ZMod p))⟩
+  have : RingHomSurjective (Int.castRingHom (ZMod p)) := ⟨ZMod.ringHom_surjective (Int.castRingHom (ZMod p))⟩
   erw [← Basis.comp_semilinear_repr]
   rfl
 
@@ -372,7 +372,7 @@ local notation "Ip" => Ideal.radical ((p : O) • (⊤ : Submodule O O) : Ideal 
 lemma radical_eq_kernel_iter_frob_aux (n j: ℕ) [Fact $ Nat.Prime p]
     (b : Basis (Fin n) ℤ O ) (hle : n ≤ p ^ j) (x : R) :
     x ∈ (Ip mod' p) ↔ x ^ (p ^ j) = 0 := by
-  haveI := Module.Finite.of_basis (basis_zmodp_algebra O p b)
+  have := Module.Finite.of_basis (basis_zmodp_algebra O p b)
   constructor
   swap
   · intro hx
@@ -685,7 +685,7 @@ lemma basis_radical_of_linear_independent_ker_im_in_repr [IsTorsionFree ℤ O]
     simp_rw [← zsmul_eq_zmod_smul, ← Submodule.mkQ_apply]
     rw [← map_sum, ← map_sum, ← map_add]
     congr
-    simp only [zsmul_eq_mul, AddSubmonoidClass.coe_finset_sum,
+    simp only [zsmul_eq_mul, AddSubmonoidClass.coe_finsetSum,
       Submodule.coe_smul_of_tower]
     simp
   have aux4 : Finset.univ.sum (λ i => (↑(s i  : ZMod p) • (⟨b i, aux1 i ⟩ mod p ))) +
@@ -856,7 +856,7 @@ lemma map_smul' {r : ZMod p} {x : R} :
   rw [map_to_end_mod_def]
   erw [LinearMap.smul_apply]
   rw [map_to_end_eq]
-  erw [map_mul_α_def, map_mul_α_def, mul_α_aux_def, mul_α_aux_def, zmodp_smul_def,  ]
+  erw [map_mul_α_def, map_mul_α_def, mul_α_aux_def, mul_α_aux_def, zmodp_smul_def  ]
   simp only [ nsmul_eq_mul, ZMod.natCast_val]
   congr
   simp only [nsmul_eq_mul, ZMod.natCast_val]

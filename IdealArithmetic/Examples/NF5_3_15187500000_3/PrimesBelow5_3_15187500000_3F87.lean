@@ -280,6 +280,7 @@ lemma PB6026I87_primes (p : ℕ) :
   p ∈ Set.range ![6007, 6011] ↔ Nat.Prime p ∧ 5987 < p ∧ p ≤ 6025 := by
   rw [← List.mem_ofFn']
   convert primes_range 5987 6025 (by omega)
+  decide
 
 def PB6026I87 : PrimesBelowBoundCertificateInterval O 5987 6025 6026 where
   m := 2

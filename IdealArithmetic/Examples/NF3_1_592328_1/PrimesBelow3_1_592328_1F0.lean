@@ -99,14 +99,14 @@ lemma NI3N1 : Nat.card (O ⧸ I3N1) = 3 :=
 
 lemma isPrimeI3N1 : Ideal.IsPrime I3N1 := prime_ideal_of_norm_prime hp3.out _ NI3N1
 
-def I3N2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![3, 0, 0], ![-15, 0, 1]] i)))
+def I3N2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![3, 0, 0], ![15, 0, -1]] i)))
 
-def SI3N2: IdealEqSpanCertificate' Table ![![3, 0, 0], ![-15, 0, 1]] 
+def SI3N2: IdealEqSpanCertificate' Table ![![3, 0, 0], ![15, 0, -1]] 
  ![![3, 0, 0], ![1, 1, 0], ![0, 0, 1]] where
-  M :=![![![3, 0, 0], ![0, 3, 0], ![0, 0, 3]], ![![-15, 0, 1], ![-193, 8, -1], ![108, -36, 8]]]
+  M :=![![![3, 0, 0], ![0, 3, 0], ![0, 0, 3]], ![![15, 0, -1], ![193, -8, 1], ![-108, 36, -8]]]
   hmulB := by decide  
-  f := ![![![27, -16, 26], ![-72, 6, 0]], ![![19, -5, 8], ![-22, 2, 0]], ![![5, 0, 0], ![1, 0, 0]]]
-  g := ![![![1, 0, 0], ![-1, 3, 0], ![0, 0, 3]], ![![-5, 0, 1], ![-67, 8, -1], ![48, -36, 8]]]
+  f := ![![![12, -16, 27], ![75, -6, 0]], ![![4, -5, 9], ![25, -2, 0]], ![![5, 0, 0], ![-1, 0, 0]]]
+  g := ![![![1, 0, 0], ![-1, 3, 0], ![0, 0, 3]], ![![5, 0, -1], ![67, -8, 1], ![-48, 36, -8]]]
   hle1 := by decide   
   hle2 := by decide  
 
@@ -123,11 +123,11 @@ def MulI3N0 : IdealMulLeCertificate' Table
  hle2 := by decide  
 
 def MulI3N1 : IdealMulLeCertificate' Table 
-  ![![3, 0, 0], ![-17, 0, 1]] ![![3, 0, 0], ![-15, 0, 1]]
+  ![![3, 0, 0], ![-17, 0, 1]] ![![3, 0, 0], ![15, 0, -1]]
   ![![3, 0, 0]] where
- M := ![![![9, 0, 0], ![-45, 0, 3]], ![![-51, 0, 3], ![363, -36, -9]]]
+ M := ![![![9, 0, 0], ![45, 0, -3]], ![![-51, 0, 3], ![-363, 36, 9]]]
  hmul := by decide  
- g := ![![![![3, 0, 0]], ![![-15, 0, 1]]], ![![![-17, 0, 1]], ![![121, -12, -3]]]]
+ g := ![![![![3, 0, 0]], ![![15, 0, -1]]], ![![![-17, 0, 1]], ![![-121, 12, 3]]]]
  hle2 := by decide  
 
 
@@ -863,6 +863,7 @@ lemma PB218I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 31 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 31 (by omega)
+  decide
 
 def PB218I0 : PrimesBelowBoundCertificateInterval O 1 31 218 where
   m := 11

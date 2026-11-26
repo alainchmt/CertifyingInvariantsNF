@@ -835,6 +835,7 @@ lemma PB2558I41_primes (p : ℕ) :
   p ∈ Set.range ![2531, 2539, 2543, 2549, 2551, 2557] ↔ Nat.Prime p ∧ 2521 < p ∧ p ≤ 2557 := by
   rw [← List.mem_ofFn']
   convert primes_range 2521 2557 (by omega)
+  decide
 
 def PB2558I41 : PrimesBelowBoundCertificateInterval O 2521 2557 2558 where
   m := 6

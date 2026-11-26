@@ -12,7 +12,9 @@ import IdealArithmetic.MordellThueProject.PolyApprox
 The Artin index bound uses `a/b = 5/2` and `c/d = 4/1`, so
 `(c*b)/(a*d) = 8/5 = 1`: no prime has to be certified at all.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

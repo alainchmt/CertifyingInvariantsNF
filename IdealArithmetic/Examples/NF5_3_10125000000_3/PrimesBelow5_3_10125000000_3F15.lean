@@ -906,6 +906,7 @@ lemma PB4920I15_primes (p : ℕ) :
   p ∈ Set.range ![769, 773, 787, 797, 809, 811, 821, 823, 827] ↔ Nat.Prime p ∧ 761 < p ∧ p ≤ 827 := by
   rw [← List.mem_ofFn']
   convert primes_range 761 827 (by omega)
+  decide
 
 def PB4920I15 : PrimesBelowBoundCertificateInterval O 761 827 4920 where
   m := 9

@@ -17,18 +17,22 @@ The only new content concerns `θ = Adj.root`, the root adjoined to define `K`:
 `theta_eq_basis` identifies it with the second element of the integral basis, whence
 `mu θ = 0`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false
 
 open Module Polynomial NumberField NumberField.ComplexEmbedding
 
+namespace NF3_1_24312_1
+
 local notation "θ" => Adj.root
 
 /-- The minimal polynomial of `θ` is the defining cubic `X³ + 3X - 90`. -/
 lemma minpoly_root : minpoly ℚ θ
-    = X ^ 3 + C ((0 : ℤ) : ℚ) * X ^ 2 + C ((3 : ℤ) : ℚ) * X + C (((-90) : ℤ) : ℚ) := by
+    = X ^ 3 + Polynomial.C ((0 : ℤ) : ℚ) * X ^ 2 + Polynomial.C ((3 : ℤ) : ℚ) * X + Polynomial.C (((-90) : ℤ) : ℚ) := by
   rw [(minpoly.eq_of_irreducible_of_monic hirr.out (Adj.aeval_root_self)
     (T_monic.map (algebraMap ℤ ℚ))).symm, T_map_eq, map_one, one_mul]
   push_cast
@@ -41,8 +45,8 @@ lemma theta_eq_basis : (⟨θ, hroot_mem⟩ : O) = B 1 := by
   rw [basisOfBuilderLists_apply, ← Adj.map_X]
   congr 1
   simp [BQ, ofList_cons, ofList_nil]
-  have h3 : (C (3⁻¹ : ℚ)) * 3 = 1 := by
-    rw [show (3 : ℚ[X]) = C 3 from (map_ofNat Polynomial.C 3).symm, ← Polynomial.C_mul]
+  have h3 : (Polynomial.C (3⁻¹ : ℚ)) * 3 = 1 := by
+    rw [show (3 : ℚ[X]) = Polynomial.C 3 from (map_ofNat Polynomial.C 3).symm, ← Polynomial.C_mul]
     norm_num
   linear_combination (-X) * h3
 
@@ -82,13 +86,13 @@ lemma hZ1 : (Z1 : O) = zeta1 := Subtype.ext Z1_coe
 /-! ### The Skolem step -/
 
 theorem mu_Z1_zpow_eq_zero_iff (n : ℤ) : mu ((Z1 ^ n : Oˣ) : O) = 0 ↔ n ∈ [(0 : ℤ)] := by
-  obtain ⟨δ, hS1, hS2⟩ := zeta1_pow_82
-  refine skolem_zpow_eq_zero_iff_mem mu Z1 (p := 83) (f := 82) (by norm_num) (by norm_num)
+  obtain ⟨δ, hS1, hS2, hW0⟩ := zeta1_pow_82
+  refine skolem_zpow_eq_zero_iff_mem mu Z1 (p := pS) (f := 82) (by norm_num) (by norm_num)
     (by norm_num) δ ?_ [(0 : ℤ)] ?_ ?_ ?_ n
   · rw [Units.val_pow_eq_pow_val, hZ1]; exact hS1
   · intro r hr hne
     rw [hZ1]
-    exact not_dvd_mu_zeta1_pow r (by have := hne 0 (by simp); omega) hr
+    exact not_dvd_mu_zeta1_pow r hr (by have := hne 0 (by simp); omega)
   · intro s hs
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
     rcases hs with rfl
@@ -115,3 +119,5 @@ theorem thue_eq_one_iff_3_1_24312_1 (A B : ℤ) :
   rcases hn with rfl
   · rw [zpow_zero, Units.val_one] at hA hB
     exact ⟨hA.trans nu_one, hB.trans (neg_eq_zero.mpr la_one)⟩
+
+end NF3_1_24312_1

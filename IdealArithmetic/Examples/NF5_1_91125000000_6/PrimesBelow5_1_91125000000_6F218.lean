@@ -1055,6 +1055,7 @@ lemma PB18792I218_primes (p : ℕ) :
   p ∈ Set.range ![17027, 17029, 17033, 17041, 17047, 17053, 17077, 17093, 17099] ↔ Nat.Prime p ∧ 17021 < p ∧ p ≤ 17099 := by
   rw [← List.mem_ofFn']
   convert primes_range 17021 17099 (by omega)
+  decide
 
 def PB18792I218 : PrimesBelowBoundCertificateInterval O 17021 17099 18792 where
   m := 9

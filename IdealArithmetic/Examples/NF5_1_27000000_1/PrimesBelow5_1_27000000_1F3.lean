@@ -889,6 +889,7 @@ lemma PB324I3_primes (p : ℕ) :
   p ∈ Set.range ![107, 109, 113, 127, 131, 137, 139, 149, 151] ↔ Nat.Prime p ∧ 103 < p ∧ p ≤ 151 := by
   rw [← List.mem_ofFn']
   convert primes_range 103 151 (by omega)
+  decide
 
 def PB324I3 : PrimesBelowBoundCertificateInterval O 103 151 324 where
   m := 9

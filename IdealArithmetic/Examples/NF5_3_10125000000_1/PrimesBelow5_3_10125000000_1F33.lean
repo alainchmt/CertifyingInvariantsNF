@@ -1031,6 +1031,7 @@ lemma PB4920I33_primes (p : ℕ) :
   p ∈ Set.range ![1973, 1979, 1987, 1993, 1997, 1999, 2003, 2011, 2017] ↔ Nat.Prime p ∧ 1951 < p ∧ p ≤ 2017 := by
   rw [← List.mem_ofFn']
   convert primes_range 1951 2017 (by omega)
+  decide
 
 def PB4920I33 : PrimesBelowBoundCertificateInterval O 1951 2017 4920 where
   m := 9

@@ -900,6 +900,7 @@ lemma PB1640I4_primes (p : ℕ) :
   p ∈ Set.range ![157, 163, 167, 173, 179, 181, 191, 193, 197] ↔ Nat.Prime p ∧ 151 < p ∧ p ≤ 197 := by
   rw [← List.mem_ofFn']
   convert primes_range 151 197 (by omega)
+  decide
 
 def PB1640I4 : PrimesBelowBoundCertificateInterval O 151 197 1640 where
   m := 9

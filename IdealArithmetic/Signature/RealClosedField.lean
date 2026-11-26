@@ -1,11 +1,11 @@
 /- Authors: Alain Chavarri Villarello -/
 
 import Mathlib.RingTheory.IsAdjoinRoot
-import Mathlib.Data.Real.Basic
+import Mathlib.Basic.Real.Basic
 import Mathlib.Topology.Order.IntermediateValue
-import Mathlib.Data.Real.Hom
+import Mathlib.Algebra.Order.Archimedean.Real.Hom
 import Mathlib.Topology.Algebra.Polynomial
-import Mathlib.Data.Sign.Basic
+import Mathlib.Basic.Sign.Basic
 import Mathlib.Data.List.Destutter
 import IdealArithmetic.DedekindProject.Polynomial.PolynomialsAsLists
 
@@ -270,7 +270,7 @@ lemma rolle_theorem_induction (hc : IsRealClosedField F) (n : ℕ)
     ∃ c ∈ Ioo a b, (derivative P).eval c = 0 := by
   revert P a b
   induction n with
-  | zero => simp only [Set.mem_Ioo, not_lt_zero', IsEmpty.forall_iff, implies_true]
+  | zero => simp only [Set.mem_Ioo, not_lt_zero, IsEmpty.forall_iff, implies_true]
   | succ n hn =>
     intro a b P hab hPa hPb hcard
     obtain ⟨c , hcmem, hcd⟩ := rolle_theorem_weak' hc hab hPa hPb

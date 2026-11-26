@@ -555,6 +555,7 @@ lemma PB1705I29_primes (p : ℕ) :
   p ∈ Set.range ![1667, 1669, 1693, 1697, 1699] ↔ Nat.Prime p ∧ 1663 < p ∧ p ≤ 1704 := by
   rw [← List.mem_ofFn']
   convert primes_range 1663 1704 (by omega)
+  decide
 
 def PB1705I29 : PrimesBelowBoundCertificateInterval O 1663 1704 1705 where
   m := 5

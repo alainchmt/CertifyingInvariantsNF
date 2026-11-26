@@ -1030,6 +1030,7 @@ lemma PB8404I19_primes (p : ℕ) :
   p ∈ Set.range ![1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069] ↔ Nat.Prime p ∧ 1019 < p ∧ p ≤ 1069 := by
   rw [← List.mem_ofFn']
   convert primes_range 1019 1069 (by omega)
+  decide
 
 def PB8404I19 : PrimesBelowBoundCertificateInterval O 1019 1069 8404 where
   m := 9

@@ -1,11 +1,11 @@
 /- Authors: Alain Chavarri Villarello -/
 
 import Mathlib.RingTheory.IsAdjoinRoot
-import Mathlib.Data.Real.Basic
+import Mathlib.Basic.Real.Basic
 import Mathlib.Topology.Order.IntermediateValue
-import Mathlib.Data.Real.Hom
+import Mathlib.Algebra.Order.Archimedean.Real.Hom
 import Mathlib.Topology.Algebra.Polynomial
-import Mathlib.Data.Sign.Basic
+import Mathlib.Basic.Sign.Basic
 import Mathlib.Data.List.Destutter
 import IdealArithmetic.DedekindProject.Polynomial.PolynomialsAsLists
 
@@ -374,7 +374,7 @@ lemma signChanges_modify_zero [Zero R] [Preorder R] [DecidableLT R] [DecidableEq
   · rw [ha, signChanges_zero_head]
   · have aux : (List.filter (fun x => if x ≠ 0 then true else false)) (a :: 0 :: bs) =
       a :: (List.filter (fun x => if x ≠ 0 then true else false) bs) := by
-      simp only [ne_eq, ite_not, Bool.if_true_right, Bool.or_false, ha, decide_false,
+      simp only [ne_eq, ite_not, Bool.ite_true_right, Bool.or_false, ha, decide_false,
         Bool.not_false, List.filter_cons_of_pos, decide_true, Bool.not_true, Bool.false_eq_true,
         not_false_eq_true, List.filter_cons_of_neg]
     simp_rw [signChanges, aux]

@@ -132,14 +132,14 @@ lemma NI5N0 : Nat.card (O ⧸ I5N0) = 5 :=
 
 lemma isPrimeI5N0 : Ideal.IsPrime I5N0 := prime_ideal_of_norm_prime hp5.out _ NI5N0
 
-def I5N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![5, 0, 0], ![-71, -4, 2]] i)))
+def I5N1 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![5, 0, 0], ![-72, 0, 2]] i)))
 
-def SI5N1: IdealEqSpanCertificate' Table ![![5, 0, 0], ![-71, -4, 2]] 
+def SI5N1: IdealEqSpanCertificate' Table ![![5, 0, 0], ![-72, 0, 2]] 
  ![![5, 0, 0], ![1, 1, 0], ![4, 0, 1]] where
-  M :=![![![5, 0, 0], ![0, 5, 0], ![0, 0, 5]], ![![-71, -4, 2], ![610, 33, -22], ![-1440, -114, 41]]]
+  M :=![![![5, 0, 0], ![0, 5, 0], ![0, 0, 5]], ![![-72, 0, 2], ![618, 36, -2], ![-204, 102, 36]]]
   hmulB := by decide  
-  f := ![![![53, -8, -40], ![-340, -40, 0]], ![![8, -1, -6], ![-51, -6, 0]], ![![85, -4, -33], ![-269, -32, 0]]]
-  g := ![![![1, 0, 0], ![-1, 5, 0], ![-4, 0, 5]], ![![-15, -4, 2], ![133, 33, -22], ![-298, -114, 41]]]
+  f := ![![![1, 0, 0], ![0, 0, 0]], ![![5, 29, 12], ![-34, -4, 0]], ![![44, 0, -1], ![3, 0, 0]]]
+  g := ![![![1, 0, 0], ![-1, 5, 0], ![-4, 0, 5]], ![![-16, 0, 2], ![118, 36, -2], ![-90, 102, 36]]]
   hle1 := by decide   
   hle2 := by decide  
 
@@ -164,11 +164,11 @@ lemma NI5N2 : Nat.card (O ⧸ I5N2) = 5 :=
 
 lemma isPrimeI5N2 : Ideal.IsPrime I5N2 := prime_ideal_of_norm_prime hp5.out _ NI5N2
 def MulI5N0 : IdealMulLeCertificate' Table 
-  ![![5, 0, 0], ![-34, -1, 1]] ![![5, 0, 0], ![-71, -4, 2]]
+  ![![5, 0, 0], ![-34, -1, 1]] ![![5, 0, 0], ![-72, 0, 2]]
   ![![5, 0, 0], ![1, 1, 0]] where
- M := ![![![25, 0, 0], ![-355, -20, 10]], ![![-170, -5, 5], ![364, -11, -5]]]
+ M := ![![![25, 0, 0], ![-360, 0, 10]], ![![-170, -5, 5], ![1626, 66, -30]]]
  hmul := by decide  
- g := ![![![![4, -1, 0], ![5, 0, 0]], ![![-69, -2, 2], ![-10, 0, 0]]], ![![![-33, 0, 1], ![-5, 0, 0]], ![![70, -5, -1], ![14, 0, 0]]]]
+ g := ![![![![4, -1, 0], ![5, 0, 0]], ![![-70, 2, 2], ![-10, 0, 0]]], ![![![-33, 0, 1], ![-5, 0, 0]], ![![312, 0, -6], ![66, 0, 0]]]]
  hle2 := by decide  
 
 def MulI5N1 : IdealMulLeCertificate' Table 
@@ -694,6 +694,7 @@ lemma PB183I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 31 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 31 (by omega)
+  decide
 
 def PB183I0 : PrimesBelowBoundCertificateInterval O 1 31 183 where
   m := 11

@@ -285,6 +285,7 @@ lemma PB1618I28_primes (p : ℕ) :
   p ∈ Set.range ![1607, 1609, 1613] ↔ Nat.Prime p ∧ 1601 < p ∧ p ≤ 1617 := by
   rw [← List.mem_ofFn']
   convert primes_range 1601 1617 (by omega)
+  decide
 
 def PB1618I28 : PrimesBelowBoundCertificateInterval O 1601 1617 1618 where
   m := 3

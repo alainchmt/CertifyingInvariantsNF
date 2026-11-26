@@ -662,6 +662,7 @@ lemma PB8404I116_primes (p : ℕ) :
   p ∈ Set.range ![8329, 8353, 8363, 8369, 8377, 8387, 8389] ↔ Nat.Prime p ∧ 8317 < p ∧ p ≤ 8403 := by
   rw [← List.mem_ofFn']
   convert primes_range 8317 8403 (by omega)
+  decide
 
 def PB8404I116 : PrimesBelowBoundCertificateInterval O 8317 8403 8404 where
   m := 7

@@ -15,7 +15,9 @@ Assembly of the two halves of the argument:
 Once `x` is known, `y` is determined up to sign by the equation itself, which is why the
 descent only ever had to conclude about `x`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 open Mordell
@@ -23,7 +25,7 @@ open Mordell
 /-- **The `x`-coordinate of the integral points of `y² = x³ + 2026`.** -/
 theorem mordell2026_x {x y : ℤ} (h : y ^ 2 = x ^ 3 + 2026) : x = -1 := by
   obtain ⟨A, B, ht, hx⟩ := mordell_imp_thue h
-  obtain ⟨rfl, rfl⟩ := (thue_eq_one_iff_3_1_24312_1 A B).mp ht
+  obtain ⟨rfl, rfl⟩ := (NF3_1_24312_1.thue_eq_one_iff_3_1_24312_1 A B).mp ht
   omega
 
 /-- **The integral points of the Mordell curve `y² = x³ + 2026`.** -/

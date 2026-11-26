@@ -516,6 +516,7 @@ lemma PB173I3_primes (p : ℕ) :
   p ∈ Set.range ![139, 149, 151, 157, 163, 167] ↔ Nat.Prime p ∧ 137 < p ∧ p ≤ 172 := by
   rw [← List.mem_ofFn']
   convert primes_range 137 172 (by omega)
+  decide
 
 def PB173I3 : PrimesBelowBoundCertificateInterval O 137 172 173 where
   m := 6

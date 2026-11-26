@@ -66,6 +66,7 @@ lemma PB3I0_primes (p : ℕ) :
   p ∈ Set.range ![2] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 2 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 2 (by omega)
+  decide
 
 def PB3I0 : PrimesBelowBoundCertificateInterval O 1 2 3 where
   m := 1

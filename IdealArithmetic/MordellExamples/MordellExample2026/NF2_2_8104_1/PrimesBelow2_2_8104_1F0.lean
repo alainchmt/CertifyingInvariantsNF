@@ -1063,6 +1063,7 @@ lemma PB46I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 45 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 45 (by omega)
+  decide
 
 def PB46I0 : PrimesBelowBoundCertificateInterval O 1 45 46 where
   m := 14
@@ -1091,20 +1092,20 @@ def PB46I0 : PrimesBelowBoundCertificateInterval O 1 45 46 where
     cases i
     rename_i i h
     interval_cases i
-    · convert (containsPrimesAbove_of_KummerData K2)
-    · convert (containsPrimesAbove_of_KummerData K3)
-    · convert (containsPrimesAbove_of_KummerData K5)
-    · convert (containsPrimesAbove_of_KummerData K7)
-    · convert (containsPrimesAbove_of_KummerData K11)
-    · convert (containsPrimesAbove_of_KummerData K13)
-    · convert (containsPrimesAbove_of_KummerData K17)
-    · convert (containsPrimesAbove_of_KummerData K19)
-    · convert (containsPrimesAbove_of_KummerData K23)
-    · convert (containsPrimesAbove_of_KummerData K29)
-    · convert (containsPrimesAbove_of_KummerData K31)
-    · convert (containsPrimesAbove_of_KummerData K37)
-    · convert (containsPrimesAbove_of_KummerData K41)
-    · convert (containsPrimesAbove_of_KummerData K43)
+    · convert (containsPrimesAbove_of_KummerData K2) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K3) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K5) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K7) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K11) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K13) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K17) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K19) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K23) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K29) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K31) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K37) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K41) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K43) <;> rfl
   N := fun i => by
     cases i
     rename_i i h

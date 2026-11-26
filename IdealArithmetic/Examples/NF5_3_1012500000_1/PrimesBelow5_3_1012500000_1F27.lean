@@ -297,6 +297,7 @@ lemma PB1556I27_primes (p : ℕ) :
   p ∈ Set.range ![1549, 1553] ↔ Nat.Prime p ∧ 1543 < p ∧ p ≤ 1555 := by
   rw [← List.mem_ofFn']
   convert primes_range 1543 1555 (by omega)
+  decide
 
 def PB1556I27 : PrimesBelowBoundCertificateInterval O 1543 1555 1556 where
   m := 2

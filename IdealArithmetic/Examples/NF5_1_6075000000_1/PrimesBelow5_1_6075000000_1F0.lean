@@ -806,6 +806,7 @@ lemma PB4853I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17, 19, 23] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 23 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 23 (by omega)
+  decide
 
 def PB4853I0 : PrimesBelowBoundCertificateInterval O 1 23 4853 where
   m := 9

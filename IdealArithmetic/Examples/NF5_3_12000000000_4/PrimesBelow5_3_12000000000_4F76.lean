@@ -817,6 +817,7 @@ lemma PB5356I76_primes (p : ℕ) :
   p ∈ Set.range ![5119, 5147, 5153, 5167, 5171, 5179, 5189, 5197, 5209] ↔ Nat.Prime p ∧ 5113 < p ∧ p ≤ 5209 := by
   rw [← List.mem_ofFn']
   convert primes_range 5113 5209 (by omega)
+  decide
 
 def PB5356I76 : PrimesBelowBoundCertificateInterval O 5113 5209 5356 where
   m := 9

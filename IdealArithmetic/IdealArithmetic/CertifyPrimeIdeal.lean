@@ -64,13 +64,13 @@ noncomputable def IsAdjoinRoot_of_adjoin_root_irreducible {F K : Type*} [CommRin
       refine Ideal.span_singleton_mul_right_unit ?_ _
       simp only [isUnit_map_iff, isUnit_iff_ne_zero, ne_eq, Units.ne_zero, not_false_eq_true] }
 
-noncomputable def field_of_adjoin_root_irreducible {F K : Type*} [CommRing K] [Field F]
+theorem field_of_adjoin_root_irreducible {F K : Type*} [CommRing K] [Field F]
   [DecidableEq F] [Algebra F K] [FiniteDimensional F K] (f : F[X]) (hI : Irreducible f)
   (ha : ∃ (a : K) , Polynomial.aeval a f = 0 )
   (hr : Module.finrank F K = f.natDegree) : IsField K := by
-  letI E := IsAdjoinRoot.algEquiv (IsAdjoinRoot_of_adjoin_root_irreducible f hI ha hr)
+  let E := IsAdjoinRoot.algEquiv (IsAdjoinRoot_of_adjoin_root_irreducible f hI ha hr)
     (AdjoinRoot.isAdjoinRoot f)
-  haveI : Fact $ Irreducible f := { out := hI }
+  have : Fact $ Irreducible f := { out := hI }
   exact (MulEquiv.isField  (Semifield.toIsField (AdjoinRoot f)) E.toMulEquiv)
 
 /-- If `O` is an `R`-algebra with a basis, and `I` is a nonzero ideal with the coordinates of
@@ -109,7 +109,7 @@ lemma ideal_index_associated_prod {r : ℕ} (O R : Type*) [CommRing O]
     Associated (Submodule.indexPID (I.restrictScalars R)) (∏ i, V i i) := by
   convert ideal_index_associated_det O R B I hI V heq
   symm
-  refine Matrix.det_of_lowerTriangular _ ?_
+  refine Matrix.det_of_isLowerTriangular _ ?_
   intro i j
   simp only [OrderDual.toDual_lt_toDual]
   exact hd i j
@@ -126,8 +126,8 @@ lemma ideal_norm_eq_prod {r : ℕ} {O : Type*} [CommRing O]
     (heq : I.carrier = Submodule.span ℤ (Set.range (fun i => B.equivFun.symm (V i)))) :
     Nat.card (O ⧸ I) = (∏ i, V i i).natAbs := by
   let BI := BasisOfEqSpan B I hI (fun i => B.equivFun.symm (V i)) heq
-  haveI : Module.Finite ℤ O := Module.Finite.of_basis B
-  haveI : Module.Free ℤ O := Module.Free.of_basis B
+  have : Module.Finite ℤ O := Module.Finite.of_basis B
+  have : Module.Free ℤ O := Module.Free.of_basis B
   rw [Int.natAbs_eq_iff_associated.2 (ideal_index_associated_prod O ℤ B I hI V hd heq ).symm ]
   symm
   exact indexPID_eq_index_int _ B BI
@@ -155,15 +155,15 @@ lemma ideal_norm_eq_prod' {r : ℕ} {O : Type*} [CommRing O] [IsDomain O]
 
 /-- If `K` is an algebra over a finite field `F` and has size `(#F) ^ n`, then it has
   rank `n` over `F`. -/
-noncomputable def isAdjoinRoot_of_adjoin_root_irreducible_finite {F K : Type*} {n : ℕ}
+theorem isAdjoinRoot_of_adjoin_root_irreducible_finite {F K : Type*} {n : ℕ}
   [AddCommGroup K] [Field F] [Fintype F] [DecidableEq F] [Module F K]
   (hr : Nat.card K = Fintype.card F ^ n) : Module.finrank F K = n := by
-  haveI : Fintype K := by
+  have : Fintype K := by
     haveI := ((Nat.card_pos_iff (α := K)).1 ?_).2
     exact Fintype.ofFinite K
     rw [hr]
     refine pow_pos (Fintype.card_pos) _
-  haveI : FiniteDimensional F K := Module.IsNoetherian.finite F K
+  have : FiniteDimensional F K := Module.IsNoetherian.finite F K
   rw [Nat.card_eq_fintype_card, Module.card_fintype (M := K) (R := F) (Basis.ofVectorSpace F K),
     ← Module.finrank_eq_card_basis (Basis.ofVectorSpace F K) ] at hr
   apply_fun (fun x => Fintype.card F ^ x)
@@ -240,8 +240,7 @@ lemma CertifiedPrimeIdeal.polynomial_degree  {O : Type*} {p : ℕ} [CommRing O]
   rw [I.hfeq, ← Nat.succ_inj, Nat.succ_eq_add_one,  ← hPlen]
   exact I.hlen
 
-@[reducible]
-def CertifiedPrimeIdeal.residue_field_finite_dimensional {O : Type*}
+theorem CertifiedPrimeIdeal.residue_field_finite_dimensional {O : Type*}
     {p : ℕ}[Fact $ Nat.Prime p] [CommRing O]
     (I : CertifiedPrimeIdeal O p) [Algebra (ZMod p) (O ⧸ I.I)] :
     FiniteDimensional (ZMod p) (O ⧸ I.I) := by
@@ -275,7 +274,7 @@ lemma CertifiedPrimeIdeal.polynomial_aeval {O : Type*} {p : ℕ} [Fact $ Nat.Pri
   have hPlen : I.P.length = (ofList (List.map (algebraMap ℤ (ZMod p)) I.P)).natDegree + 1 := by
       rw [← I.hfeq, CertifiedPrimeIdeal.polynomial_degree]
       exact I.hlen
-  haveI : NeZero I.P.length := by
+  have : NeZero I.P.length := by
     rw [hPlen]
     exact Nat.instNeZeroSucc
   have aux : ∀ x , I.f.coeff x • ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a ^ x))
@@ -316,15 +315,15 @@ noncomputable def isAdjoinRoot_quot_ofCertifiedPrimeIdeal {O : Type*} {p : ℕ}
   · exact CertifiedPrimeIdeal.polynomial_aeval I
   · exact CertifiedPrimeIdeal.residue_field_dimension I
 
-noncomputable def CertifiedPrimeIdeal.residue_field_is_field {O : Type*} {p : ℕ}
+theorem CertifiedPrimeIdeal.residue_field_is_field {O : Type*} {p : ℕ}
     [Fact $ Nat.Prime p] [CommRing O] (I : CertifiedPrimeIdeal O p) : IsField (O ⧸ I.I) := by
   have hpmem : ↑p ∈ I.I := by
     have := I.hpmem
     rw [LinearEquiv.map_smul, I.hBz] at this
     simp only [zsmul_eq_mul, Int.cast_natCast, mul_one] at this
     exact this
-  haveI := ZModP_algebra_of_mem I.I p hpmem
-  haveI := CertifiedPrimeIdeal.residue_field_finite_dimensional I
+  have := ZModP_algebra_of_mem I.I p hpmem
+  have := CertifiedPrimeIdeal.residue_field_finite_dimensional I
   refine field_of_adjoin_root_irreducible (K := O ⧸ I.I) I.f I.hirr ?_ ?_
   · use ((Ideal.Quotient.mk I.I) (I.TT.basis.equivFun.symm I.a))
     exact CertifiedPrimeIdeal.polynomial_aeval I
@@ -440,7 +439,7 @@ noncomputable def modIdealToZMod {O : Type*} {p : ℕ} (hp : Nat.Prime p) [CommR
 /-- An ideal of norm a prime number is a prime ideal. -/
 lemma prime_ideal_of_norm_prime {O : Type*} {p : ℕ} (hp : Nat.Prime p) [CommRing O] (I : Ideal O)
   (hcard : Nat.card (O ⧸ I) = p) : Ideal.IsPrime I := by
-  haveI : Fact $ Nat.Prime p := {out := hp}
+  have : Fact $ Nat.Prime p := {out := hp}
   refine Ideal.IsMaximal.isPrime ?_
   rw [Ideal.Quotient.maximal_ideal_iff_isField_quotient]
   exact MulEquiv.isField (Field.toIsField (ZMod p)) (modIdealEquivZMod hp I hcard)

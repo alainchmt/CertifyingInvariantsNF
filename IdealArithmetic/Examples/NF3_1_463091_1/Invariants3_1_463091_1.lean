@@ -60,13 +60,16 @@ instance : Module.Free ℤ (Additive ((↥O)ˣ ⧸ CommGroup.torsion (↥O)ˣ)) 
 
 instance :  Fintype ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
-  exact NumberField.Units.instFintypeSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
+  exact @Fintype.ofFinite _
+    (NumberField.Units.instFiniteSubtypeUnitsRingOfIntegersMemSubgroupTorsion K)
 
 instance : IsCyclic ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
   exact NumberField.Units.instIsCyclicSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
 
 instance DD' : IsDedekindDomain O  := by
+  haveI : Module.Finite ℚ K :=
+    Module.Finite.of_basis (IsAdjoinRootMonic.basis ⟨Adj, Polynomial.Monic.map _ T_monic⟩)
   rw [O_integral_closure]
   exact integralClosure.isDedekindDomain ℤ ℚ K
 
@@ -119,6 +122,7 @@ def RC : RankUnitsCertificate O where
 lemma T_discr : T.discr = -463091 :=  by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
   rw [T_ofList]
+  decide
 
 theorem K_discr : NumberField.discr K = -463091 := by
   rw [discr_numberField_eq_discrSubalgebraBuilder T_irreducible BQ O_integral_closure]
@@ -162,7 +166,7 @@ lemma primesGenerationBelow : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.a
 def 𝔭' : Fin 47 → nonZeroDivisors (Ideal O) := by
   intro i
   have : PB193.β i ∈ List.ofFn PB193.β := by
-    simp only [List.mem_ofFn, exists_apply_eq_apply]
+    exact List.mem_ofFn.mpr ⟨i, rfl⟩
   refine Ideal.toNonZeroDivisorOfNeZero ((PB193.β) i)
     (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate_Fn _ PB193) (hc ▸ this) ))
 
@@ -267,7 +271,7 @@ def ClassGroupO_equiv : (∀ i : Fin 1 , (ZMod (![1] i))) ≃+ Additive (ClassGr
     intro i
     fin_cases i <;>  exact {out := by decide}
   refine ClassGroup_equiv_of_pSaturatedCertificate J'_apply (a := ![1]) (n := ![1])
-    (by simp [J]; exact Eq.symm Ideal.span_singleton_one) class_group_generator ?_
+    (by simp [J]) class_group_generator ?_
   rintro ⟨p, hp1, hp2⟩
   simp at hp2
   exact (Nat.Prime.ne_one hp1 hp2).elim

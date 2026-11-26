@@ -234,6 +234,7 @@ lemma PB32I1_primes (p : ℕ) :
   p ∈ Set.range ![29, 31] ↔ Nat.Prime p ∧ 23 < p ∧ p ≤ 31 := by
   rw [← List.mem_ofFn']
   convert primes_range 23 31 (by omega)
+  decide
 
 def PB32I1 : PrimesBelowBoundCertificateInterval O 23 31 32 where
   m := 2

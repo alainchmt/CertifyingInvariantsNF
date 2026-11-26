@@ -13,7 +13,9 @@ to `zeta1 = (173θ² + 101θ + 17)/3` gives `23354.4 ≤ φ(ζ) ≤ 23358.6`, so
 The Artin index bound uses `a/b = 5/2` and `c/d = 44/3`, so
 `(c*b)/(a*d) = 88/15 = 5`: the primes `2`, `3`, `5` have to be certified.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

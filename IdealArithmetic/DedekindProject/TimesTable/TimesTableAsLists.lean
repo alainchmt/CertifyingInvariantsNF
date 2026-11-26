@@ -178,7 +178,7 @@ lemma table_sum_smul {S : Type*} {m : ℕ} [NonUnitalNonAssocSemiring S] [Module
     ext k
     rw [hc]
     simp only [Nat.succ_eq_add_one, Finsupp.coe_equivFunOnFinite_symm, Finset.sum_apply]
-    exact Eq.symm (Finsupp.finset_sum_apply Finset.univ
+    exact Eq.symm (Finsupp.finsetSum_apply Finset.univ
       (fun i ↦ c i • Finsupp.equivFunOnFinite.symm (a i)) k)
     exact LinearEquiv.injective B.repr
 
@@ -332,7 +332,7 @@ lemma table_nPow_sq_table_eq_pow {S : Type*} [Semiring S] [Module R S] [SMulComm
               unfold nPow_sq_table ; dsimp
               simp only [hp, ↓reduceDIte]
           dsimp
-        rw [heq', table_mul_eq_table_mul' _ _ heq, table_mul_eq_table_mul' _ _ heq, ] at hc
+        rw [heq', table_mul_eq_table_mul' _ _ heq, table_mul_eq_table_mul' _ _ heq ] at hc
         let d := FnOfList n (nPow_sq_table T (List.ofFn a) (m / 2))
           (nPow_sq_table_length T' T (List.ofFn a) (m / 2)
             (Nat.div_pos (nataux2 m h hp) (Nat.ofNat_pos)) heq (List.length_ofFn) )

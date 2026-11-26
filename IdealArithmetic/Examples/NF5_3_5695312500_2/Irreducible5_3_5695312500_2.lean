@@ -103,7 +103,7 @@ noncomputable def C : IrreducibleCertificateIntPolynomial T l where
   | 1 => ![1, 4]
  hl := by decide
  hirr := by
-  intro i ; intro j
+  intro i j
   fin_cases i <;> fin_cases j
   · dsimp ; exact irreducible_ofList_ofCertificateIrreducibleZModOfList' P13PI0
   · dsimp ; exact irreducible_ofList_ofCertificateIrreducibleZModOfList' P13PI1

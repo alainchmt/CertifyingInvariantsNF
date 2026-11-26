@@ -156,6 +156,7 @@ lemma PB210I4_primes (p : ℕ) :
   p ∈ Set.range ![197, 199] ↔ Nat.Prime p ∧ 193 < p ∧ p ≤ 209 := by
   rw [← List.mem_ofFn']
   convert primes_range 193 209 (by omega)
+  decide
 
 def PB210I4 : PrimesBelowBoundCertificateInterval O 193 209 210 where
   m := 2

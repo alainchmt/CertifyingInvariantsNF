@@ -993,6 +993,7 @@ lemma PB5943I13_primes (p : ℕ) :
   p ∈ Set.range ![647, 653, 659, 661, 673, 677, 683, 691, 701] ↔ Nat.Prime p ∧ 643 < p ∧ p ≤ 701 := by
   rw [← List.mem_ofFn']
   convert primes_range 643 701 (by omega)
+  decide
 
 def PB5943I13 : PrimesBelowBoundCertificateInterval O 643 701 5943 where
   m := 9

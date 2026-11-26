@@ -88,7 +88,7 @@ lemma Polynomial.discr_def {R : Type*} [CommRing R] [HasUniqueDiv R]
   · rw [← sq, ← pow_mul]
     simp only [even_two, Even.mul_left, Even.neg_pow, one_pow]
   · exact (Polynomial.natDegree_eq_of_degree_eq_some
-      (Polynomial.degree_derivative_eq f (by omega) )).symm
+      (Polynomial.degree_derivative (p := f) (by omega) )).symm
   · rw [← Polynomial.natDegree_pos_iff_degree_pos]
     omega
   · refine IsUnit.mul_right_injective (M := R) ?_
@@ -200,10 +200,10 @@ lemma Monic.discr_def {R : Type*} [CommRing R]  [HasUniqueDiv R] (f : R[X]) (hf 
 lemma discriminant_prod_X_sub_C {K : Type*} [Field K] [CharZero K] {ι : Type*}
     [DecidableEq ι] (s : Finset ι) (t : ι → K) :
     discr (∏ i ∈ s, (X - C (t i))) = (-1) ^ (s.card * (s.card - 1) / 2) * ∏ i ∈ s, ∏ j ∈ s.erase i, (t i - t j) := by
-  rw [Monic.discr_def, derivative_prod_X_sub_C, prod_X_sub_C_resultant, natDegree_finset_prod_X_sub_C_eq_card s t]
+  rw [Monic.discr_def, derivative_prod_X_sub_C, prod_X_sub_C_resultant, natDegree_finsetProd_X_sub_C_eq_card s t]
   congr 1
   refine Finset.prod_congr rfl (fun i hi => ?_)
-  simp [eval_finset_sum, eval_prod]
+  simp [eval_finsetSum, eval_prod]
   refine Finset.sum_eq_single _
       (fun j _ hji => Finset.prod_eq_zero (Finset.mem_erase.mpr ⟨hji.symm, hi⟩) (sub_self _))
       (fun h => (h hi).elim)
@@ -318,7 +318,7 @@ theorem Algebra.discr_of_isAdjoinRootMonic {K F : Type*} [Field K] [Field F] [Ch
             (by simp [aux, -finCongr_apply])
             (fun _ _ => rfl), ← Finset.Iio_union_Ioi, Finset.prod_union]
       · exact (Finset.disjoint_Ioi_Iio _).symm)]
-    simp only [IsAdjoinRootMonic.powerBasis_dim, IsAdjoinRootMonic.powerBasis_gen, pow_two,
+    simp only [IsAdjoinRootMonic.powerBasis_gen, pow_two,
       Finset.prod_mul_distrib, finCongr_apply, Fin.cast_cast]
     rw [mul_left_comm]
     congr 1
@@ -349,7 +349,7 @@ theorem Algebra.discr_of_isAdjoinRootMonic {K F : Type*} [Field K] [Field F] [Ch
           · simp [Finset.mem_Ioi, finCongr_apply, Fin.cast_lt_cast]
           · intro i hi
             erw [e_apply, e_apply, neg_sub]
-            simp only [IsAdjoinRootMonic.powerBasis_dim, List.get_eq_getElem, Fin.val_cast,
+            simp only [List.get_eq_getElem, Fin.val_cast,
               finCongr_apply]
       rw [← subaux]
       simp_rw [Finset.prod_neg, Finset.prod_mul_distrib, Fin.card_Ioi]

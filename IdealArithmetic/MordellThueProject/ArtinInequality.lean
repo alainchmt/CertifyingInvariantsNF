@@ -223,7 +223,7 @@ open scoped nonZeroDivisors in
 lemma abs_discr_le_abs_discr_cubic_field_order (hdeg : Module.finrank ℚ K = 3) {O : Subalgebra ℤ K}
     (bO : Basis (Fin 3) ℤ O) {v : K} (hv : v ∈ O) (hv3 : (minpoly ℚ v).natDegree = 3) :
     |(Algebra.discr ℤ bO : ℚ)| ≤ |Algebra.discr ℚ fun i : Fin 3 => v ^ (i : ℕ)| := by
-  haveI : IsLocalization (Algebra.algebraMapSubmonoid O ℤ⁰) K :=
+  have : IsLocalization (Algebra.algebraMapSubmonoid O ℤ⁰) K :=
     isLocalization_fraction_ring_of_eq_rank hdeg O bO
   set w : O := ⟨v, hv⟩ with hw
   set bK := Basis.localizationLocalization ℚ ℤ⁰ K bO with hbK
@@ -522,7 +522,7 @@ lemma exists_fundamental_unit (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+*
     have h4 := card_eq_nrRealPlaces_add_nrComplexPlaces K
     simp only [rank, hdeg] at *
     omega
-  letI : Unique (Fin (rank K)) :=
+  let : Unique (Fin (rank K)) :=
     ⟨⟨⟨0, hrank1 ▸ Nat.one_pos⟩⟩, fun i => Fin.ext (by have := i.isLt; omega)⟩
   set ε₀ := fundSystem K default with hε₀
   have hgen : ∀ w : (𝓞 K)ˣ, ∃ (ζ : (𝓞 K)ˣ) (e : ℤ),
@@ -609,11 +609,11 @@ lemma units_pow_of_pMaximalUnitsCertificateNDvdT {O : Subalgebra ℤ K} (heqO : 
     (A : pMaximalUnitsCertificateNDvdT O p) (hAr : A.r = 1) (hAu : ∀ i, A.u i = (w : O)) :
     ∀ u : Oˣ, ∃ (e : ℤ) (t : Oˣ), u = w ^ e * t ^ p := by
   subst heqO
-  haveI : Module.Finite ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
+  have : Module.Finite ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
     NumberField.Units.instFiniteIntAdditiveQuotientUnitsRingOfIntegersSubgroupTorsion K
-  haveI : Module.Free ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
+  have : Module.Free ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
     NumberField.Units.instFreeIntAdditiveQuotientUnitsRingOfIntegersSubgroupTorsion K
-  haveI hUniq : Unique (Fin A.r) := by rw [hAr]; infer_instance
+  have hUniq : Unique (Fin A.r) := by rw [hAr]; infer_instance
   intro u
   obtain ⟨e, t, hx⟩ := units_of_pMaximalUnitsCertificateNDvdT A u
   rw [Fintype.prod_unique] at hx
@@ -629,13 +629,13 @@ lemma units_pow_of_pMaximalUnitsCertificateDvdT (hdeg : Module.finrank ℚ K = 3
     (A : pMaximalUnitsCertificateDvdT O p) (hAr : A.r = 1) (hAu : ∀ i, A.u i = (w : O)) :
     ∀ u : Oˣ, ∃ (e : ℤ) (t : Oˣ), u = w ^ e * t ^ p ∨ u = -w ^ e * t ^ p := by
   subst heqO
-  haveI : Module.Finite ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
+  have : Module.Finite ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
     NumberField.Units.instFiniteIntAdditiveQuotientUnitsRingOfIntegersSubgroupTorsion K
-  haveI : Module.Free ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
+  have : Module.Free ℤ (Additive ((integralClosure ℤ K)ˣ ⧸ CommGroup.torsion (integralClosure ℤ K)ˣ)) :=
     NumberField.Units.instFreeIntAdditiveQuotientUnitsRingOfIntegersSubgroupTorsion K
-  haveI : IsCyclic ↥(CommGroup.torsion (integralClosure ℤ K)ˣ) :=
+  have : IsCyclic ↥(CommGroup.torsion (integralClosure ℤ K)ˣ) :=
     NumberField.Units.instIsCyclicSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
-  haveI hUniq : Unique (Fin A.r) := by rw [hAr]; infer_instance
+  have hUniq : Unique (Fin A.r) := by rw [hAr]; infer_instance
   intro u
   obtain ⟨e, t, hx⟩ := units_of_pMaximalUnitsCertificateDvdT A u
   rw [Fintype.prod_sum_type] at hx
@@ -655,9 +655,9 @@ lemma units_pow_of_pMaximalUnitsCertificateDvdT (hdeg : Module.finrank ℚ K = 3
   · have hτ1 : τ = -1 := h
     rw [hτ1, neg_one_zpow_eq_ite] at hx
     by_cases he2 : Even (e (Sum.inr default))
-    · rw [if_pos he2, mul_one] at hx
+    · rw [ite_eq_left he2, mul_one] at hx
       exact ⟨e (Sum.inl default), t, Or.inl hx⟩
-    · rw [if_neg he2, mul_neg_one] at hx
+    · rw [ite_eq_right he2, mul_neg_one] at hx
       exact ⟨e (Sum.inl default), t, Or.inr hx⟩
 
 theorem artin_inequality_bound_index_aux (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+* ℂ)

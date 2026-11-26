@@ -302,6 +302,7 @@ lemma PB178I4_primes (p : ℕ) :
   p ∈ Set.range ![157, 163, 167, 173] ↔ Nat.Prime p ∧ 151 < p ∧ p ≤ 177 := by
   rw [← List.mem_ofFn']
   convert primes_range 151 177 (by omega)
+  decide
 
 def PB178I4 : PrimesBelowBoundCertificateInterval O 151 177 178 where
   m := 4

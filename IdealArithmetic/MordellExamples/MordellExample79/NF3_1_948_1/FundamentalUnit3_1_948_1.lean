@@ -9,7 +9,9 @@ Every unit of `O` is `± zeta1 ^ n`.  `artin_inequality_bound_index'` is fed wit
 `zeta1` has to be certified non-`p`-th-power for `p = 2, 3, 5`.  `2` divides the torsion
 order `2`, hence the `DvdT` certificate `NPCU2`; the odd primes use `NPCU3`, `NPCU5`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

@@ -46,7 +46,7 @@ theorem O_integral_closure : O = integralClosure ℤ K := by
   intro p hp
   by_cases hc : p ∈ [5]
   · fin_cases hc
-    exact @pMaximal_of_MaximalOrderCertificateWLists K 5 _ IsAddTorsionFree.to_noZeroSMulDivisors_int _ O Om hm _ _ M5
+    exact @pMaximal_of_MaximalOrderCertificateWLists K 5 _ HasUniqueDiv.to_noZeroSMulDivisors_int _ O Om hm _ _ M5
   · haveI : Fact $ Nat.Prime p := fact_iff.2 hp
     refine piMaximal_of_root_in_order_of_satisfiesDedekindCriterion_int Adj T_monic hm ?_ hroot_mem
      (satisfiesDedekindAlmostAllLists_of_certificate T _ T_ofList [5] D p hp hc)
@@ -64,13 +64,16 @@ instance : Module.Free ℤ (Additive ((↥O)ˣ ⧸ CommGroup.torsion (↥O)ˣ)) 
 
 instance :  Fintype ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
-  exact NumberField.Units.instFintypeSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
+  exact @Fintype.ofFinite _
+    (NumberField.Units.instFiniteSubtypeUnitsRingOfIntegersMemSubgroupTorsion K)
 
 instance : IsCyclic ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
   exact NumberField.Units.instIsCyclicSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
 
 instance DD' : IsDedekindDomain O  := by
+  haveI : Module.Finite ℚ K :=
+    Module.Finite.of_basis (IsAdjoinRootMonic.basis ⟨Adj, Polynomial.Monic.map _ T_monic⟩)
   rw [O_integral_closure]
   exact integralClosure.isDedekindDomain ℤ ℚ K
 
@@ -221,7 +224,7 @@ def NPSU2 : pSaturatedClassGroupCertificateDvdT 2 ![J0] ![2] where
   · decide
  h := fun i =>
   match i with 
-  | 0 => by convert J0_pow2
+  | 0 => by convert J0_pow2 <;> rfl
  N := ![![0], ![0], ![1], ![0], ![0], ![0]]
  hM3 := by 
   intro (i : Fin 6) j
@@ -239,6 +242,7 @@ def NPSU2 : pSaturatedClassGroupCertificateDvdT 2 ![J0] ![2] where
 lemma T_discr : T.discr = -4689453125000000 :=  by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
   rw [T_ofList]
+  decide
 
 theorem K_discr : NumberField.discr K = -19208000 := by
   rw [discr_numberField_eq_discrSubalgebraBuilder T_irreducible BQ O_integral_closure]
@@ -281,7 +285,7 @@ lemma primesGenerationBelow : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.a
 def 𝔭' : Fin 21 → nonZeroDivisors (Ideal O) := by
   intro i
   have : PB87.β i ∈ List.ofFn PB87.β := by
-    simp only [List.mem_ofFn, exists_apply_eq_apply]
+    exact List.mem_ofFn.mpr ⟨i, rfl⟩
   refine Ideal.toNonZeroDivisorOfNeZero ((PB87.β) i)
     (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate_Fn _ PB87) (hc ▸ this) ))
 
@@ -309,15 +313,15 @@ lemma relations_proof0 (i : Fin 9) : IsInClass O J (𝔭 0 i) (BM 0 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N3 <;> rfl
 
 lemma relations_proof1 (i : Fin 6) : IsInClass O J (𝔭 1 i) (BM 1 i) := by
   show IsInClass O J (𝔭 1 i) (![![0], ![0], ![0], ![0], ![1], ![1]] i)
@@ -328,8 +332,8 @@ lemma relations_proof1 (i : Fin 6) : IsInClass O J (𝔭 1 i) (BM 1 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R43N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R43N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R43N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R43N2 <;> rfl
 
 lemma relations_proof2 (i : Fin 6) : IsInClass O J (𝔭 2 i) (BM 2 i) := by
   show IsInClass O J (𝔭 2 i) (![![0], ![0], ![0], ![0], ![1], ![1]] i)
@@ -340,8 +344,8 @@ lemma relations_proof2 (i : Fin 6) : IsInClass O J (𝔭 2 i) (BM 2 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R83N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R83N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R83N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R83N1 <;> rfl
 
 theorem class_group_generator : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (J' i))) = ⊤ := by
   refine subgroup_closure_eq_classGroup'' (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv

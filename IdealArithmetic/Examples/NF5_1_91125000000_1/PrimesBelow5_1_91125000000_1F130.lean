@@ -1028,6 +1028,7 @@ lemma PB18792I130_primes (p : ℕ) :
   p ∈ Set.range ![9461, 9463, 9467, 9473, 9479, 9491, 9497, 9511, 9521] ↔ Nat.Prime p ∧ 9439 < p ∧ p ≤ 9521 := by
   rw [← List.mem_ofFn']
   convert primes_range 9439 9521 (by omega)
+  decide
 
 def PB18792I130 : PrimesBelowBoundCertificateInterval O 9439 9521 18792 where
   m := 9

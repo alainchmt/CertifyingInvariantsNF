@@ -36,14 +36,14 @@ lemma R3N0 : Ideal.span {1} * I3N0 =  Ideal.span {B.equivFun.symm ![1, 0, 0]} * 
   exact relation_of_RelationCertificate timesTableT_eq_Table rfl PowJ0_1J1_0 E3RS0 
 
 
-noncomputable def E3RS1 : RelationCertificate Table 3 ![![3, 0, 0], ![-29, -1, -1]]
+noncomputable def E3RS1 : RelationCertificate Table 3 ![![3, 0, 0], ![29, 1, 1]]
   ![42, 0, 1] ![![3, 0, 0], ![29, 0, 1]] where
-    su := ![![9, 0, 0], ![-87, -3, -3]]
+    su := ![![9, 0, 0], ![87, 3, 3]]
     hsu := by decide
     w := ![![126, 0, 3], ![1266, 3, 30]]
     hw := by decide
-    g := ![![![-2940, 2420, -11135], ![4318, -1, -2424]], ![![-1617, 1331, -5907], ![2278, 10, -1286]]]
-    h := ![![![85, -1171, -396], ![-276, 0, 83]], ![![857, -11766, -3979], ![-2773, 0, 834]]]
+    g := ![![![-2940, 2420, -11135], ![4318, -1, -2424]], ![![-2646, 2178, -10212], ![3971, -10, -2223]]]
+    h := ![![![56, -1172, -397], ![279, 0, -83]], ![![828, -11767, -3980], ![2776, 0, -834]]]
     hle1 := by decide
     hle2 := by decide
 

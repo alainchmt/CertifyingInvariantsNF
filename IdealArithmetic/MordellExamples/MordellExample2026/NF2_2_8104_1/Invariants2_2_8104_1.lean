@@ -10,6 +10,11 @@ import IdealArithmetic.Signature.ResultantRecursive
 import IdealArithmetic.DedekindProject.Discriminant
 import IdealArithmetic.Generation.ClassGroupGeneration
 
+/-!
+# AI Use
+Opus 5 was used for the section "Units modulo cubes"
+-/
+
 namespace NF2_2_8104_1
 
 set_option linter.all false
@@ -67,13 +72,16 @@ instance : Module.Free ℤ (Additive ((↥O)ˣ ⧸ CommGroup.torsion (↥O)ˣ)) 
 
 instance :  Fintype ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
-  exact NumberField.Units.instFintypeSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
+  exact @Fintype.ofFinite _
+    (NumberField.Units.instFiniteSubtypeUnitsRingOfIntegersMemSubgroupTorsion K)
 
 instance : IsCyclic ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
   exact NumberField.Units.instIsCyclicSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
 
 instance DD' : IsDedekindDomain O  := by
+  haveI : Module.Finite ℚ K :=
+    Module.Finite.of_basis (IsAdjoinRootMonic.basis ⟨Adj, Polynomial.Monic.map _ T_monic⟩)
   rw [O_integral_closure]
   exact integralClosure.isDedekindDomain ℤ ℚ K
 
@@ -120,17 +128,17 @@ def RC : RankUnitsCertificate O where
   k := 2
   r := 2
   hr := by decide
-  hreq := by decide
+  hreq := by decide 
 
-def NPCU2 : pMaximalUnitsCertificateDvdT O 2 where
+def NPCU2 : pMaximalUnitsCertificateDvdT O 2 where 
  hp := by decide
  r := 1
- huc := by
+ huc := by 
   erw [units_finrank_of_RankUnitsCertificate RC]
   decide
  u := ![zeta1]
- hu := fun i =>
-  match i with
+ hu := fun i => 
+  match i with 
   | 0 => isUnit_zeta1
  v := v
  m := 2
@@ -139,74 +147,74 @@ def NPCU2 : pMaximalUnitsCertificateDvdT O 2 where
  t := 3
  hrle := by decide
  q := ![3, 23, 5]
- hqP := by
-  intro i
-  match i with
+ hqP := by 
+  intro i 
+  match i with 
   | 0 => exact Sat2.hq3
   | 1 => exact Sat2.hq23
   | 2 => exact Sat2.hq5
  I := ![Sat2.I0, Sat2.I1, Sat2.I2]
  hcard := fun i =>
-  match i with
+  match i with  
   | 0 => Sat2.N0
   | 1 => Sat2.N1
   | 2 => Sat2.N2
  ζ := ![2, 5, 2]
  hr := fun i =>
-  match i with
+  match i with 
   | 0 => ((orderOf_of_IsOrderOf Sat2.R3) ▸ IsPrimitiveRoot.orderOf _)
   | 1 => ((orderOf_of_IsOrderOf Sat2.R23) ▸ IsPrimitiveRoot.orderOf _)
   | 2 => ((orderOf_of_IsOrderOf Sat2.R5) ▸ IsPrimitiveRoot.orderOf _)
  hdvd := by decide
  M := ![![1, 1], ![0, 1], ![0, 0]]
- hM1 := by
+ hM1 := by 
   intro i j hj
-  fin_cases i <;> interval_cases j
+  fin_cases i <;> interval_cases j 
   · erw [eq_of_DiscreteLogCertificate Sat2.Log00] ; decide
   · erw [eq_of_DiscreteLogCertificate Sat2.Log10] ; decide
   · erw [eq_of_DiscreteLogCertificate Sat2.Log20] ; decide
- hM2 := by
-  intro i
-  fin_cases i
+ hM2 := by 
+  intro i 
+  fin_cases i 
   · erw [eq_of_DiscreteLogCertificate Sat2.Log01] ; decide
   · erw [eq_of_DiscreteLogCertificate Sat2.Log11] ; decide
   · erw [eq_of_DiscreteLogCertificate Sat2.Log21] ; decide
  Minv := ![![1, 1], ![0, 1]]
  hInv := by decide
 
-def NPSU2 : pSaturatedClassGroupCertificateDvdT 2 ![J0] ![14] where
+def NPSU2 : pSaturatedClassGroupCertificateDvdT 2 ![J0] ![14] where 
  topMaximalUnitsCertificateDvdT := NPCU2
  a := ![alpha0]
  γ := 1
  hc := by decide
  ψ := ![0]
- iψ := ![0]
- hψ := by decide
- hψn := by
-  intro i
-  fin_cases i
+ iψ := ![0] 
+ hψ := by decide 
+ hψn := by 
+  intro i 
+  fin_cases i 
   · decide
  h := fun i =>
-  match i with
-  | 0 => by convert J0_pow14
+  match i with 
+  | 0 => by convert J0_pow14 <;> rfl
  N := ![![1], ![0], ![1]]
- hM3 := by
+ hM3 := by 
   intro (i : Fin 3) j
-  match i , j with
+  match i , j with 
   | 0, 0 => exact Sat2.Log02
   | 1, 0 => exact Sat2.Log12
   | 2, 0 => exact Sat2.Log22
- hDl := by decide
+ hDl := by decide 
  NInv := ![![1, 1, 1], ![0, 1, 0], ![0, 0, 1]]
- hN := by decide
+ hN := by decide 
 def IC : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![2, 0], ![0, 1]] i)))
 
 def AIC: IdealEqSpanCertificate timesTableO IC
- ![![2, 0], ![0, 1]]
+ ![![2, 0], ![0, 1]] 
  ![![2, 0], ![0, 1]] where
   T := Table
   heq := timesTableT_eq_Table
-  hieq := rfl
+  hieq := rfl 
   M :=![![![2, 0], ![0, 2]], ![![0, 1], ![2026, 0]]]
   hmulB := by decide
   f := ![![![1, 0], ![0, 0]], ![![0, 0], ![1, 0]]]
@@ -214,48 +222,48 @@ def AIC: IdealEqSpanCertificate timesTableO IC
   hle1 := by decide
   hle2 := by decide
 
- lemma ne_dvd_torsion7 : ¬7 ∣ Nat.card ↥(CommGroup.torsion (↥O)ˣ) := by
+ lemma ne_dvd_torsion7 : ¬7 ∣ Nat.card ↥(CommGroup.torsion (↥O)ˣ) := by 
   refine prime_not_dvd_torsion_of_not_dvd (by decide) IC
      (ideal_norm_eq_prod' B _ _ (by decide) 0 0 (by decide) (ideal_eq_of_IdealEqSpanCertificate AIC))
      (by decide) (by decide)
 
-def NPCU7 : pMaximalUnitsCertificateNDvdT O 7 where
+def NPCU7 : pMaximalUnitsCertificateNDvdT O 7 where 
  hp := by decide
  r := 1
- huc := by
+ huc := by 
   erw [units_finrank_of_RankUnitsCertificate RC]
   decide
  u := ![zeta1]
- hu := fun i =>
-  match i with
+ hu := fun i => 
+  match i with 
   | 0 => isUnit_zeta1
  t := 2
  hrle := by decide
  q := ![29, 71]
- hqP := by
-  intro i
-  match i with
+ hqP := by 
+  intro i 
+  match i with 
   | 0 => exact Sat7.hq29
   | 1 => exact Sat7.hq71
  I := ![Sat7.I0, Sat7.I1]
  hcard := fun i =>
-  match i with
+  match i with  
   | 0 => Sat7.N0
   | 1 => Sat7.N1
  ζ := ![2, 7]
  hr := fun i =>
-  match i with
+  match i with 
   | 0 => ((orderOf_of_IsOrderOf Sat7.R29) ▸ IsPrimitiveRoot.orderOf _)
   | 1 => ((orderOf_of_IsOrderOf Sat7.R71) ▸ IsPrimitiveRoot.orderOf _)
  hdvd := by decide
  hpndvdt := ne_dvd_torsion7
  M := ![![3], ![0]]
- hM1 := by
+ hM1 := by 
   intro i j
-  fin_cases i <;> fin_cases j
+  fin_cases i <;> fin_cases j 
   · erw [eq_of_DiscreteLogCertificate Sat7.Log00] ; decide
   · erw [eq_of_DiscreteLogCertificate Sat7.Log10] ; decide
- Minv := ![![5]]
+ Minv := ![![5]] 
  hInv := by decide
 
 lemma ne_dvd_torsion3 : ¬3 ∣ Nat.card ↥(CommGroup.torsion (↥O)ˣ) := by
@@ -299,14 +307,12 @@ def NPCU3 : pMaximalUnitsCertificateNDvdT O 3 where
  Minv := ![![1]]
  hInv := by decide
 
-/-- `zeta1` as a unit of `O`.
+/-! ### Units modulo cubes -/
 
-Opus 5 .  -/
+/-- `zeta1` as a unit of `O`. -/
 def Z1 : Oˣ := isUnit_zeta1.unit
 
-/-- **Every unit of `O` is `zeta1 ^ e` times a cube.**
-Opus 5.
--/
+/-- **Every unit of `O` is `zeta1 ^ e` times a cube.** -/
 theorem units_eq_zeta1_zpow_mul_cube (u : Oˣ) : ∃ (e : ℤ) (t : Oˣ), u = Z1 ^ e * t ^ 3 :=
   units_pow_of_pMaximalUnitsCertificateNDvdT O_integral_closure Z1 NPCU3 rfl
     (fun i => by fin_cases i; exact (IsUnit.unit_spec isUnit_zeta1).symm) u
@@ -314,7 +320,6 @@ theorem units_eq_zeta1_zpow_mul_cube (u : Oˣ) : ∃ (e : ℤ) (t : Oˣ), u = Z1
 /-- **Every unit of `O` is `zeta1 ^ e` times a cube, with `e < 3`.**  Obtained from
 `units_eq_zeta1_zpow_mul_cube` by writing its exponent as `3 * q + r` and absorbing
 `zeta1 ^ q` into the cube.
-Opus 5.
  -/
 theorem units_eq_zeta1_pow_mul_cube (u : Oˣ) :
     ∃ (e : Fin 3) (t : Oˣ), (u : O) = zeta1 ^ (e : ℕ) * (t : O) ^ 3 := by
@@ -333,34 +338,35 @@ theorem units_eq_zeta1_pow_mul_cube (u : Oˣ) :
   push_cast [IsUnit.unit_spec isUnit_zeta1]
   rfl
 
-def NPSU7 : pSaturatedClassGroupCertificateNDvdT 7 ![J0] ![14] where
+def NPSU7 : pSaturatedClassGroupCertificateNDvdT 7 ![J0] ![14] where 
  topMaximalUnitsCertificateNDvdT := NPCU7
  a := ![alpha0]
  γ := 1
  hc := by decide
  ψ := ![0]
- iψ := ![0]
- hψ := by decide
- hψn := by
-  intro i
-  fin_cases i
+ iψ := ![0] 
+ hψ := by decide 
+ hψn := by 
+  intro i 
+  fin_cases i 
   · decide
  h := fun i =>
-  match i with
-  | 0 => by convert J0_pow14
+  match i with 
+  | 0 => by convert J0_pow14 <;> rfl
  N := ![![1], ![2]]
- hM2 := by
+ hM2 := by 
   intro (i : Fin 2) j
-  match i , j with
+  match i , j with 
   | 0, 0 => exact Sat7.Log01
   | 1, 0 => exact Sat7.Log11
- hDl := by decide
+ hDl := by decide 
  NInv := ![![5, 1], ![0, 4]]
- hN := by decide
+ hN := by decide 
 
 lemma T_discr : T.discr = 8104 :=  by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
   rw [T_ofList]
+  decide
 
 theorem K_discr : NumberField.discr K = 8104 := by
   rw [discr_numberField_eq_discrSubalgebraBuilder T_irreducible BQ O_integral_closure]
@@ -389,9 +395,9 @@ theorem K_minowski : minkowskiBoundFB K ≤ (45.0211097397076 : ℝ) := by
 
 def s := ![14]
 
-def BM : (i : Fin 1) → Fin (e i) → (Fin 1 → ℕ) := by
-  rintro ⟨i, hi⟩
-  interval_cases i
+def BM : (i : Fin 1) → Fin (e i) → (Fin 1 → ℕ) := by 
+  rintro ⟨i, hi⟩ 
+  interval_cases i 
   exact ![![7], ![1], ![13], ![5], ![9], ![4], ![10], ![11], ![3], ![11], ![3]]
 
 lemma primesGenerationBelow : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.absNorm < 46} ⊆ Set.range (Fin.addCasesIter e 𝔭) := by
@@ -401,7 +407,7 @@ lemma primesGenerationBelow : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.a
 def 𝔭' : Fin 11 → nonZeroDivisors (Ideal O) := by
   intro i
   have : PB46.β i ∈ List.ofFn PB46.β := by
-    simp only [List.mem_ofFn, exists_apply_eq_apply]
+    exact List.mem_ofFn.mpr ⟨i, rfl⟩
   refine Ideal.toNonZeroDivisorOfNeZero ((PB46.β) i)
     (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate_Fn _ PB46) (hc ▸ this) ))
 
@@ -413,7 +419,7 @@ def J' :  Fin 1 → nonZeroDivisors (Ideal O) := by
   rw [← Submodule.zero_eq_bot, ← pow_ne_zero_iff (n := ![14] i) (by fin_cases i <;> decide) , NPSU2.h]
   simp only [ Submodule.zero_eq_bot, ne_eq, Ideal.span_singleton_eq_bot, NPSU2]
   fin_cases i
-  · dsimp [alpha0] ; rw [(LinearEquiv.map_eq_zero_iff B.equivFun.symm)] ; decide
+  · dsimp [alpha0] ; rw [(LinearEquiv.map_eq_zero_iff B.equivFun.symm)] ; decide 
 
 lemma 𝔭'_apply : ∀ (i : Fin 11), ↑(𝔭' i) = (Fin.addCasesIter e 𝔭) i := by
   intro i
@@ -429,17 +435,17 @@ lemma relations_proof0 (i : Fin 11) : IsInClass O J (𝔭 0 i) (BM 0 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R23N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R23N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R29N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R29N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R37N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R37N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R23N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R23N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R29N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R29N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R37N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R37N1 <;> rfl
 
 theorem class_group_generator : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (J' i))) = ⊤ := by
   refine subgroup_closure_eq_classGroup'' (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv

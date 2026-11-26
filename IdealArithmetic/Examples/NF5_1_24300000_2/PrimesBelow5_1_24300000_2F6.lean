@@ -860,6 +860,7 @@ lemma PB307I6_primes (p : ℕ) :
   p ∈ Set.range ![257, 263, 269, 271, 277, 281, 283, 293] ↔ Nat.Prime p ∧ 251 < p ∧ p ≤ 306 := by
   rw [← List.mem_ofFn']
   convert primes_range 251 306 (by omega)
+  decide
 
 def PB307I6 : PrimesBelowBoundCertificateInterval O 251 306 307 where
   m := 8

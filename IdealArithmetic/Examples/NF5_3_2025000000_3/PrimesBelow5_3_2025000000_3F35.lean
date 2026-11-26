@@ -952,6 +952,7 @@ lemma PB2201I35_primes (p : ℕ) :
   p ∈ Set.range ![2089, 2099, 2111, 2113, 2129, 2131, 2137, 2141, 2143] ↔ Nat.Prime p ∧ 2087 < p ∧ p ≤ 2143 := by
   rw [← List.mem_ofFn']
   convert primes_range 2087 2143 (by omega)
+  decide
 
 def PB2201I35 : PrimesBelowBoundCertificateInterval O 2087 2143 2201 where
   m := 9

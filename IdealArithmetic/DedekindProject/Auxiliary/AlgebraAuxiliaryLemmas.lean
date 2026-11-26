@@ -215,7 +215,7 @@ lemma discr_eq_discr_fraction_field {R Q K : Type*} {n : ℕ}
     [IsFractionRing R Q] [CommRing K] [Algebra R K] [Algebra Q K] [IsScalarTower R Q K]
     [FiniteDimensional Q K] (hd : Module.finrank Q K = n) (O : Subalgebra R K)
     (b : Basis (Fin n) R O) : algebraMap R Q (Algebra.discr R b ) = Algebra.discr Q (O.val ∘ b) := by
-  haveI : IsLocalization (Algebra.algebraMapSubmonoid O (nonZeroDivisors R)) K :=
+  have : IsLocalization (Algebra.algebraMapSubmonoid O (nonZeroDivisors R)) K :=
     isLocalization_fraction_ring_of_eq_rank hd O b
   have : (Basis.localizationLocalization Q (nonZeroDivisors R) K ) b = (O.val ∘ b) := by
     ext i
@@ -239,7 +239,7 @@ lemma discr_eq_discr_fraction_field_powerBasis {R Q K : Type*} {n : ℕ} [NeZero
     (O : Type*) [CommRing O] [Algebra R O] (T : Polynomial R) (hdeg : T.natDegree = n)
     (f : IsAdjoinRootMonic O T) (k : IsAdjoinRootMonic K (T.map (algebraMap R Q))) :
     (algebraMap R Q) (Algebra.discr R f.powerBasis.basis) = (Algebra.discr Q k.powerBasis.basis) := by
-  haveI : FiniteDimensional Q K := Module.Basis.finiteDimensional_of_finite k.powerBasis.basis
+  have : FiniteDimensional Q K := Module.Basis.finiteDimensional_of_finite k.powerBasis.basis
   have hdegeq : (map (algebraMap R Q) T).natDegree = T.natDegree := by
     rw [natDegree_map_eq_iff, f.monic]
     simp only [map_one, ne_eq, one_ne_zero, not_false_eq_true, true_or]
@@ -251,7 +251,7 @@ lemma discr_eq_discr_fraction_field_powerBasis {R Q K : Type*} {n : ℕ} [NeZero
     rw [IsAdjoinRootMonic.powerBasis_dim, hdeg]
   have pbdim' : k.powerBasis.dim = n := by
     rw [IsAdjoinRootMonic.powerBasis_dim, hdegeq, hdeg]
-  haveI : NeZero (f.powerBasis.dim ) := by rw [pbdim] ;  infer_instance
+  have : NeZero (f.powerBasis.dim ) := by rw [pbdim] ;  infer_instance
   rw [Algebra.discr_eq_discr_of_algEquiv f.powerBasis.basis (Algebra.adjoinRootEquivOfRootMem
     O T f.monic f.toIsAdjoinRoot k.toIsAdjoinRoot)]
   let B := Basis.map f.powerBasis.basis (Algebra.adjoinRootEquivOfRootMem O T f.monic
@@ -263,8 +263,8 @@ lemma discr_eq_discr_fraction_field_powerBasis {R Q K : Type*} {n : ℕ} [NeZero
   ext i
   simp only [Subalgebra.coe_val, Algebra.adjoinRootEquivOfRootMem, Basis.coe_reindex,
     finCongr_symm, Function.comp_apply, finCongr_apply, Basis.map_apply,
-    IsAdjoinRootMonic.basis_apply, Fin.val_cast, AlgEquiv.toLinearEquiv_apply, map_pow,
-    SubmonoidClass.coe_pow, B, IsAdjoinRoot.algEquiv_root]
+    AlgEquiv.toLinearEquiv_apply, 
+    B]
   simp only [PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen]
   simp [map_pow, IsAdjoinRoot.algEquiv_root, Algebra.adjoin_isAdjoinRoot_root]
 
@@ -312,7 +312,7 @@ lemma inv_matrix_eq_integral_fraction_field [NeZero n] [CommRing R] [IsDomain R]
   ext i
   unfold Matrix.mulVec ; unfold dotProduct
   simp only [ Matrix.map_apply, LinearMap.toMatrix_transpose_apply]
-  simp only [Subalgebra.coe_val, Function.comp_apply, Basis.map_apply, Submodule.coe_subtype]
+  simp only [Subalgebra.coe_val, Function.comp_apply, Basis.map_apply]
   have : (b i : K) =  algebraMap O' K ((O.linearEquivOfInclusion O' hm) (b i)) := rfl
   rw [this]
   nth_rw 1 [← Basis.sum_repr b' ((O.linearEquivOfInclusion O' hm) (b i))]
@@ -416,7 +416,7 @@ lemma subalgebraIsNoetherianRingOfFintypeBasis {K R ι: Type*} [Fintype ι] [Com
     refine isNoetherian_of_fg_of_noetherian (Subalgebra.toSubmodule O) ?_
     rw [← Submodule.fg_top , ← Module.finite_def]
     exact Module.Finite.of_basis b
-  letI : Module O O := Semiring.toModule
+  let : Module O O := Semiring.toModule
   convert @isNoetherian_of_tower R O O _ _ _ _ _ _ _ hnoeth
 
 /-- If `R` is a PID and `O` is an `R`-subalgebra contained in a finite free subalgebra,
@@ -430,7 +430,7 @@ lemma subalgebraIsNoetherianRingOfLeFreeFiniteSubalgebra {K R ι: Type*} [Fintyp
   obtain ⟨ k, bk ⟩ := Submodule.basisOfPidOfLE hm' b
   rw [isNoetherianRing_iff]
   have hnoeth: IsNoetherian R O := by convert subalgebraIsNoetherianOfFintypeBasis O bk
-  letI : Module O O := Semiring.toModule
+  let : Module O O := Semiring.toModule
   convert @isNoetherian_of_tower R O O _ _ _ _ _ _ _ hnoeth
 
 /-- If `R` is a noetherian ring and `O` is an `R`-subalgebra of `K` with a finite basis,
@@ -438,7 +438,7 @@ lemma subalgebraIsNoetherianRingOfLeFreeFiniteSubalgebra {K R ι: Type*} [Fintyp
 lemma le_integralClosure_of_basis  {K R ι: Type*} [Fintype ι] [CommRing K][CommRing R]
     [Algebra R K] [IsNoetherianRing R] (O : Subalgebra R K) (b : Basis ι R O ) :
     O ≤ integralClosure R K  := by
-  haveI := subalgebraIsNoetherianOfFintypeBasis O b
+  have := subalgebraIsNoetherianOfFintypeBasis O b
   exact le_integralClosure_of_noetherian O
 
 /-- If `O` is obtained by adjoining to a domain `R` a root of a prime polynomial with

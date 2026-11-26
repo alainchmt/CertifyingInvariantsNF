@@ -96,14 +96,14 @@ lemma R5N1 : Ideal.span {12} * I5N1 =  Ideal.span {B.equivFun.symm ![-6, 1, 1]} 
   exact relation_of_RelationCertificate timesTableT_eq_Table rfl PowJ0_2J1_1 E5RS1 
 
 
-noncomputable def E5RS2 : RelationCertificate Table 12 ![![5, 0, 0], ![32, 1, -2]]
+noncomputable def E5RS2 : RelationCertificate Table 12 ![![5, 0, 0], ![16, -2, -1]]
   ![-30, 1, 1] ![![12, 0, 0], ![6, 1, 0]] where
-    su := ![![60, 0, 0], ![384, 12, -24]]
+    su := ![![60, 0, 0], ![192, -24, -12]]
     hsu := by decide
     w := ![![-360, 12, 12], ![-228, 0, 12]]
     hw := by decide
-    g := ![![![-8, -21, -17], ![8, 41, 0]], ![![-20, -134, -112], ![-7, 269, 0]]]
-    h := ![![![-3704, 20040, -9467], ![-15751, 5278, 0]], ![![-2333, 12552, -5929], ![-9864, 3306, 0]]]
+    g := ![![![-8, -21, -17], ![8, 41, 0]], ![![-7, -60, -50], ![-3, 119, 0]]]
+    h := ![![![-71, 47, 151], ![-247, 91, 0]], ![![-50, 30, 95], ![-153, 57, 0]]]
     hle1 := by decide
     hle2 := by decide
 

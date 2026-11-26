@@ -9,13 +9,17 @@ Every unit of `O` is `± zeta1 ^ n`.  The proof feeds `artin_inequality_bound_in
 `a/b = 4/1` and `c/d = 99/1`, so the index bound is `(c*b)/(a*d) = 99/4 = 24`, and the
 hypothesis `hp` is discharged for the nine primes `p ≤ 24` by the certificates `NPCU p`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false
 
 open NumberField NumberField.ComplexEmbedding
 open scoped Classical
+
+namespace NF3_1_24312_1
 
 noncomputable section
 
@@ -141,3 +145,5 @@ theorem closure_fundSystemZeta1_sup_torsion_eq_top :
       (Subgroup.mem_sup_left (Subgroup.zpow_mem _ hW1mem n))
 
 end
+
+end NF3_1_24312_1

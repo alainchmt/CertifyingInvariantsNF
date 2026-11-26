@@ -143,7 +143,7 @@ theorem exists_delta_of_coordMod {p : ℕ} (hp : 0 < p) {i₀ : Fin n} (hB0 : b 
     (hae : ∀ i, a i - (if i = i₀ then 1 else 0)
       = (p : ZMod (p ^ 2)) * ((e i).val : ZMod (p ^ 2))) :
     ∃ δ : O, u = p * δ + 1 ∧ coordMod b p δ = e := by
-  haveI : NeZero p := ⟨hp.ne'⟩
+  have : NeZero p := ⟨hp.ne'⟩
   set w : Fin n → ℤ := b.equivFun (u - 1) with hw
   have hwmod : ∀ i, w i = (p : ZMod (p ^ 2)) * ((e i).val : ZMod (p ^ 2)) := by
     intro i

@@ -43,8 +43,10 @@ theorem real_roots :
   convert sturm_theorem_total_map_ofList ℝ (Real.IsRealClosedField) (algebraMap ℤ ℝ)
     (Int.cast_strictMono) (this ▸ S)
   · simp ; ring
+  · decide
 
 /- The discriminant of the polynomial -/
 lemma T_discr : discr T = 2516240 :=  by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList S
   norm_num ; ring
+  decide

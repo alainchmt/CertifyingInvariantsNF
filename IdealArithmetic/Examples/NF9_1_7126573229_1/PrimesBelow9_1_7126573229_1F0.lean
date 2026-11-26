@@ -1249,6 +1249,7 @@ lemma PB208I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17, 19] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 19 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 19 (by omega)
+  decide
 
 def PB208I0 : PrimesBelowBoundCertificateInterval O 1 19 208 where
   m := 8

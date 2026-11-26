@@ -8,7 +8,7 @@ import IdealArithmetic.MordellThueProject.ArtinInequality
 
 ## AI use
 This file was largely generated using Claude Code with Opus 5, after multiples rounds of
-prompting. The main statements of the main results and the
+prompting. The main statements of the main results (in natural language) and the
 high-level proof strategies were specified by me.
 We also carried out some polishing afterwards.
 
@@ -60,7 +60,7 @@ lemma norm_algebraMap_sub {x : K}
     rwa [IntermediateField.top_toSubalgebra,
       IntermediateField.adjoin_simple_toSubalgebra_of_isAlgebraic
         (IsAlgebraic.of_finite ℚ x)] at h1
-  set pb := PowerBasis.ofAdjoinEqTop (IsIntegral.of_finite ℚ x) htop with hpb
+  set pb := PowerBasis.ofAdjoinEqTop (IsIntegral.of_finite ℚ x) htop
   rw [Algebra.norm_eq_matrix_det pb.basis, map_sub, AlgHom.commutes,
     show x = pb.gen from (PowerBasis.ofAdjoinEqTop_gen ..).symm,
     ← charpoly_leftMulMatrix pb, Matrix.eval_charpoly]
@@ -103,9 +103,7 @@ lemma embedding_pos_of_norm_eq_one (hdeg : Module.finrank ℚ K = 3) (σ φ : K 
   norm_num at hreal
   have hpos : 0 < Complex.normSq (σ x) :=
     Complex.normSq_pos.mpr fun hz => hx0 ((map_eq_zero_iff σ σ.injective).mp hz)
-  by_contra hle
-  rw [not_lt] at hle
-  nlinarith [mul_nonpos_of_nonpos_of_nonneg hle hpos.le]
+  nlinarith [hpos]
 
 variable {O : Subalgebra ℤ K}
 
@@ -143,11 +141,11 @@ lemma zpow_left_injective_of_embedding_one_lt {φ : K →+* ℂ} (hφ : IsReal �
 unit of norm one, hence `ε ^ n` for a unique `n`, and `mu (ε ^ n) = 0`. -/
 theorem exists_zpow_eq_of_thue (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+* ℂ)
     (hφ : IsReal φ) (hσ : ¬ IsReal σ)
-    {O : Subalgebra ℤ K} {θ : K} (hθO : θ ∈ O) {a b c : ℤ}
+    {O : Subalgebra ℤ K} {θ : K} (hθ : θ ∈ O) {a b c : ℤ}
     (hmin : minpoly ℚ θ = X ^ 3 + C (a : ℚ) * X ^ 2 + C (b : ℚ) * X + C (c : ℚ))
-    (ε : Oˣ) (hεone : 1 < hφ.embedding ε)
+    (ε : Oˣ) (hε : 1 < hφ.embedding ε)
     (hgen : ∀ w : Oˣ, ∃ n : ℤ, w = ε ^ n ∨ w = -ε ^ n)
-    (mu : O →ₗ[ℤ] ℤ) (hmu1 : mu 1 = 0) (hmuθ : mu ⟨θ, hθO⟩ = 0)
+    (mu : O →ₗ[ℤ] ℤ) (hmu1 : mu 1 = 0) (hmuθ : mu ⟨θ, hθ⟩ = 0)
     {x y : ℤ} (hF : x ^ 3 + a * x ^ 2 * y + b * x * y ^ 2 + c * y ^ 3 = 1) :
     ∃ n : ℤ, ((ε ^ n : Oˣ) : K) = x - y * θ ∧ mu (ε ^ n : Oˣ) = 0 := by
   have hθK : θ ^ 3 + a * θ ^ 2 + b * θ + c = 0 := by
@@ -156,7 +154,7 @@ theorem exists_zpow_eq_of_thue (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+
     simp only [map_add, map_mul, map_pow, aeval_C, aeval_X, eq_ratCast] at h
     push_cast at h
     linear_combination h
-  set θO : O := ⟨θ, hθO⟩ with hθOdef
+  set θO : O := ⟨θ, hθ⟩
   have hθOrel : θO ^ 3 + a * θO ^ 2 + b * θO + c = 0 := by
     apply Subtype.ext
     push_cast
@@ -169,7 +167,7 @@ theorem exists_zpow_eq_of_thue (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+
   have hN : Algebra.norm ℚ ((xu : O) : K) = 1 := by
     rw [hxK, norm_intCast_sub_mul hdeg hmin, hF]; norm_num
   have hx0 : ((xu : O) : K) ≠ 0 := fun h0 => by rw [h0] at hN; simp at hN
-  obtain ⟨n, hn⟩ := exists_zpow_eq_of_embedding_pos hφ ε xu hεone hgen
+  obtain ⟨n, hn⟩ := exists_zpow_eq_of_embedding_pos hφ ε xu hε hgen
     (embedding_pos_of_norm_eq_one hdeg σ φ hφ hσ hx0 hN)
   refine ⟨n, by rw [← hn, hxK], ?_⟩
   rw [← hn, hxudef, IsUnit.unit_spec,
@@ -181,19 +179,19 @@ theorem exists_zpow_eq_of_thue (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+
 coordinates `nu`, `la`: `a = nu (ε ^ n)` and `b = - la (ε ^ n)`. -/
 theorem exists_zpow_eq_coeffs_of_thue (hdeg : Module.finrank ℚ K = 3) (σ φ : K →+* ℂ)
     (hφ : IsReal φ) (hσ : ¬ IsReal σ)
-    {O : Subalgebra ℤ K} {θ : K} (hθO : θ ∈ O) {c₁ c₂ c₃ : ℤ}
+    {O : Subalgebra ℤ K} {θ : K} (hθ : θ ∈ O) {c₁ c₂ c₃ : ℤ}
     (hmin : minpoly ℚ θ = X ^ 3 + C (c₁ : ℚ) * X ^ 2 + C (c₂ : ℚ) * X + C (c₃ : ℚ))
-    (ε : Oˣ) (hεone : 1 < hφ.embedding ((ε : O) : K))
+    (ε : Oˣ) (hε : 1 < hφ.embedding ((ε : O) : K))
     (hgen : ∀ w : Oˣ, ∃ n : ℤ, w = ε ^ n ∨ w = -ε ^ n)
-    (mu : O →ₗ[ℤ] ℤ) (hmu1 : mu 1 = 0) (hmuθ : mu ⟨θ, hθO⟩ = 0)
-    (nu : O →ₗ[ℤ] ℤ) (hnu1 : nu 1 = 1) (hnuθ : nu ⟨θ, hθO⟩ = 0)
-    (la : O →ₗ[ℤ] ℤ) (hla1 : la 1 = 0) (hlaθ : la ⟨θ, hθO⟩ = 1)
+    (mu : O →ₗ[ℤ] ℤ) (hmu1 : mu 1 = 0) (hmuθ : mu ⟨θ, hθ⟩ = 0)
+    (nu : O →ₗ[ℤ] ℤ) (hnu1 : nu 1 = 1) (hnuθ : nu ⟨θ, hθ⟩ = 0)
+    (la : O →ₗ[ℤ] ℤ) (hla1 : la 1 = 0) (hlaθ : la ⟨θ, hθ⟩ = 1)
     {a b : ℤ} (hF : a ^ 3 + c₁ * a ^ 2 * b + c₂ * a * b ^ 2 + c₃ * b ^ 3 = 1) :
     ∃ n : ℤ, mu ((ε ^ n : Oˣ) : O) = 0 ∧ a = nu ((ε ^ n : Oˣ) : O)
       ∧ b = - la ((ε ^ n : Oˣ) : O) := by
   obtain ⟨n, hxK, hmun⟩ :=
-    exists_zpow_eq_of_thue hdeg σ φ hφ hσ hθO hmin ε hεone hgen mu hmu1 hmuθ hF
-  have hO : ((ε ^ n : Oˣ) : O) = a • 1 - b • (⟨θ, hθO⟩ : O) := by
+    exists_zpow_eq_of_thue hdeg σ φ hφ hσ hθ hmin ε hε hgen mu hmu1 hmuθ hF
+  have hO : ((ε ^ n : Oˣ) : O) = a • 1 - b • (⟨θ, hθ⟩ : O) := by
     apply Subtype.ext
     rw [hxK]
     push_cast [zsmul_eq_mul]
@@ -217,10 +215,7 @@ variable {R : Type*} [CommRing R] (mu : R →ₗ[ℤ] ℤ)
 lemma add_two_le_three_pow {w : ℕ} (hw : 1 ≤ w) : w + 2 ≤ 3 ^ w := by
   induction w, hw using Nat.le_induction with
   | base => norm_num
-  | succ w hw ih =>
-    have h1 := Nat.one_le_pow w 3 (by norm_num)
-    calc w + 1 + 2 ≤ 3 ^ w + 2 * 3 ^ w := by omega
-      _ = 3 ^ (w + 1) := by ring
+  | succ w hw ih => have := Nat.one_le_pow w 3 (by norm_num); rw [pow_succ]; omega
 
 /-- If `p ≥ 3` and `i = p ^ w * i' ≥ 2`, then `i - v_p(i) ≥ 2`,
 written without truncated subtraction as `w + 2 ≤ i`. -/
@@ -255,18 +250,13 @@ lemma pow_dvd_choose_mul_pow_int {p : ℕ} (hp : p.Prime) (hp3 : 3 ≤ p) {v k k
   obtain ⟨w, i', hi'p, hi⟩ := Nat.exists_eq_pow_mul_and_not_dvd (n := i) (by omega) p hp.ne_one
   have hwi : w + 2 ≤ i := add_two_le_of_eq_pow_mul hp3 hi hi2
   obtain ⟨c, hc⟩ := pow_dvd_choose_mul_pow hp hk hi hi'p (by omega) hik
-  have hcast : ((k.choose i * p ^ w : ℕ) : ℤ) = ((p ^ v * c : ℕ) : ℤ) := by rw [hc]
-  push_cast at hcast
-  have hsplit : (p : ℤ) ^ i = (p : ℤ) ^ w * (p : ℤ) ^ 2 * (p : ℤ) ^ (i - w - 2) := by
-    rw [← pow_add, ← pow_add]
-    congr 1
-    omega
-  refine ⟨c * (p : ℤ) ^ (i - w - 2), ?_⟩
-  calc (k.choose i : ℤ) * (p : ℤ) ^ i
-      = (k.choose i : ℤ) * (p : ℤ) ^ w * ((p : ℤ) ^ 2 * (p : ℤ) ^ (i - w - 2)) := by
-        rw [hsplit]; ring
-    _ = (p : ℤ) ^ v * c * ((p : ℤ) ^ 2 * (p : ℤ) ^ (i - w - 2)) := by rw [hcast]
-    _ = p ^ (v + 2) * (c * p ^ (i - w - 2)) := by rw [pow_add]; ring
+  have hnat : p ^ (v + 2) ∣ k.choose i * p ^ i := by
+    refine ⟨c * p ^ (i - w - 2), ?_⟩
+    calc k.choose i * p ^ i
+        = k.choose i * p ^ w * (p ^ 2 * p ^ (i - w - 2)) := by
+          rw [mul_assoc, ← pow_add, ← pow_add]; congr 2; omega
+      _ = p ^ (v + 2) * (c * p ^ (i - w - 2)) := by rw [hc, pow_add]; ring
+  exact_mod_cast hnat
 
 /-! ### The binomial expansion, and the dominant linear term -/
 
@@ -317,9 +307,8 @@ lemma mu_pow_ne_mu_one {p : ℕ} (hp : p.Prime) (hp3 : 3 ≤ p)
   obtain ⟨m, hm, hmp⟩ := exists_eq_pow_mul_not_dvd mu hp hp3 hS2 (v := v) hk'p hk'0
   intro hcon
   rw [hcon, sub_self] at hm
-  rcases mul_eq_zero.mp hm.symm with h | h
-  · exact absurd h (by positivity)
-  · exact hmp (h ▸ dvd_zero _)
+  have hm0 : m = 0 := by simpa [hp.ne_zero] using hm.symm
+  exact hmp (hm0 ▸ dvd_zero _)
 
 /-- If `U = 1 + p δ` is a unit then every integer power of `U` is again `1` mod `p`. -/
 lemma exists_zpow_eq_pow_mul_add_one {p : ℕ} {U : Rˣ} {δ : R} (hU : (↑U : R) = p * δ + 1)
@@ -334,29 +323,6 @@ lemma exists_zpow_eq_pow_mul_add_one {p : ℕ} {U : Rˣ} {δ : R} (hU : (↑U : 
   · rw [show -(n : ℤ) - 1 = -(n : ℤ) + -1 by ring, zpow_add, zpow_neg_one, Units.val_mul, hz,
       hδ']
     ring
-
-/-- The dominant-term lemma at every nonzero integer exponent. -/
-lemma mu_zpow_ne_mu_one {p : ℕ} (hp : p.Prime) (hp3 : 3 ≤ p)
-    {δ : R} (hS2 : ¬ (p : ℤ) ∣ mu δ) (U : Rˣ) (hU : (↑U : R) = p * δ + 1)
-    {k : ℤ} (hk : k ≠ 0) : mu ↑(U ^ k) ≠ mu 1 := by
-  have huv : (↑U : R) * ↑U⁻¹ = 1 := by rw [← Units.val_mul, mul_inv_cancel, Units.val_one]
-  rw [hU] at huv
-  rcases lt_or_gt_of_ne hk with hneg | hpos
-  · set δ' : R := -(δ * ↑U⁻¹) with hδ'
-    have hUinv : ↑U⁻¹ = p * δ' + 1 := by rw [hδ']; linear_combination huv
-    have hS2' : ¬ (p : ℤ) ∣ mu δ' := fun hd => hS2 <| by
-      have hsum : mu δ' + mu δ = p * mu (δ ^ 2 * ↑U⁻¹) := by
-        rw [← map_add, show δ' + δ = p * (δ ^ 2 * ↑U⁻¹) by
-          rw [hδ']; linear_combination (-δ) * huv,
-          show ((p : R) * (δ ^ 2 * ↑U⁻¹)) = (p : ℤ) • (δ ^ 2 * (↑U⁻¹ : R)) by
-            rw [zsmul_eq_mul]; push_cast; ring, map_zsmul, smul_eq_mul]
-      exact (dvd_add_right hd).mp ⟨_, hsum⟩
-    obtain ⟨j, hj0, rfl⟩ : ∃ j : ℕ, 0 < j ∧ k = -j := ⟨(-k).toNat, by omega, by omega⟩
-    rw [zpow_neg, zpow_natCast, ← inv_pow, Units.val_pow_eq_pow_val, hUinv]
-    exact mu_pow_ne_mu_one mu hp hp3 hS2' hj0
-  · obtain ⟨j, hj0, rfl⟩ : ∃ j : ℕ, 0 < j ∧ k = j := ⟨k.toNat, by omega, by omega⟩
-    rw [zpow_natCast, Units.val_pow_eq_pow_val, hU]
-    exact mu_pow_ne_mu_one mu hp hp3 hS2 hj0
 
 /-! ### The congruence sieve -/
 
@@ -415,15 +381,18 @@ theorem eq_of_mu_zpow_eq_zero_of_emod_eq (ε : Rˣ) {p f : ℕ}
     {r : ℤ} (hW : ¬ (p : ℤ) ∣ mu (↑(ε ^ r) * δ))
     {n₁ n₂ : ℤ} (h₁ : n₁ % (f : ℤ) = r % (f : ℤ)) (h₂ : n₂ % (f : ℤ) = r % (f : ℤ))
     (hz₁ : mu ↑(ε ^ n₁) = 0) (hz₂ : mu ↑(ε ^ n₂) = 0) : n₁ = n₂ := by
+  wlog hle : n₁ ≤ n₂ generalizing n₁ n₂
+  · exact (this h₂ h₁ hz₂ hz₁ (by omega)).symm
   by_contra hne
   obtain ⟨k, hk⟩ : (f : ℤ) ∣ n₂ - n₁ := Int.ModEq.dvd (h₁.trans h₂.symm)
-  refine mu_zpow_ne_mu_one (muRecenter mu ↑(ε ^ n₁)) hp hp3 ?_ (ε ^ f) hS1 (k := k)
-    (by rintro rfl; rw [mul_zero] at hk; omega) ?_
-  · intro hd
-    refine hW ?_
-    exact (dvd_sub_right hd).mp (dvd_mu_zpow_mul_sub_of_emod_eq mu ε hS1 h₁ δ)
-  · rw [muRecenter_one, hz₁, muRecenter_apply, ← Units.val_mul, ← zpow_natCast ε f, ← zpow_mul,
-      ← zpow_add, show n₁ + f * k = n₂ by omega]
+  have hlt : n₁ < n₂ := lt_of_le_of_ne hle hne
+  have hk0 : 0 < k := by nlinarith [Int.natCast_nonneg f]
+  obtain ⟨j, hj0, rfl⟩ : ∃ j : ℕ, 0 < j ∧ k = j := ⟨k.toNat, by omega, by omega⟩
+  refine mu_pow_ne_mu_one (muRecenter mu ↑(ε ^ n₁)) hp hp3 (δ := δ) ?_ hj0 ?_
+  · exact fun hd => hW ((dvd_sub_right hd).mp (dvd_mu_zpow_mul_sub_of_emod_eq mu ε hS1 h₁ δ))
+  · rw [muRecenter_one, hz₁, ← hS1, ← Units.val_pow_eq_pow_val, muRecenter_apply,
+      ← Units.val_mul, ← zpow_natCast (ε ^ f) j, ← zpow_natCast ε f, ← zpow_mul, ← zpow_add,
+      show n₁ + f * j = n₂ by omega]
     exact hz₂
 
 /-- **The residue class of `r` contains exactly `r`.**  If moreover `r` is a solution, then
@@ -479,13 +448,8 @@ theorem skolem_zpow_eq_zero_iff (hmu1 : mu 1 = 0) (ε : Rˣ) {p f : ℕ}
         have := hne 0 (by simp)
         rw [Int.zero_emod] at this
         omega) hr)
-    (fun s hs => by
-      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
-      subst hs; simpa using hmu1)
-    (fun s hs => by
-      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
-      subst hs
-      simpa using hS2)
+    (fun s hs => by rw [List.mem_singleton] at hs; subst hs; simpa using hmu1)
+    (fun s hs => by rw [List.mem_singleton] at hs; subst hs; simpa using hS2)
     n
   simpa using h
 

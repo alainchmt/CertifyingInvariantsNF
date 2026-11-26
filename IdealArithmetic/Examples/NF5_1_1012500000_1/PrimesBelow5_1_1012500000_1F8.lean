@@ -963,6 +963,7 @@ lemma PB1981I8_primes (p : ℕ) :
   p ∈ Set.range ![367, 373, 379, 383, 389, 397, 401, 409, 419] ↔ Nat.Prime p ∧ 359 < p ∧ p ≤ 419 := by
   rw [← List.mem_ofFn']
   convert primes_range 359 419 (by omega)
+  decide
 
 def PB1981I8 : PrimesBelowBoundCertificateInterval O 359 419 1981 where
   m := 9

@@ -129,6 +129,7 @@ lemma PB543I11_primes (p : ℕ) :
   p ∈ Set.range ![541] ↔ Nat.Prime p ∧ 523 < p ∧ p ≤ 542 := by
   rw [← List.mem_ofFn']
   convert primes_range 523 542 (by omega)
+  decide
 
 def PB543I11 : PrimesBelowBoundCertificateInterval O 523 542 543 where
   m := 1

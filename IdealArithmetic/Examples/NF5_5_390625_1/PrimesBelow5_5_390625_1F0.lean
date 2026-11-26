@@ -658,6 +658,7 @@ lemma PB25I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17, 19, 23] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 24 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 24 (by omega)
+  decide
 
 def PB25I0 : PrimesBelowBoundCertificateInterval O 1 24 25 where
   m := 9

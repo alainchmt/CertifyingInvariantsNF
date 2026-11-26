@@ -288,13 +288,13 @@ variable {ι : Type _ } [Fintype ι]
     intro i
     refine Finset.single_le_sum ?_ ?_
     · intros j _
-      simp only [zero_le']
+      simp only [zero_le]
     refine Fintype.complete _
   refine ⟨r, ?_⟩
   intros x hx
   have := Basis.sum_repr bk (⟨x,hx⟩: overRing α hm)
   rw [Subtype.ext_iff] at this
-  simp only [AddSubmonoidClass.coe_finset_sum, SetLike.val_smul] at this
+  simp only [AddSubmonoidClass.coe_finsetSum, SetLike.val_smul] at this
   rw [← this, Finset.smul_sum]
   refine O.sum_mem ?_
   · intro i _
@@ -311,7 +311,7 @@ lemma overRing_mul_radical_pow_in_order {O : Subalgebra R K} {Om : Subalgebra R 
     (α : R) (hm : O ≤ Om) (hb : Basis ι R Om)  :
       ∃ (n : ℕ), ∀ (x : K) (y : O), x ∈ overRing α hm →
       y ∈ Ideal.radical (Ideal.span {(algebraMap R O α)}) ^ n → x * y ∈ O := by
-  haveI instNR : IsNoetherianRing O := subalgebraIsNoetherianRingOfLeFreeFiniteSubalgebra O Om hm hb
+  have instNR : IsNoetherianRing O := subalgebraIsNoetherianRingOfLeFreeFiniteSubalgebra O Om hm hb
   have hfg : (Ideal.span ({(algebraMap R O α)}: Set O)).radical.FG :=
     (isNoetherianRing_iff_ideal_fg O).mp instNR (Ideal.span {(algebraMap R O α)}).radical
   choose m hmm using Ideal.exists_radical_pow_le_of_fg (Ideal.span ({(algebraMap R O α)}: Set O)) hfg
@@ -744,7 +744,7 @@ lemma exists_mem_radical_span_of_mul_dvd_polynomial (hqsurj : Function.Surjectiv
     by_contra hc
     rw [EuclideanDomain.gcd_eq_zero_iff] at hc
     exact hgmnz hc.2
-  haveI := isDomainOfIsAdjointRootPrime T hp j
+  have := isDomainOfIsAdjointRootPrime T hp j
   intro hi
   obtain ⟨A₂, A₃,hA3⟩:= exists_of_dvd_mod_pi hqker hqsurj _ _ hi
   obtain ⟨q', hq⟩ := EuclideanDomain.gcd_dvd_left (f mod π) (g mod π)
@@ -1050,7 +1050,7 @@ lemma piMaximal_of_root_in_subalgebra_of_satisfiesDedekindCriterion
     (hmc : O ≤ Om) (heqr : T.natDegree  = Module.rank R Om) (hroot : θ ∈ O)
     (hd : satisfiesDedekindCriterion q π T) :
     piMaximal π (Subalgebra.toSubmodule ((Subalgebra.inclusion hmc).range)) := by
-  haveI : IsTorsionFree R K := IsTorsionFree.trans_faithfulSMul R Q K
+  have : IsTorsionFree R K := IsTorsionFree.trans_faithfulSMul R Q K
   have hminpoly := IsAdjoinRoot.minpoly_root A (Monic.ne_zero (Monic.map (algebraMap R Q) hm))
   rw [(Polynomial.Monic.leadingCoeff (Monic.map (algebraMap R Q) hm))] at hminpoly
   simp only [ inv_one, map_one, mul_one] at hminpoly
@@ -1138,7 +1138,7 @@ theorem maximal_of_satisfiesDedekindCriteria_all_primes (j: IsAdjoinRoot O T)(p 
     O = Om := by
   apply eq_of_piMaximal_at_all_primes_int O Om hmc
   intros q hq
-  haveI := fact_iff.2 hq
+  have := fact_iff.2 hq
   apply piMaximal_of_satisfiesDedekindCriteria_int O hmc j q hm heqr (h q hq)
 
 /-- Let `a` and `b` be polynomials over `ℤ` such that `a * T + b * T' = n`

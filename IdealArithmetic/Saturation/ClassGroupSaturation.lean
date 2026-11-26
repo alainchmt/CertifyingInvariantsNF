@@ -1,7 +1,8 @@
 /- Authors: Alain Chavarri Villarello -/
 
 import Mathlib.NumberTheory.NumberField.ClassNumber
-import Mathlib.NumberTheory.RamificationInertia.Basic
+import Mathlib.NumberTheory.RamificationInertia.Inertia
+import Mathlib.NumberTheory.RamificationInertia.Ramification
 import Mathlib.Algebra.Group.Subgroup.Finsupp
 import IdealArithmetic.ClassGroupEquiv.ClassGroupEquiv
 
@@ -56,7 +57,7 @@ lemma addHom_card_ker_dvd_of_dvd {G : Type*} [AddGroup G] {ι : Type*} [Finite �
     (hdvd : ∀ a : ι → ℕ, φ (fun i => a i) = 0 → (∀ i, n i ∣ p * (a i)) → ∀ i, n i ∣ a i) :
     ¬ p ∣ Nat.card (φ.ker) := by
   intro hc
-  haveI : Fintype (φ.ker) := Fintype.ofFinite ↥φ.ker
+  have : Fintype (φ.ker) := Fintype.ofFinite ↥φ.ker
   obtain ⟨b, hb⟩ := exists_prime_addOrderOf_dvd_card (G := φ.ker) p
     (by rw [Fintype.card_eq_nat_card] ; exact hc)
   refine addOrderOf_ne_eq_addSubgroup n (Nat.Prime.one_lt hp.out) φ.ker ?_ b.1 b.2 ?_
@@ -74,7 +75,7 @@ lemma addHom_injective_of_dvd {G : Type*} [AddGroup G] {ι : Type*} [Fintype ι]
   refine (AddMonoidHom.ker_eq_bot_iff φ).mp ?_
   rw [← AddSubgroup.card_eq_one, Nat.eq_one_iff_not_exists_prime_dvd]
   intro p hp
-  haveI : Fact $ Nat.Prime p := {out := hp}
+  have : Fact $ Nat.Prime p := {out := hp}
   by_cases hc : p ∣ ∏ i, n i
   · specialize hdvd p hp hc
     exact addHom_card_ker_dvd_of_dvd φ hdvd
@@ -195,7 +196,7 @@ lemma card_of_generators_saturated {G : Type*} [CommGroup G] {ι : Type*} [Finty
 
 
 /-- Version of `AddEquivOfGeneratorsMult` for the class group of a Dedekind domain `S`. -/
-noncomputable def equivClassGroupOfSaturated {S : Type*} [CommRing S] [IsDomain S]
+noncomputable def equivClassGroupOfSaturated {S : Type*} [CommRing S]
     [IsDedekindDomain S] {ι : Type*} [Fintype ι]
     {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal S} {I' : ι → nonZeroDivisors (Ideal (S))}
     (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
@@ -221,7 +222,7 @@ noncomputable def equivClassGroupOfSaturated {S : Type*} [CommRing S] [IsDomain 
     exact hb
 
 @[simp]
-lemma equivClassGroupOfSaturated_apply {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
+lemma equivClassGroupOfSaturated_apply {S : Type*} [CommRing S] [IsDedekindDomain S]
     {ι : Type*} [Fintype ι]
     {n : ι → ℕ} [∀ i, NeZero (n i)]  {I : ι → Ideal S} {I' : ι → nonZeroDivisors (Ideal (S))}
     (hI' : ∀ i, ↑(I' i) = I i) {a : ι → S} (h : ∀ i, (I i) ^ (n i) = Ideal.span {a i})
@@ -260,7 +261,7 @@ section Principal
 -- Some results specialized to the case of a cyclic class group expressed
 -- in terms of nonprincipality of the powers of a generator.
 
-lemma class_order_of_not_principal {S : Type*} [CommRing S] [IsDomain S] [IsDedekindDomain S]
+lemma class_order_of_not_principal {S : Type*} [CommRing S] [IsDedekindDomain S]
     {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
     (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
     (hdvd : ∀ p, Nat.Prime p → p ∣ n → ¬ ∃ b, I ^ (n / p) = Ideal.span {b}) :
@@ -275,7 +276,7 @@ lemma class_order_of_not_principal {S : Type*} [CommRing S] [IsDomain S] [IsDede
     obtain ⟨b, hb⟩ := hc
     use b
 
-noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsDomain S]
+noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S]
     [IsDedekindDomain S] {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
     (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
     (hgen : Subgroup.closure (Set.range (fun (_ : Fin 1) => ClassGroup.mk0 I')) = ⊤)
@@ -297,7 +298,7 @@ noncomputable def equivClassGroupCyclicOfSaturated {S : Type*} [CommRing S] [IsD
     convert orderOf_dvd_of_pow_eq_one this
     exact (class_order_of_not_principal hI' h hdvd).symm
 
-lemma equivClassGroupCyclicOfSaturated_apply {S : Type*} [CommRing S] [IsDomain S]
+lemma equivClassGroupCyclicOfSaturated_apply {S : Type*} [CommRing S]
     [IsDedekindDomain S] {n : ℕ} [NeZero n]  {I : Ideal S} {I' : nonZeroDivisors (Ideal (S))}
     (hI' : ↑I' = I) {α : S} (h : I ^ n = Ideal.span {α})
     (hgen : Subgroup.closure (Set.range (fun (_ : Fin 1) => ClassGroup.mk0 I')) = ⊤)

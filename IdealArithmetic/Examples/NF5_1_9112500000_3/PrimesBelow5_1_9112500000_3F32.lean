@@ -1042,6 +1042,7 @@ lemma PB5943I32_primes (p : ℕ) :
   p ∈ Set.range ![1879, 1889, 1901, 1907, 1913, 1931, 1933, 1949, 1951] ↔ Nat.Prime p ∧ 1877 < p ∧ p ≤ 1951 := by
   rw [← List.mem_ofFn']
   convert primes_range 1877 1951 (by omega)
+  decide
 
 def PB5943I32 : PrimesBelowBoundCertificateInterval O 1877 1951 5943 where
   m := 9

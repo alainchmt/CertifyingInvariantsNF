@@ -907,6 +907,7 @@ lemma PB177I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 17 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 17 (by omega)
+  decide
 
 def PB177I0 : PrimesBelowBoundCertificateInterval O 1 17 177 where
   m := 7

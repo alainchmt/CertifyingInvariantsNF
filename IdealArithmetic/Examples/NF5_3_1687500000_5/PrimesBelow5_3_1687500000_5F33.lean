@@ -837,6 +837,7 @@ lemma PB2009I33_primes (p : ℕ) :
   p ∈ Set.range ![1973, 1979, 1987, 1993, 1997, 1999, 2003] ↔ Nat.Prime p ∧ 1951 < p ∧ p ≤ 2008 := by
   rw [← List.mem_ofFn']
   convert primes_range 1951 2008 (by omega)
+  decide
 
 def PB2009I33 : PrimesBelowBoundCertificateInterval O 1951 2008 2009 where
   m := 7

@@ -18,7 +18,9 @@ Two solutions rather than one, so `skolem_zpow_eq_zero_iff_mem` is used in place
 `skolem_zpow_eq_zero_iff`: the class of `9` is pinned down by the re-centering hypothesis
 `11 ∤ mu (zeta1 ^ 9 δ)`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

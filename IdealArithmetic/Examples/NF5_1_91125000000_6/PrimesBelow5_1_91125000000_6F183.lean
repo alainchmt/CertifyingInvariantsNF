@@ -877,6 +877,7 @@ lemma PB18792I183_primes (p : ℕ) :
   p ∈ Set.range ![13933, 13963, 13967, 13997, 13999, 14009, 14011, 14029, 14033] ↔ Nat.Prime p ∧ 13931 < p ∧ p ≤ 14033 := by
   rw [← List.mem_ofFn']
   convert primes_range 13931 14033 (by omega)
+  decide
 
 def PB18792I183 : PrimesBelowBoundCertificateInterval O 13931 14033 18792 where
   m := 9

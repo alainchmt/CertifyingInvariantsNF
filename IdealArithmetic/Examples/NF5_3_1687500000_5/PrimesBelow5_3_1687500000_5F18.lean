@@ -1106,6 +1106,7 @@ lemma PB2009I18_primes (p : ℕ) :
   p ∈ Set.range ![967, 971, 977, 983, 991, 997, 1009, 1013, 1019] ↔ Nat.Prime p ∧ 953 < p ∧ p ≤ 1019 := by
   rw [← List.mem_ofFn']
   convert primes_range 953 1019 (by omega)
+  decide
 
 def PB2009I18 : PrimesBelowBoundCertificateInterval O 953 1019 2009 where
   m := 9

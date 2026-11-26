@@ -10,7 +10,9 @@ The Thue equation produced by the class-group descent for `y² = x³ + 79`.  The
 certificate is at `p = 53`, `f = 26`, and `0` is the only surviving class, so `n = 0` is the
 only exponent and `(1, 0)` the only solution.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

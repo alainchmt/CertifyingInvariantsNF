@@ -2,8 +2,7 @@
 
 import Mathlib.NumberTheory.SmoothNumbers
 import Mathlib.Data.Ordmap.Ordset
-import Batteries.Data.RBMap.WF
-import Lean.Data.RBTree
+import Batteries.Recycling.RBTree.WF
 import Mathlib.Tactic
 
 /-! # Primes below 20,000
@@ -190,7 +189,7 @@ lemma primes_below_append  (e P : List ℕ) (hneq : e ≠ []) (L : List (List �
       · simp[hess] at hlength
       · simp
         rw [List.getLast_cons hess]
-        haveI : NeZero (e :: es).length := Nat.instNeZeroSucc
+        have : NeZero (e :: es).length := Nat.instNeZeroSucc
         have hlees : e <  es[0]'(List.length_pos_iff.mpr hess) := by
           convert List.Pairwise.rel_get_of_lt he (a := 0) (b := ⟨1, by simp[List.length_pos_iff.mpr hess]⟩ ) ?_
           · rfl
@@ -202,7 +201,7 @@ lemma primes_below_append  (e P : List ℕ) (hneq : e ≠ []) (L : List (List �
             intro hc
             apply hess
             exact List.eq_nil_iff_length_eq_zero.mpr hc
-          haveI : NeZero (es.length) := by exact { out := this }
+          have : NeZero (es.length) := by exact { out := this }
           by_cases hesl : 1 < es.length
           · refine le_of_lt ?_
             convert List.Pairwise.rel_get_of_lt he.2 (a := 0) (b := ⟨es.length - 1, by omega⟩ ) ?_

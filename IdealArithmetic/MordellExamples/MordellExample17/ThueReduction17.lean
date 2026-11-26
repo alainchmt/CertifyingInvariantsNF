@@ -13,7 +13,9 @@ The case `d ≡ 1 [ZMOD 8]`, where `x` may be even: here `O = ℤ[ω]` with
 Certified inputs from `NF2_2_17_1`: `O_integral_closure`, `class_number_K_eq_1` and
 `units_eq_zeta1_pow_mul_cube`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false
@@ -251,11 +253,9 @@ theorem even_branch_aux {x y m : ℤ} (h : y ^ 2 = x ^ 3 + 17) (hx2 : (2 : ℤ) 
     rw [hm, sd_eq, hκdef]; push_cast; linear_combination (2 * (m : O) + 4) * w_sq
   have hη' : ((y : ℤ) : O) - sd = 2 * ((-2 - (w : O)) * κ') := by
     rw [hm, sd_eq, hκ'def]; push_cast; linear_combination (2 * (m : O) + 4) * w_sq
-  have h17X : ¬ (17 : ℤ) ∣ X := fun ⟨k, hk⟩ => not_dvd_17 h ⟨2 * k, by rw [hX, hk]; ring⟩
-  have hbez : IsCoprime (2 * X) (17 : ℤ) := by
-    refine isCoprime_of_prime_dvd (by simp) fun q hq hqX hq17 => ?_
-    have h17 : (17 : ℤ) ∣ 2 * X := ((hq.associated_of_dvd prime_17 hq17).symm.dvd).trans hqX
-    exact h17X ((prime_17.dvd_mul.mp h17).resolve_left (by norm_num))
+  have hbez : IsCoprime x (17 : ℤ) := by
+    refine isCoprime_of_prime_dvd (by simp) fun q hq hqx hq17 => ?_
+    exact not_dvd_17 h (((hq.associated_of_dvd prime_17 hq17).symm.dvd).trans hqx)
   have hκ0 : κ ≠ 0 := fun h0 => ne_zero_of_add_sd y (by rw [hη, h0]; simp)
   obtain ⟨u, γ, hγ⟩ := exists_unit_mul_cube_of_even sd_sq' two_ne_zero_O card_classGroup3 h hX
     pi_mul_conj hη hη' hbez hκ0

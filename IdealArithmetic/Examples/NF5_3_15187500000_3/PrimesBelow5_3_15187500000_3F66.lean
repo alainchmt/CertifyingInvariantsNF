@@ -982,6 +982,7 @@ lemma PB6026I66_primes (p : ℕ) :
   p ∈ Set.range ![4357, 4363, 4373, 4391, 4397, 4409, 4421, 4423, 4441] ↔ Nat.Prime p ∧ 4349 < p ∧ p ≤ 4441 := by
   rw [← List.mem_ofFn']
   convert primes_range 4349 4441 (by omega)
+  decide
 
 def PB6026I66 : PrimesBelowBoundCertificateInterval O 4349 4441 6026 where
   m := 9

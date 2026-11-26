@@ -746,6 +746,7 @@ lemma PB1253I22_primes (p : ℕ) :
   p ∈ Set.range ![1217, 1223, 1229, 1231, 1237, 1249] ↔ Nat.Prime p ∧ 1213 < p ∧ p ≤ 1252 := by
   rw [← List.mem_ofFn']
   convert primes_range 1213 1252 (by omega)
+  decide
 
 def PB1253I22 : PrimesBelowBoundCertificateInterval O 1213 1252 1253 where
   m := 6

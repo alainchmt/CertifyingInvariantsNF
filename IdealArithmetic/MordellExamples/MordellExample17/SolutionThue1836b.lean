@@ -11,7 +11,9 @@ only one of the four with three solutions -- including `(-23, -26)`, which produ
 The Skolem certificate is at `p = 409`, `f = 136`, with surviving classes `0, 132, 135`
 holding `n = 0, -4, -1`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

@@ -261,6 +261,7 @@ lemma PB2802I45_primes (p : ℕ) :
   p ∈ Set.range ![2791, 2797, 2801] ↔ Nat.Prime p ∧ 2789 < p ∧ p ≤ 2801 := by
   rw [← List.mem_ofFn']
   convert primes_range 2789 2801 (by omega)
+  decide
 
 def PB2802I45 : PrimesBelowBoundCertificateInterval O 2789 2801 2802 where
   m := 3

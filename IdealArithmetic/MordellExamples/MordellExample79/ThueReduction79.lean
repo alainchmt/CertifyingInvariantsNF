@@ -24,7 +24,9 @@ ones died.  Here the survivors have `j = 0`, so the right-hand side is already `
 sublattice substitution is needed on the live branches**; the `27`-clearing substitutions occur
 only on branches that are then killed modulo `9`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false
@@ -405,7 +407,9 @@ theorem mordell79_imp_thue {x y : ℤ} (h : y ^ 2 = x ^ 3 + 79) :
   obtain ⟨j, u, δ, hj⟩ := exists_unit_mul_cube_of_mordell_rep_int sd_sq' h
     (isCoprime_two_mul hsqfree h (not_two_dvd_of_mordell (by decide) h))
     (ne_zero_of_add_sd y) (A := fun j : Fin 3 => J0 ^ (j : ℕ))
-    (α := fun j : Fin 3 => alpha0 ^ (j : ℕ)) (fun _ => Submonoid.pow_mem _ J0_mem _)
+    (A' := fun j : Fin 3 => J' 0 ^ (j : ℕ))
+    (α := fun j : Fin 3 => alpha0 ^ (j : ℕ))
+    (fun j => by rw [SubmonoidClass.coe_pow, J'_apply 0]; rfl)
     (fun j => J0_pow_cube (j : ℕ)) class_group_covers_O
   obtain ⟨e, t, ht⟩ := units_eq_zeta1_pow_mul_cube u
   obtain ⟨a, b, hab⟩ := exists_coords ((t : O) * δ)

@@ -22,6 +22,9 @@ noncomputable instance : Algebra ℚ K := by
   unfold K
   exact AdjoinRoot.instAlgebra _
 
+noncomputable instance : IsScalarTower ℤ ℚ K :=
+  IsScalarTower.of_algebraMap_eq (congrFun rfl)
+
 local notation "l" => [239, 13, -1, 1]
 
 noncomputable def Adj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) T) :=
@@ -64,7 +67,7 @@ noncomputable def Om : Subalgebra ℤ K := integralClosure ℤ K
 
 noncomputable def O := subalgebraOfBuilderLists T l BQ
 
-def hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
+theorem hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
 
 noncomputable def B' : Basis (Fin 3) ℤ Om :=
   Basis.reindex (AdjoinRoot.basisIntegralClosure T_monic
@@ -186,8 +189,8 @@ noncomputable def M2 : MaximalOrderCertificateLists 2 O Om hm where
  hmod2 := by decide
  hindv := by decide
  hindw := by decide
- hvFrobKer := by decide
- hwFrobComp := by decide 
+ hvFrobKer := by decide +kernel
+ hwFrobComp := by decide +kernel 
  g := ![![1, 0, 0],![1, 1, 0],![0, 1, 1]]
  a := ![![![1]],![![2]],![![-6]]]
  c := ![![![0, 0]],![![-1, 1]],![![-58, 2]]]
@@ -214,16 +217,16 @@ lemma B_one_repr : B.equivFun.symm ![1, 0, 0] = 1 := by
   · exact LinearEquiv.injective B.repr
 
 instance : IsDomain O := by
-  haveI hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
+  have hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
   {out := (Polynomial.Monic.irreducible_iff_irreducible_map_fraction_map (T_monic)).1 T_irreducible}
-  letI hola : Field K := by
+  let hola : Field K := by
     unfold K
     exact AdjoinRoot.instField
-  haveI : IsDomain K := by infer_instance
+  have : IsDomain K := by infer_instance
   refine Subalgebra.isDomain O
 
  noncomputable instance : Mul (Ideal ↥O) := Submodule.mul (R := O) (A := O)
  noncomputable instance  : AddCommMonoid ↥O := AddSubmonoidClass.toAddCommMonoid O
- noncomputable instance : Module ℤ O := O.instModuleSubtypeMem
+ noncomputable instance : Module ℤ O := inferInstance
  noncomputable instance  : Algebra ℤ O := O.algebra'
 

@@ -804,6 +804,7 @@ lemma PB233I2_primes (p : ℕ) :
   p ∈ Set.range ![83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137] ↔ Nat.Prime p ∧ 79 < p ∧ p ≤ 137 := by
   rw [← List.mem_ofFn']
   convert primes_range 79 137 (by omega)
+  decide
 
 def PB233I2 : PrimesBelowBoundCertificateInterval O 79 137 233 where
   m := 11

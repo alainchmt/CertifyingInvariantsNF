@@ -170,6 +170,7 @@ lemma PB784I15_primes (p : ℕ) :
   p ∈ Set.range ![769, 773] ↔ Nat.Prime p ∧ 761 < p ∧ p ≤ 783 := by
   rw [← List.mem_ofFn']
   convert primes_range 761 783 (by omega)
+  decide
 
 def PB784I15 : PrimesBelowBoundCertificateInterval O 761 783 784 where
   m := 2

@@ -10,7 +10,9 @@ the full ring of integers, and `3 ∤ 14 = h_K`.
 The certified inputs are those of `NF2_2_8104_1`: `O_integral_closure`, `ClassGroupO_equiv`
 (whence the class number `14`) and `units_eq_zeta1_pow_mul_cube` (the units modulo cubes).
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

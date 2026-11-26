@@ -733,6 +733,7 @@ lemma PB1189I21_primes (p : ℕ) :
   p ∈ Set.range ![1151, 1153, 1163, 1171, 1181, 1187] ↔ Nat.Prime p ∧ 1129 < p ∧ p ≤ 1188 := by
   rw [← List.mem_ofFn']
   convert primes_range 1129 1188 (by omega)
+  decide
 
 def PB1189I21 : PrimesBelowBoundCertificateInterval O 1129 1188 1189 where
   m := 6

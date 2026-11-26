@@ -221,14 +221,14 @@ lemma NI5N1 : Nat.card (O ⧸ I5N1) = 5 :=
 
 lemma isPrimeI5N1 : Ideal.IsPrime I5N1 := prime_ideal_of_norm_prime hp5.out _ NI5N1
 
-def I5N2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![5, 0, 0], ![32, 1, -2]] i)))
+def I5N2 : Ideal O := Ideal.span (Set.range (fun i ↦ B.equivFun.symm (![![5, 0, 0], ![16, -2, -1]] i)))
 
-def SI5N2: IdealEqSpanCertificate' Table ![![5, 0, 0], ![32, 1, -2]] 
+def SI5N2: IdealEqSpanCertificate' Table ![![5, 0, 0], ![16, -2, -1]] 
  ![![5, 0, 0], ![4, 1, 0], ![1, 0, 1]] where
-  M :=![![![5, 0, 0], ![0, 5, 0], ![0, 0, 5]], ![![32, 1, -2], ![99, -16, 3], ![-39, 34, -15]]]
+  M :=![![![5, 0, 0], ![0, 5, 0], ![0, 0, 5]], ![![16, -2, -1], ![47, -8, -11], ![103, -43, -10]]]
   hmulB := by decide  
-  f := ![![![28, -171, 81], ![135, -45, 0]], ![![-5, -126, 61], ![103, -33, 0]], ![![-20, -35, 18], ![31, -9, 0]]]
-  g := ![![![1, 0, 0], ![-4, 5, 0], ![-1, 0, 5]], ![![6, 1, -2], ![32, -16, 3], ![-32, 34, -15]]]
+  f := ![![![-2, -6, -24], ![45, -15, 0]], ![![5, -5, -18], ![31, -11, 0]], ![![-10, 0, -4], ![12, -3, 0]]]
+  g := ![![![1, 0, 0], ![-4, 5, 0], ![-1, 0, 5]], ![![5, -2, -1], ![18, -8, -11], ![57, -43, -10]]]
   hle1 := by decide   
   hle2 := by decide  
 
@@ -245,11 +245,11 @@ def MulI5N0 : IdealMulLeCertificate' Table
  hle2 := by decide  
 
 def MulI5N1 : IdealMulLeCertificate' Table 
-  ![![5, 0, 0], ![-17, 2, 1]] ![![5, 0, 0], ![32, 1, -2]]
+  ![![5, 0, 0], ![-17, 2, 1]] ![![5, 0, 0], ![16, -2, -1]]
   ![![5, 0, 0]] where
- M := ![![![25, 0, 0], ![160, 5, -10]], ![![-85, 10, 5], ![-385, -15, 25]]]
+ M := ![![![25, 0, 0], ![80, -10, -5]], ![![-85, 10, 5], ![-75, -25, -15]]]
  hmul := by decide  
- g := ![![![![5, 0, 0]], ![![32, 1, -2]]], ![![![-17, 2, 1]], ![![-77, -3, 5]]]]
+ g := ![![![![5, 0, 0]], ![![16, -2, -1]]], ![![![-17, 2, 1]], ![![-15, -5, -3]]]]
  hle2 := by decide  
 
 
@@ -835,6 +835,7 @@ lemma PB109I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 31 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 31 (by omega)
+  decide
 
 def PB109I0 : PrimesBelowBoundCertificateInterval O 1 31 109 where
   m := 11

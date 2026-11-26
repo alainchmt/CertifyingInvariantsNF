@@ -65,7 +65,7 @@ noncomputable def C : CertificateIrreducibleIntOfPrimeDegreeAnalysis T l where
   | 0 => ![4, 4]
  hl := by decide
  hirr := by
-  intro i ; intro j
+  intro i j
   fin_cases i <;> fin_cases j
   · dsimp ; exact irreducible_ofList_ofCertificateIrreducibleZModOfList' P3PI0
   · dsimp ; exact irreducible_ofList_ofCertificateIrreducibleZModOfList' P3PI0

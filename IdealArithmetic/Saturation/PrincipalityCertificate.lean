@@ -48,7 +48,7 @@ lemma orderOf_of_IsOrderOf {G : Type*} [Monoid G] {x : G} {n : ℕ} (h : IsOrder
     apply Nat.pow_pos
     exact Nat.Prime.pos (h.hP i)
   · intro p hp hpdvd
-    rw [← h.hm, Prime.dvd_finset_prod_iff (Nat.prime_iff.mp hp)] at hpdvd
+    rw [← h.hm, Prime.dvd_finsetProd_iff (Nat.prime_iff.mp hp)] at hpdvd
     choose a hau hadvd using hpdvd
     rw [Nat.prime_eq_prime_of_dvd_pow hp (h.hP a) hadvd]
     exact h.hnid a
@@ -104,7 +104,7 @@ lemma apply_map_ZMod {O : Type*} [CommRing O] {q ζ : ℕ}
     {hr : IsPrimitiveRoot (ζ : ZMod q) (q - 1)} {p : ℕ} {x : O} {l : ZMod p}
     (A : DiscreteLogCertificate hcard hr p x l) :
       (modIdealToZMod (hq).out I hcard) ((Ideal.Quotient.mk I) x) = A.m := by
-  haveI : NeZero A.r := A.hN
+  have : NeZero A.r := A.hN
   have hmem : x - A.m ∈ I := by
     convert A.hmem
     rw [← table_add_list_eq_add A.B A.xcoord
@@ -153,7 +153,9 @@ noncomputable def φ : Π i : τ, O →+* (ZMod (q i)) := by
   intro i
   exact ((modIdealToZMod (hF i).out (I i) (hcard i)).comp (Ideal.Quotient.mk (I i)))
 
-def hr_aux : ∀ i , IsPrimitiveRoot (ζ i : ZMod (q i)) (Fintype.card (F q i)ˣ) := by
+omit [Fintype τ] in
+include hr in
+theorem hr_aux : ∀ i , IsPrimitiveRoot (ζ i : ZMod (q i)) (Fintype.card (F q i)ˣ) := by
   intro i
   convert hr i
   rw [Fintype.card_eq_nat_card]
@@ -348,7 +350,7 @@ lemma units_linear_independent_of_pMaximalUnitsCertificateNDvdT {O : Type*} [Com
     (C : pMaximalUnitsCertificateNDvdT O p) :
   LinearIndependent ℤ (fun i => Additive.ofMul
     (QuotientGroup.mk (s := (CommGroup.torsion Oˣ)) (C.hu i).unit)) := by
-  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  have : Fact $ Nat.Prime p := {out := C.hp}
   refine units_linear_independent_not_dvd_torsion_of_full_rank
     (hF := fun i : Fin C.r => C.hqP (Fin.castLE C.hrle i))  (fun i => C.hcard (Fin.castLE C.hrle i))
     (fun i => C.hr (Fin.castLE C.hrle i)) C.u C.hu
@@ -367,7 +369,7 @@ lemma units_of_pMaximalUnitsCertificateNDvdT {O : Type*} [CommRing O]
     [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] {p : ℕ}
     (C : pMaximalUnitsCertificateNDvdT O p) (w : Oˣ) :
     ∃ (e' : Fin C.r → ℤ), (∃ (t : Oˣ) , w = (∏ i, ((C.hu i).unit) ^ (e' i)) * t ^ p) := by
-  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  have : Fact $ Nat.Prime p := {out := C.hp}
   refine units_up_to_p_power_not_dvd_torsion_of_full_rank
     (hF := fun i : Fin C.r => C.hqP (Fin.castLE C.hrle i))
     (fun i => C.hcard (Fin.castLE C.hrle i))
@@ -421,7 +423,7 @@ lemma torsion_of_pMaximalUnitsCertificateDvdT {O : Type*} [CommRing O] {p : ℕ}
     [IsCyclic (CommGroup.torsion Oˣ)] (C : pMaximalUnitsCertificateDvdT O p) :
     ∀ w ∈ CommGroup.torsion Oˣ, (∃ (a : ℤ) , (∃ t ∈ CommGroup.torsion Oˣ ,
       w = ((IsUnit.of_pow_eq_one C.hmv C.hm).unit ^ a * t ^ p))) := by
-  haveI : Fact $ Nat.Prime p := {out := C.hp }
+  have : Fact $ Nat.Prime p := {out := C.hp }
   have hvmem : (IsUnit.of_pow_eq_one C.hmv C.hm).unit ∈ CommGroup.torsion Oˣ := by
     rw [CommGroup.mem_torsion, isOfFinOrder_iff_pow_eq_one]
     use C.m
@@ -435,7 +437,7 @@ lemma torsion_of_pMaximalUnitsCertificateDvdT {O : Type*} [CommRing O] {p : ℕ}
   obtain ⟨t, ht⟩ := hg ⟨_, hvmem⟩
   rw [← Subtype.val_inj] at hr ht
   simp at hr ht
-  haveI := C.hqP
+  have := C.hqP
   have hnz : ∃ i, LogFiniteZMod (C.hcard (Fin.castLE C.hrle i))
     (C.hr (Fin.castLE C.hrle i)) p C.v ≠ 0 := by
     by_contra! h
@@ -496,7 +498,7 @@ lemma units_linear_independent_of_pMaximalUnitsCertificateDvdT {O : Type*} [Comm
     (C : pMaximalUnitsCertificateDvdT O p) :
     LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk
       (s := (CommGroup.torsion Oˣ)) (C.hu i).unit)) := by
-  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  have : Fact $ Nat.Prime p := {out := C.hp}
   refine units_linear_independent_dvd_torsion_of_full_rank
     (hF := fun i : Fin (C.r + 1) => C.hqP (Fin.castLE C.hrle i))
     (fun i => C.hcard (Fin.castLE C.hrle i)) (fun i => C.hr (Fin.castLE C.hrle i)) C.u C.hu
@@ -530,7 +532,7 @@ lemma units_of_pMaximalUnitsCertificateDvdT {O : Type*} [CommRing O]
     ∃ (e' : (Fin C.r) ⊕ (Fin 1) → ℤ), (∃ (t : Oˣ) , w = (∏ (i : (Fin C.r) ⊕ (Fin 1)),
       (Sum.elim (fun i => (C.hu i).unit)
       (fun _ => (IsUnit.of_pow_eq_one C.hmv C.hm).unit) i) ^ (e' i)) * t ^ p) := by
-  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  have : Fact $ Nat.Prime p := {out := C.hp}
   refine units_up_to_p_power_dvd_torsion_of_full_rank
     (hF := fun i : Fin (C.r + 1) => C.hqP (Fin.castLE C.hrle i))
     (fun i => C.hcard (Fin.castLE C.hrle i)) (fun i => C.hr (Fin.castLE C.hrle i))
@@ -593,7 +595,7 @@ lemma matrix_of_NonPrincipalCertificateNDvdT {O : Type*} [CommRing O]
     · simp only [Matrix.of_apply, Sum.elim_inl, MatrixLogZMod]
       exact C.hM1 i j
     · simp only [Matrix.of_apply, Sum.elim_inr, MatrixLogZMod]
-      haveI : Fact $ Nat.Prime (C.q i) := C.hqP i
+      have : Fact $ Nat.Prime (C.q i) := C.hqP i
       rw [eq_of_DiscreteLogCertificate (C.hM2 i k)]
 
 
@@ -604,7 +606,7 @@ lemma pSaturated_of_CertificateNDvdT {O : Type*} [CommRing O]
     ∀ r : Fin c → ℕ, ∀ b : O, ∏ i, (J i) ^ (r i) =
       Ideal.span {b} → (∀ i, n i ∣ p * (r i)) → ∀ i, n i ∣ r i := by
   intro r b hrb hib
-  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  have : Fact $ Nat.Prime p := {out := C.hp}
   refine pSaturated_of_full_rank_matrixLogZMod (hF := C.hqP) C.hcard C.hr C.u C.hu
     ?_ C.hdvd J C.a n C.ψ ?_ ?_ ?_ C.h ?_ r b hrb hib
   · intro w
@@ -685,7 +687,7 @@ lemma matrix_of_NonPrincipalCertificateDvdT {O : Type*} [CommRing O]
   · simp only [Matrix.reindex_apply, Equiv.refl_symm, Equiv.coe_refl, Equiv.sumCongr_symm,
     Equiv.symm_symm, Matrix.submatrix_apply, id_eq, Equiv.sumCongr_apply, Sum.map_inr,
     Matrix.of_apply, Sum.elim_inr, MatrixLogZMod]
-    haveI : Fact $ Nat.Prime (C.q i) := C.hqP i
+    have : Fact $ Nat.Prime (C.q i) := C.hqP i
     rw [eq_of_DiscreteLogCertificate (C.hM3 i k)]
 
 
@@ -697,7 +699,7 @@ lemma pSaturated_of_CertificateDvdT {O : Type*} [CommRing O]
     ∀ r : Fin c → ℕ, ∀ b : O, ∏ i, (J i) ^ (r i) = Ideal.span {b} →
       (∀ i, n i ∣ p * (r i)) → ∀ i, n i ∣ r i := by
   intro r b hrb hib
-  haveI : Fact $ Nat.Prime p := {out := C.hp}
+  have : Fact $ Nat.Prime p := {out := C.hp}
   have aux : ∀ (i : Fin C.r ⊕ Fin 1), IsUnit (Sum.elim C.u (fun x ↦ C.v) i) := by
       intro i
       rcases i with i | j
@@ -741,7 +743,7 @@ lemma pSaturated_of_CertificateDvdT {O : Type*} [CommRing O]
 /-- An isomorphism between the class group and an explicit finite group from
   certificates of `p`-saturation at every prime.  -/
 noncomputable def ClassGroup_equiv_of_pSaturatedCertificate  {O : Type*} [CommRing O]
-    [IsDomain O] [IsDedekindDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
+ [IsDedekindDomain O] [Module.Finite ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))]
     [Module.Free ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ)))] [IsCyclic (CommGroup.torsion Oˣ)]
     {c : ℕ} {J : Fin c → Ideal O} {n : Fin c → ℕ} [∀ i, NeZero (n i)]
     {J' : Fin c → nonZeroDivisors (Ideal O)} (hJ' : ∀ i, ↑(J' i) = J i)

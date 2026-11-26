@@ -1046,6 +1046,7 @@ lemma PB3759I14_primes (p : ℕ) :
   p ∈ Set.range ![709, 719, 727, 733, 739, 743, 751, 757, 761] ↔ Nat.Prime p ∧ 701 < p ∧ p ≤ 761 := by
   rw [← List.mem_ofFn']
   convert primes_range 701 761 (by omega)
+  decide
 
 def PB3759I14 : PrimesBelowBoundCertificateInterval O 701 761 3759 where
   m := 9

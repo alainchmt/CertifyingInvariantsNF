@@ -589,6 +589,7 @@ lemma PB692I12_primes (p : ℕ) :
   p ∈ Set.range ![661, 673, 677, 683, 691] ↔ Nat.Prime p ∧ 659 < p ∧ p ≤ 691 := by
   rw [← List.mem_ofFn']
   convert primes_range 659 691 (by omega)
+  decide
 
 def PB692I12 : PrimesBelowBoundCertificateInterval O 659 691 692 where
   m := 5

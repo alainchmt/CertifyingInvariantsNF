@@ -85,7 +85,7 @@ noncomputable def quotMapEquivQuotQuotMap' :
 lemma quotMapEquivQuotQuotMap_symm_apply' (Q : R[X]) :
     (quotMapEquivQuotQuotMap' hx hx').symm (Q.map (Ideal.Quotient.mk I)) = Q.aeval x := by
   apply (quotMapEquivQuotQuotMap' hx hx').injective
-  rw [quotMapEquivQuotQuotMap', AlgEquiv.toRingEquiv_eq_coe, RingEquiv.symm_trans_apply,
+  rw [quotMapEquivQuotQuotMap', RingEquiv.symm_trans_apply,
     RingEquiv.symm_symm, RingEquiv.coe_trans, Function.comp_apply, RingEquiv.symm_apply_apply,
     RingEquiv.symm_trans_apply, quotEquivOfEq_symm, quotEquivOfEq_mk]
   congr
@@ -151,7 +151,7 @@ lemma ideal_span_pair_maximal (hI : IsMaximal I) (d : R[X])
     (hirr : Irreducible (Polynomial.map (Ideal.Quotient.mk I) d)) :
     IsMaximal (Ideal.span (I.map (algebraMap R S) ∪ {d.aeval x})) := by
   refine Ideal.Quotient.maximal_of_isField _ ?_
-  haveI : Fact $ Irreducible (Polynomial.map (Ideal.Quotient.mk I) d) := {out := hirr}
+  have : Fact $ Irreducible (Polynomial.map (Ideal.Quotient.mk I) d) := {out := hirr}
   refine MulEquiv.isField (Field.toIsField (R :=
     (R ⧸ I)[X] ⧸ span {Polynomial.map (Ideal.Quotient.mk I) d})) (quotMapEquiv hx hx' _ hd).toMulEquiv
 
@@ -223,7 +223,7 @@ lemma card_quot_span [IsDomain S] [CharZero S] [Fact $ Nat.Prime p]  (d : ℤ[X]
     by_contra hc
     rw [hc, algebraMap_int_eq, zero_dvd_iff] at hd
     refine (Polynomial.map_monic_ne_zero (minpoly.monic hx') ) hd
-  haveI : Module.Finite (ZMod p) (AdjoinRoot d') := PowerBasis.finite (AdjoinRoot.powerBasis hdz)
+  have : Module.Finite (ZMod p) (AdjoinRoot d') := PowerBasis.finite (AdjoinRoot.powerBasis hdz)
   rw [Module.natCard_eq_pow_finrank (K := ZMod p), Module.finrank_eq_card_basis
     (AdjoinRoot.powerBasis hdz).basis, (AdjoinRoot.powerBasis_dim hdz)]
   simp only [Nat.card_eq_fintype_card, ZMod.card, Fintype.card_fin]
@@ -322,7 +322,7 @@ lemma FactorsPolyZMod_irreducible  {l : List ℤ} {p m : ℕ} [Fact $ Nat.Prime 
   (A : FactorsPolyZMod l p m) :
   ∀ i , Irreducible (ofList (A.D' i)) := by
   intro i
-  haveI := A.hn
+  have := A.hn
   exact irreducible_ofList_ofCertificateIrreducibleZModOfList' (A.hirr i)
 
 lemma PrimeIdealKummer_eq_p {O : Type*} [CommRing O]
@@ -340,7 +340,7 @@ lemma PrimeIdealKummer_eq_poly_eval {O : Type*} [CommRing O]
   (C : PrimeIdealKummer T a z l p)
   (hBz : TT.basis.equivFun.symm z = 1) :
     TT.basis.equivFun.symm (C.w 1) = (ofList l).aeval (TT.basis.equivFun.symm a) := by
-  haveI : NeZero l.length := ⟨by rw [C.hlen]; omega⟩
+  have : NeZero l.length := ⟨by rw [C.hlen]; omega⟩
   have hceq := table_polynomial_eval TT.table T TT.basis l z hBz a (C.w 1)
     TT.basis_mul_basis heq ?_
   · rw [hceq]
@@ -359,7 +359,7 @@ open Module
 has characteristic zero: this need not be assumed separately. -/
 lemma charZero_of_timesTable {O : Type*} [CommRing O] [IsDomain O] {ι : Type} [Finite ι]
     (B : Basis ι ℤ O) : CharZero O := by
-  haveI : NoZeroSMulDivisors ℤ O := ⟨by
+  have : NoZeroSMulDivisors ℤ O := ⟨by
     intro n x h
     have h2 := congrArg B.equivFun h
     rw [map_smul, map_zero] at h2
@@ -385,8 +385,8 @@ lemma PrimeIdealKummer_isPrime {O : Type*} [CommRing O] [IsDomain O]
   (C : PrimeIdealKummer T a z (A.D i) p)
   (hBz : TT.basis.equivFun.symm z = 1) (I : Ideal O)
   (hieq : I = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (C.w j)))) : I.IsPrime := by
-  haveI := charZero_of_timesTable TT.basis
-  haveI : Module.Finite ℤ O := Module.Finite.of_basis TT.basis
+  have := charZero_of_timesTable TT.basis
+  have : Module.Finite ℤ O := Module.Finite.of_basis TT.basis
   have hint : IsIntegral ℤ (TT.basis.equivFun.symm a) := IsIntegral.of_finite ℤ _
   have hdeq : ofList (A.D' i) = (ofList (A.D i)).map (algebraMap ℤ (ZMod p)) := by
     rw [ofList_map, A.heqm i]
@@ -428,8 +428,8 @@ lemma PrimeIdealKummer_card_quot {O : Type*} [CommRing O] [IsDomain O]
   (hBz : TT.basis.equivFun.symm z = 1) (I : Ideal O)
   (hieq : I = Ideal.span (Set.range (fun j => TT.basis.equivFun.symm (C.w j)))) :
     Nat.card (O ⧸ I) = p ^ (A.n i) := by
-  haveI := charZero_of_timesTable TT.basis
-  haveI : Module.Finite ℤ O := Module.Finite.of_basis TT.basis
+  have := charZero_of_timesTable TT.basis
+  have : Module.Finite ℤ O := Module.Finite.of_basis TT.basis
   have hint : IsIntegral ℤ (TT.basis.equivFun.symm a) := IsIntegral.of_finite ℤ _
   have hdeq : ofList (A.D' i) = (ofList (A.D i)).map (algebraMap ℤ (ZMod p)) := by
     rw [ofList_map, A.heqm i]
@@ -455,7 +455,7 @@ lemma PrimeIdealKummer_card_quot {O : Type*} [CommRing O] [IsDomain O]
       · exact ⟨0, h0⟩
       · exact ⟨1, h1⟩
   have hdeg : (ofList (A.D' i)).natDegree = A.n i := by
-    haveI := A.hn i
+    have := A.hn i
     have hne : (A.D' i) ≠ 0 := List.ne_nil_of_length_eq_add_one (A.hirr i).hlen
     have htr : (A.D' i) = (A.D' i).dropTrailingZeros := by
       rw [dropTrailingZeros_eq_dropTrailingZeros']; exact (A.hirr i).htr
@@ -500,7 +500,7 @@ lemma PrimeIdealKummer_prod_le {O : Type*} [CommRing O] [IsDomain O]
       · exact ⟨0, h0⟩
       · exact ⟨1, h1⟩
 
-def PrimeIdealKummer_containsPrimesAbove {O : Type*} [CommRing O]
+theorem PrimeIdealKummer_containsPrimesAbove {O : Type*} [CommRing O]
   [IsDomain O]
   {p r m : ℕ} [Fact $ Nat.Prime p] {T : Fin r → Fin r → List ℤ}
   {a : Fin r → ℤ} {z : Fin r → ℤ} {l : List ℤ} {TT : TimesTable (Fin r) ℤ O}

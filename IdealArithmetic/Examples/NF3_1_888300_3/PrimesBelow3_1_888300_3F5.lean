@@ -104,6 +104,7 @@ lemma PB267I5_primes (p : ℕ) :
   p ∈ Set.range ![263] ↔ Nat.Prime p ∧ 257 < p ∧ p ≤ 266 := by
   rw [← List.mem_ofFn']
   convert primes_range 257 266 (by omega)
+  decide
 
 def PB267I5 : PrimesBelowBoundCertificateInterval O 257 266 267 where
   m := 1

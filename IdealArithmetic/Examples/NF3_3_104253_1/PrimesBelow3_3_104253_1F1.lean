@@ -658,6 +658,7 @@ lemma PB72I1_primes (p : ℕ) :
   p ∈ Set.range ![37, 41, 43, 47, 53, 59, 61, 67, 71] ↔ Nat.Prime p ∧ 31 < p ∧ p ≤ 71 := by
   rw [← List.mem_ofFn']
   convert primes_range 31 71 (by omega)
+  decide
 
 def PB72I1 : PrimesBelowBoundCertificateInterval O 31 71 72 where
   m := 9

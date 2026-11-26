@@ -35,7 +35,7 @@ noncomputable def equivRealEmbeddingsRealRoots (K : Type*) [Field K] [NumberFiel
     ∈ (map (algebraMap ℚ ℝ) f).roots := by
     intro a ha
     simp [i, hf]
-    letI aux : Algebra K ℝ := ha.embedding.toAlgebra
+    let aux : Algebra K ℝ := ha.embedding.toAlgebra
     rw [← RingHom.algebraMap_toAlgebra ((ComplexEmbedding.IsReal.embedding ha)),
       Polynomial.aeval_algebraMap_apply, IsAdjoinRoot.aeval_root_self hr, map_zero]
   refine Equiv.ofBijective (fun ⟨φ, hφ⟩  => ⟨i ⟨φ, hφ⟩, hmem φ hφ⟩ ) ?_
@@ -51,13 +51,13 @@ noncomputable def equivRealEmbeddingsRealRoots (K : Type*) [Field K] [NumberFiel
     ext x
     rw [← NumberField.ComplexEmbedding.IsReal.coe_embedding_apply φ.2 x,
       ← NumberField.ComplexEmbedding.IsReal.coe_embedding_apply τ.2 x, aux1]
-    · letI aux : Algebra K ℝ := (τ.2).embedding.toAlgebra
+    · let aux : Algebra K ℝ := (τ.2).embedding.toAlgebra
       have : algebraMap K ℝ = (τ.2).embedding := rfl
       simp[i]
       rw [IsScalarTower.algebraMap_eq ℚ K ℝ, ← Polynomial.eval₂_map, this,
         Polynomial.eval₂_hom, Polynomial.eval_map, ← Polynomial.aeval_def,
           IsAdjoinRoot.aeval_root_self, map_zero]
-    · letI aux : Algebra K ℝ := (φ.2).embedding.toAlgebra
+    · let aux : Algebra K ℝ := (φ.2).embedding.toAlgebra
       have : algebraMap K ℝ = (φ.2).embedding := rfl
       simp[i]
       rw [IsScalarTower.algebraMap_eq ℚ K ℝ, ← Polynomial.eval₂_map, this,
@@ -143,7 +143,7 @@ lemma orderOf_map_CharP  {S R : Type*} {q n : ℕ} [CommRing S] [IsDomain S]
     (Nat.pos_of_neZero _) (ho ▸ IsPrimitiveRoot.orderOf x)
   symm
   apply IsPrimitiveRoot.eq_orderOf
-  haveI : NeZero (↑n : R) := by
+  have : NeZero (↑n : R) := by
     refine NeZero.of_not_dvd (p := q) R hneq
   rw [← Polynomial.isRoot_cyclotomic_iff]
   simp at aux ⊢
@@ -171,7 +171,7 @@ lemma prime_not_dvd_torsion_of_not_dvd {S : Type*} [CommRing S] [IsDomain S] {p 
     [Fintype (CommGroup.torsion Sˣ)](I : Ideal S) (hcard : Nat.card (S ⧸ I) = q)
     (hpndvd : ¬ p ∣ (q - 1)) (hneq : p ≠ q) :
      ¬ p ∣ Nat.card (CommGroup.torsion Sˣ) := by
-  haveI : Fact $ Nat.Prime q := {out := hq}
+  have : Fact $ Nat.Prime q := {out := hq}
   rw [Nat.card_eq_fintype_card]
   intro hdvd
   obtain ⟨x, hx⟩ := exists_prime_orderOf_dvd_card p hdvd
@@ -201,7 +201,7 @@ lemma not_dvd_torsion_of_not_dvd {S : Type*} [CommRing S] [IsDomain S]
     (I : Ideal S) (hcard : Nat.card (S ⧸ I) = q)
     (hpndvd : ¬ n ∣ q - 1) (hneq : ¬ q ∣ n) :
      ¬ n ∣ Nat.card (CommGroup.torsion Sˣ) := by
-  haveI : Fact $ Nat.Prime q := {out := hq}
+  have : Fact $ Nat.Prime q := {out := hq}
   obtain ⟨g, hg⟩ := isCyclic_iff_exists_orderOf_eq_natCard.1 hC
   intro hdvd
   rw [← hg] at hdvd
@@ -354,7 +354,7 @@ lemma units_finrank_of_RankUnitsCertificate {K : Type*} [Field K] [NumberField K
     Module.finrank ℤ (Additive (Oˣ ⧸ (CommGroup.torsion Oˣ))) = C.r - 1  := by
   conv =>
     left
-    erw [C.heq, NumberField.Units.rank_modTorsion]
+    erw [C.heq, NumberField.Units.finrank_modTorsion]
   unfold NumberField.Units.rank
   rw [card_infinitePlace_of_RankUnitsCertificate C]
 

@@ -1003,6 +1003,7 @@ lemma PB4920I48_primes (p : ℕ) :
   p ∈ Set.range ![3019, 3023, 3037, 3041, 3049, 3061, 3067, 3079, 3083] ↔ Nat.Prime p ∧ 3011 < p ∧ p ≤ 3083 := by
   rw [← List.mem_ofFn']
   convert primes_range 3011 3083 (by omega)
+  decide
 
 def PB4920I48 : PrimesBelowBoundCertificateInterval O 3011 3083 4920 where
   m := 9

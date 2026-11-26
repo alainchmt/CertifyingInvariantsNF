@@ -1,7 +1,7 @@
 import IdealArithmetic.MordellExamples.MordellExample142.NF2_2_568_1.ClassGroupRepresentatives
 
 /-!
-# `y ^ 2 = x ^ 3 + 142` reduces to two Thue equations
+# `y ^ 2 = x ^ 3 + 142` reduces to a single Thue equation
 
 The case **`3 ∣ h`**: here `142 ≡ 2 [ZMOD 4]`, so
 `O = ℤ[√142]` is the full ring of integers and `x` is odd, but the class group is `ℤ/3`, so the
@@ -20,10 +20,13 @@ the congruences the equation itself forces: `27 ^ j ∣` the form exactly on the
 substitution per power of `27` brings every right-hand side back to `±1`.
 
 Of the nine `(j, e)` pairs: `(0,0)` is degenerate, the six with `e ≠ 0` are insoluble mod `9`,
-and `(1,0)`, `(2,0)` give the two Thue equations below -- both over the cubic field of
-discriminant `-1704`, and each with the single solution `(1,0)`, giving `x = 3`.
+and `(1,0)`, `(2,0)` give forms that are `GL₂(ℤ)`-equivalent (via `(A,B) ↦ (A + 5B, -B)`, which
+also matches the two formulas for `x`), so the reduction ends at one equation -- over the cubic
+field of discriminant `-1704`, with the single solution `(1,0)`, giving `x = 3`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false
@@ -411,7 +414,9 @@ theorem mordell142_imp_thue {x y : ℤ} (h : y ^ 2 = x ^ 3 + 142) :
   obtain ⟨j, u, δ, hj⟩ := exists_unit_mul_cube_of_mordell_rep_int sd_sq' h
     (isCoprime_two_mul hsqfree h (not_two_dvd_of_mordell (by decide) h))
     (ne_zero_of_add_sd y) (A := fun j : Fin 3 => J0 ^ (j : ℕ))
-    (α := fun j : Fin 3 => alpha0 ^ (j : ℕ)) (fun _ => Submonoid.pow_mem _ J0_mem _)
+    (A' := fun j : Fin 3 => J' 0 ^ (j : ℕ))
+    (α := fun j : Fin 3 => alpha0 ^ (j : ℕ))
+    (fun j => by rw [SubmonoidClass.coe_pow, J'_apply 0]; rfl)
     (fun j => J0_pow_cube (j : ℕ)) class_group_covers_O
   obtain ⟨e, t, ht⟩ := units_eq_zeta1_pow_mul_cube u
   obtain ⟨a, b, hab⟩ := exists_coords ((t : O) * δ)

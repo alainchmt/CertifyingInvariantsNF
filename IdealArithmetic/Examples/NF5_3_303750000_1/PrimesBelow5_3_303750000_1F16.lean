@@ -170,6 +170,7 @@ lemma PB853I16_primes (p : ℕ) :
   p ∈ Set.range ![829, 839] ↔ Nat.Prime p ∧ 827 < p ∧ p ≤ 852 := by
   rw [← List.mem_ofFn']
   convert primes_range 827 852 (by omega)
+  decide
 
 def PB853I16 : PrimesBelowBoundCertificateInterval O 827 852 853 where
   m := 2

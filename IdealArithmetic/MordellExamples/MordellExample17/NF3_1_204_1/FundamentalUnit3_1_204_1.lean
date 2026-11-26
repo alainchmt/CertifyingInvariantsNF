@@ -9,7 +9,9 @@ Every unit of `O` is `± zeta1 ^ n`.  `artin_inequality_bound_index'` is fed wit
 There is no prime `≤ 1`, so the saturation hypothesis `hp` is vacuous and this field needs no
 `UnitsSaturated` certificate at all.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

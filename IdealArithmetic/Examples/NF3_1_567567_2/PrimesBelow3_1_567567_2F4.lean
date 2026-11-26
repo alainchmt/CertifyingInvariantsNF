@@ -246,6 +246,7 @@ lemma PB214I4_primes (p : ℕ) :
   p ∈ Set.range ![197, 199, 211] ↔ Nat.Prime p ∧ 193 < p ∧ p ≤ 213 := by
   rw [← List.mem_ofFn']
   convert primes_range 193 213 (by omega)
+  decide
 
 def PB214I4 : PrimesBelowBoundCertificateInterval O 193 213 214 where
   m := 3

@@ -8,6 +8,11 @@ import IdealArithmetic.Signature.ResultantRecursive
 import IdealArithmetic.DedekindProject.Discriminant
 import IdealArithmetic.Generation.ClassGroupGeneration
 
+/-!
+# AI Use
+Opus 5 was used for the section "Units modulo cubes"
+-/
+
 namespace NF2_2_17_1
 
 set_option linter.all false
@@ -48,7 +53,7 @@ theorem O_integral_closure : O = integralClosure ℤ K := by
   intro p hp
   by_cases hc : p ∈ [2]
   · fin_cases hc
-    exact @pMaximal_of_MaximalOrderCertificateOfUnramifiedLists K 2 _ IsAddTorsionFree.to_noZeroSMulDivisors_int _ O Om hm _ _ M2
+    exact @pMaximal_of_MaximalOrderCertificateOfUnramifiedLists K 2 _ HasUniqueDiv.to_noZeroSMulDivisors_int _ O Om hm _ _ M2
   · haveI : Fact $ Nat.Prime p := fact_iff.2 hp
     refine piMaximal_of_root_in_order_of_satisfiesDedekindCriterion_int Adj T_monic hm ?_ hroot_mem
      (satisfiesDedekindAlmostAllLists_of_certificate T _ T_ofList [2] D p hp hc)
@@ -66,13 +71,16 @@ instance : Module.Free ℤ (Additive ((↥O)ˣ ⧸ CommGroup.torsion (↥O)ˣ)) 
 
 instance :  Fintype ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
-  exact NumberField.Units.instFintypeSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
+  exact @Fintype.ofFinite _
+    (NumberField.Units.instFiniteSubtypeUnitsRingOfIntegersMemSubgroupTorsion K)
 
 instance : IsCyclic ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
   exact NumberField.Units.instIsCyclicSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
 
 instance DD' : IsDedekindDomain O  := by
+  haveI : Module.Finite ℚ K :=
+    Module.Finite.of_basis (IsAdjoinRootMonic.basis ⟨Adj, Polynomial.Monic.map _ T_monic⟩)
   rw [O_integral_closure]
   exact integralClosure.isDedekindDomain ℤ ℚ K
 
@@ -125,6 +133,7 @@ def RC : RankUnitsCertificate O where
 lemma T_discr : T.discr = 68 :=  by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
   rw [T_ofList]
+  decide
 
 theorem K_discr : NumberField.discr K = 17 := by
   rw [discr_numberField_eq_discrSubalgebraBuilder T_irreducible BQ O_integral_closure]
@@ -165,7 +174,7 @@ lemma primesGenerationBelow : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.a
 def 𝔭' : Fin 2 → nonZeroDivisors (Ideal O) := by
   intro i
   have : PB3.β i ∈ List.ofFn PB3.β := by
-    simp only [List.mem_ofFn, exists_apply_eq_apply]
+    exact List.mem_ofFn.mpr ⟨i, rfl⟩
   refine Ideal.toNonZeroDivisorOfNeZero ((PB3.β) i)
     (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate_Fn _ PB3) (hc ▸ this) ))
 
@@ -207,7 +216,7 @@ def ClassGroupO_equiv : (∀ i : Fin 1 , (ZMod (![1] i))) ≃+ Additive (ClassGr
     intro i
     fin_cases i <;>  exact {out := by decide}
   refine ClassGroup_equiv_of_pSaturatedCertificate J'_apply (a := ![1]) (n := ![1])
-    (by simp [J]; exact Eq.symm Ideal.span_singleton_one) class_group_generator ?_
+    (by simp [J]) class_group_generator ?_
   rintro ⟨p, hp1, hp2⟩
   simp at hp2
   exact (Nat.Prime.ne_one hp1 hp2).elim
@@ -270,6 +279,8 @@ def NPCU3 : pMaximalUnitsCertificateNDvdT O 3 where
   · erw [eq_of_DiscreteLogCertificate Sat3.Log00] ; decide
  Minv := ![![1]]
  hInv := by decide
+
+/-! ### Units modulo cubes -/
 
 /-- `zeta1` as a unit of `O`. -/
 def Z1 : Oˣ := isUnit_zeta1.unit

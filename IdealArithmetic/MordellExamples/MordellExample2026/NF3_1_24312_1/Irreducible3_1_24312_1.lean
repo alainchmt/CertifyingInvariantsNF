@@ -2,6 +2,8 @@ import IdealArithmetic.DedekindProject.Polynomial.IrreduciblePolynomialZModp
 import Mathlib.Tactic.NormNum.Prime
 import IdealArithmetic.DedekindProject.Polynomial.BrillhartIrreducibilityTest
 
+namespace NF3_1_24312_1
+
 open Polynomial
 
 local notation "T" => (X^3 + 3*X - 90 : ℤ[X])
@@ -29,3 +31,5 @@ noncomputable def C : CertificateIrreducibleIntOfPrime T l where
  heval := by norm_num
 
 theorem irreducible_T : Irreducible T := irreducible_of_CertificateIrreducibleIntOfPrime _ _ C
+
+end NF3_1_24312_1

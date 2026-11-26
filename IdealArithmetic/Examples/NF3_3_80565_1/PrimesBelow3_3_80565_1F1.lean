@@ -551,6 +551,7 @@ lemma PB64I1_primes (p : ℕ) :
   p ∈ Set.range ![37, 41, 43, 47, 53, 59, 61] ↔ Nat.Prime p ∧ 31 < p ∧ p ≤ 63 := by
   rw [← List.mem_ofFn']
   convert primes_range 31 63 (by omega)
+  decide
 
 def PB64I1 : PrimesBelowBoundCertificateInterval O 31 63 64 where
   m := 7

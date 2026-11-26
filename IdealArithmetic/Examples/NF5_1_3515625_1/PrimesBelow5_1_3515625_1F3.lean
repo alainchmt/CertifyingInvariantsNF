@@ -388,6 +388,7 @@ lemma PB117I3_primes (p : ℕ) :
   p ∈ Set.range ![107, 109, 113] ↔ Nat.Prime p ∧ 103 < p ∧ p ≤ 116 := by
   rw [← List.mem_ofFn']
   convert primes_range 103 116 (by omega)
+  decide
 
 def PB117I3 : PrimesBelowBoundCertificateInterval O 103 116 117 where
   m := 3

@@ -22,6 +22,9 @@ noncomputable instance : Algebra ℚ K := by
   unfold K
   exact AdjoinRoot.instAlgebra _
 
+noncomputable instance : IsScalarTower ℤ ℚ K :=
+  IsScalarTower.of_algebraMap_eq (congrFun rfl)
+
 local notation "l" => [-8, 9, 0, -3, 0, 1]
 
 noncomputable def Adj : IsAdjoinRoot K (map (algebraMap ℤ ℚ) T) :=
@@ -66,7 +69,7 @@ noncomputable def Om : Subalgebra ℤ K := integralClosure ℤ K
 
 noncomputable def O := subalgebraOfBuilderLists T l BQ
 
-def hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
+theorem hm : O ≤ Om := le_integralClosure_of_basis O (basisOfBuilderLists T l BQ)
 
 noncomputable def B' : Basis (Fin 5) ℤ Om :=
   Basis.reindex (AdjoinRoot.basisIntegralClosure T_monic
@@ -201,17 +204,17 @@ lemma B_one_repr : B.equivFun.symm ![1, 0, 0, 0, 0] = 1 := by
   · exact LinearEquiv.injective B.repr
 
 instance : IsDomain O := by
-  haveI hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
+  have hirr : Fact $ Irreducible (map (algebraMap ℤ ℚ) T) :=
   {out := (Polynomial.Monic.irreducible_iff_irreducible_map_fraction_map (T_monic)).1 T_irreducible}
-  letI hola : Field K := by
+  let hola : Field K := by
     unfold K
     exact AdjoinRoot.instField
-  haveI : IsDomain K := by infer_instance
+  have : IsDomain K := by infer_instance
   refine Subalgebra.isDomain O
 
  noncomputable instance : Mul (Ideal ↥O) := Submodule.mul (R := O) (A := O)
  noncomputable instance  : AddCommMonoid ↥O := AddSubmonoidClass.toAddCommMonoid O
- noncomputable instance : Module ℤ O := O.instModuleSubtypeMem
+ noncomputable instance : Module ℤ O := inferInstance
  noncomputable instance  : Algebra ℤ O := O.algebra'
 
 instance hirr : Fact $ (Irreducible (map (algebraMap ℤ ℚ) T)) where
@@ -245,8 +248,8 @@ theorem O_integral_closure : O = integralClosure ℤ K := by
   by_cases hc : p ∈ [2]
   · fin_cases hc
     exact @pMaximal_of_MaximalOrderCertificateOfUnramifiedLists K 2 _
-      IsAddTorsionFree.to_noZeroSMulDivisors_int _ O Om hm _ _ M2
-  · haveI : Fact $ Nat.Prime p := fact_iff.2 hp
+      HasUniqueDiv.to_noZeroSMulDivisors_int _ O Om hm _ _ M2
+  · have : Fact $ Nat.Prime p := fact_iff.2 hp
     refine piMaximal_of_root_in_order_of_satisfiesDedekindCriterion_int Adj T_monic hm ?_ hroot_mem
      (satisfiesDedekindAlmostAllLists_of_certificate T _ T_ofList [2] D p hp hc)
     rw [T_degree, rank_subalgebra_eq_card_basis Om B']

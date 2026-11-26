@@ -13,7 +13,9 @@ rounded bounds `805000` and `808000` below are safe (the true value is `806385.0
 The Artin index bound uses `a/b = 20/7` and `c/d = 59/3`, so
 `(c*b)/(a*d) = 413/60 = 6`: the primes `2`, `3`, `5` have to be certified.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

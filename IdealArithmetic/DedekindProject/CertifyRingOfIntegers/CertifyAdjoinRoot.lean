@@ -105,7 +105,7 @@ lemma subalgebraOfPolys_top_le :
   erw [aux, Submodule.map_top]
   intros x hx
   rw [← SetLike.mem_coe , LinearMap.coe_range, SMulMemClass.coe_subtype, Subtype.range_coe_subtype,
-      Set.mem_setOf_eq, ← Subalgebra.mem_carrier] at hx
+      Set.mem_ofPred_eq, ← Subalgebra.mem_carrier] at hx
   rw [← SetLike.mem_coe]
   exact hx
 
@@ -258,7 +258,7 @@ lemma is_det_ne_zero_of_upper_triangular [IsDomain R] (hc : ∀ i j, j < i → c
     intro i j
     simp only [id_eq]
     exact hc i j
-  rw [Matrix.det_of_upperTriangular this, Finset.prod_ne_zero_iff]
+  rw [Matrix.det_of_isUpperTriangular this, Finset.prod_ne_zero_iff]
   simp only [Finset.mem_univ, ne_eq, forall_true_left]
   exact hin
 
@@ -470,7 +470,7 @@ lemma root_in_subalgebra (T : R[X])(A : SubalgebraBuilder n R Q K T)
     Polynomial.map_mul, map_C, map_X] at h
   apply_fun (A.h).map at h
   simp only [map_sum, map_mul, ← IsAdjoinRoot.algebraMap_apply, map_sub, IsAdjoinRoot.map_X,
-    IsAdjoinRoot.map_self, zero_mul, sub_zero,] at h
+    IsAdjoinRoot.map_self, zero_mul, sub_zero] at h
   apply_fun (fun y => algebraMap Q K (algebraMap R Q A.d)⁻¹ * y) at h
   conv at h =>
     right
@@ -552,7 +552,7 @@ lemma basisOfBuilderLists_apply_Fn [DecidableEq R](T : R[X])(l : List R)
   (basisOfBuilderLists T l A).equivFun.symm f = (A.h).map
     (C (algebraMap R Q A.d)⁻¹ * ∑ i, (C ((algebraMap R Q) (f i)) : Q[X])
       * (map (algebraMap R Q) (ofList (List.ofFn (A.B i)))) ) := by
-  simp only [Basis.equivFun_symm_apply, AddSubmonoidClass.coe_finset_sum, SetLike.val_smul]
+  simp only [Basis.equivFun_symm_apply, AddSubmonoidClass.coe_finsetSum, SetLike.val_smul]
   simp_rw [basisOfBuilderLists_apply]
   have : ∀ g r, r • (A.h).map g = (A.h).map ((C ((algebraMap R Q) r)) * g) := by
     intro g r
@@ -620,7 +620,7 @@ lemma OfBuilderList_discr_eq_prod_discr' :
   algebraMap R Q ((Algebra.discr R (basisOfBuilderLists T l A) )) =
     ((algebraMap R Q (A.d ^ n))⁻¹ * (algebraMap R Q (∏ i, (A.B i i)))) ^ 2 *
        (Algebra.discr Q ((isAMK A).powerBasis).basis) := by
-  haveI : FiniteDimensional Q K := Module.Basis.finiteDimensional_of_finite (isAMK A).powerBasis.3
+  have : FiniteDimensional Q K := Module.Basis.finiteDimensional_of_finite (isAMK A).powerBasis.3
   have hMonic : Monic T := by
     exact Polynomial.monic_of_natDegree_le_of_coeff_eq_one n
      (le_of_eq (SubalgebraBuilderOfList _ _ A).hdeg) (SubalgebraBuilderOfList _ _ A).hm
@@ -658,7 +658,7 @@ lemma OfBuilderList_discr_eq_prod_discr' :
     unfold AdjM Algebra.adjoin_isAdjoinRootOfIsAdjoinRoot
     rw [Algebra.adjoin_isAdjoinRoot_root]
   have hdet : M.det = (algebraMap R Q (A.d ^ n))⁻¹ * (algebraMap R Q (∏ i, (A.B i i))) := by
-    rw [Matrix.det_of_lowerTriangular]
+    rw [Matrix.det_of_isLowerTriangular]
     swap
     intro i j hij
     simp only [OrderDual.toDual_lt_toDual] at hij
@@ -671,8 +671,8 @@ lemma OfBuilderList_discr_eq_prod_discr' :
   rw [← Algebra.discr_reindex _ (((isAMK A).powerBasis).basis ) (finCongr pbdim)]
   congr
   · ext i
-    simp only [AdjM, Subalgebra.coe_val, Basis.coe_reindex, finCongr_symm, Function.comp_apply,
-      finCongr_apply, PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen,
+    simp only [AdjM, Subalgebra.coe_val, Basis.coe_reindex, Function.comp_apply,
+      PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen,
       Algebra.adjoin_isAdjoinRootOfIsAdjoinRoot, SubmonoidClass.coe_pow,
       Algebra.adjoin_isAdjoinRoot_root, isAMK, B', B]
     erw [PowerBasis.coe_basis, IsAdjoinRootMonic.powerBasis_gen]

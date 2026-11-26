@@ -145,14 +145,14 @@ theorem satisfiesDedekindAlmostAll_of_certificate (T : ℤ[X])(pdbad : List ℕ)
     (C : CertificateDedekindAlmostAll T pdbad) :
     ∀ p , Nat.Prime p → (p ∉ pdbad) → satisfiesDedekindCriterionInt T p := by
   intro p hp hpnein
-  haveI : Fact $ Nat.Prime p := fact_iff.2 hp
+  have : Fact $ Nat.Prime p := fact_iff.2 hp
   by_cases hin : p  ∉ List.ofFn (C.p)
   · refine satisfiesDedekindCriterion_of_coprime_int T C.a C.b p _ C.hab ?_
-    apply Prime.not_dvd_finset_prod (Nat.Prime.prime hp)
+    apply Prime.not_dvd_finsetProd (Nat.Prime.prime hp)
     intro i hi
     by_contra hc
     rw [(Nat.prime_dvd_prime_iff_eq hp (C.hp i)).1 (Nat.Prime.dvd_of_dvd_pow hp hc),
-     List.mem_ofFn, ] at hin
+     List.mem_ofFn ] at hin
     simp only [ exists_apply_eq_apply, not_true_eq_false] at hin
   · push Not at hin
     have aux := (List.mem_append.1 (C.hsub hin))

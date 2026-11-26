@@ -1052,6 +1052,7 @@ lemma PB18792I91_primes (p : ℕ) :
   p ∈ Set.range ![6301, 6311, 6317, 6323, 6329, 6337, 6343, 6353, 6359] ↔ Nat.Prime p ∧ 6299 < p ∧ p ≤ 6359 := by
   rw [← List.mem_ofFn']
   convert primes_range 6299 6359 (by omega)
+  decide
 
 def PB18792I91 : PrimesBelowBoundCertificateInterval O 6299 6359 18792 where
   m := 9

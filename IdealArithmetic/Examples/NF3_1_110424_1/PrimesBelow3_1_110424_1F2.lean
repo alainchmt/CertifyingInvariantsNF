@@ -156,6 +156,7 @@ lemma PB95I2_primes (p : ℕ) :
   p ∈ Set.range ![83, 89] ↔ Nat.Prime p ∧ 79 < p ∧ p ≤ 94 := by
   rw [← List.mem_ofFn']
   convert primes_range 79 94 (by omega)
+  decide
 
 def PB95I2 : PrimesBelowBoundCertificateInterval O 79 94 95 where
   m := 2

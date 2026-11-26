@@ -950,6 +950,7 @@ lemma PB6264I84_primes (p : ℕ) :
   p ∈ Set.range ![5749, 5779, 5783, 5791, 5801, 5807, 5813, 5821, 5827] ↔ Nat.Prime p ∧ 5743 < p ∧ p ≤ 5827 := by
   rw [← List.mem_ofFn']
   convert primes_range 5743 5827 (by omega)
+  decide
 
 def PB6264I84 : PrimesBelowBoundCertificateInterval O 5743 5827 6264 where
   m := 9

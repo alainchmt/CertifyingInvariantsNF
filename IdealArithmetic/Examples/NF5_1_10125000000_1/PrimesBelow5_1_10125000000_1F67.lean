@@ -981,6 +981,7 @@ lemma PB6264I67_primes (p : ℕ) :
   p ∈ Set.range ![4447, 4451, 4457, 4463, 4481, 4483, 4493, 4507, 4513] ↔ Nat.Prime p ∧ 4441 < p ∧ p ≤ 4513 := by
   rw [← List.mem_ofFn']
   convert primes_range 4441 4513 (by omega)
+  decide
 
 def PB6264I67 : PrimesBelowBoundCertificateInterval O 4441 4513 6264 where
   m := 9

@@ -373,6 +373,7 @@ lemma PB324I7_primes (p : ℕ) :
   p ∈ Set.range ![311, 313, 317] ↔ Nat.Prime p ∧ 307 < p ∧ p ≤ 323 := by
   rw [← List.mem_ofFn']
   convert primes_range 307 323 (by omega)
+  decide
 
 def PB324I7 : PrimesBelowBoundCertificateInterval O 307 323 324 where
   m := 3

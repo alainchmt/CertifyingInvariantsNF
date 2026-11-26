@@ -51,7 +51,7 @@ theorem LinearIndependent.mapₛₗ {v : ι → M} {f : M →ₛₗ[g] N}
     (hf_inj : Submodule.comap (Finsupp.linearCombination R v) (LinearMap.ker f) ≤ RingHom.ker g • ⊤) :
     LinearIndependent S (f ∘ v) := by
   rw [linearIndependent_iff_ker]
-  haveI : Inhabited M := ⟨0⟩
+  have : Inhabited M := ⟨0⟩
   rw [← le_bot_iff, Finsupp.linearCombination_comp]
   intros x hx
   let x' : ι →₀ R := x.mapRange g' (map_zero g')
@@ -238,7 +238,7 @@ noncomputable def basisSubmoduleModOfBasisMod  { R S M N J: Type _} {n m : ℕ} 
     obtain ⟨⟨t,htmem⟩ , _, ht⟩ := hc
     simp only [DistribSMul.toLinearMap_apply, SetLike.mk_smul_mk] at ht
     rw [ ← Subtype.val_inj] at ht
-    simp only [AddMemClass.coe_add, AddSubmonoidClass.coe_finset_sum] at ht
+    simp only [AddMemClass.coe_add, AddSubmonoidClass.coe_finsetSum] at ht
     have ht_copy := ht
     apply_fun f at ht
     simp only [LinearMap.map_smulₛₗ, map_add, map_sum, g_eval, zero_smul, smul_zero,
@@ -246,7 +246,7 @@ noncomputable def basisSubmoduleModOfBasisMod  { R S M N J: Type _} {n m : ℕ} 
     have hcl_z : ∀ x, c (Sum.inl x) = 0 := by
       apply Fintype.linearIndependent_iff.1 (Basis.linearIndependent b1) (λ x => c (Sum.inl x))
       rw [← Subtype.val_inj]
-      simp only [ AddSubmonoidClass.coe_finset_sum, SetLike.val_smul,
+      simp only [ AddSubmonoidClass.coe_finsetSum, SetLike.val_smul,
         ZeroMemClass.coe_zero]
       exact ht.symm
     simp_rw [hcl_z] at ht_copy
@@ -262,7 +262,7 @@ noncomputable def basisSubmoduleModOfBasisMod  { R S M N J: Type _} {n m : ℕ} 
       simp only [SetLike.mem_coe, and_true, htmem]
     have htsum := Basis.sum_repr b1 (⟨f t, hftb1⟩)
     rw [ ← Subtype.val_inj] at htsum
-    simp only [AddSubmonoidClass.coe_finset_sum, SetLike.val_smul ] at htsum
+    simp only [AddSubmonoidClass.coe_finsetSum, SetLike.val_smul ] at htsum
     simp_rw [heq1, ← heq2] at htsum
     rw [← htsum] at ht_copy
     have hcr_z : ∀ x , c (Sum.inr x) = 0 := by

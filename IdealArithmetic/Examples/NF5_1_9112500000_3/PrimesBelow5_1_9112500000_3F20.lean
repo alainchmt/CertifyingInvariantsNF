@@ -954,6 +954,7 @@ lemma PB5943I20_primes (p : ℕ) :
   p ∈ Set.range ![1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123, 1129] ↔ Nat.Prime p ∧ 1069 < p ∧ p ≤ 1129 := by
   rw [← List.mem_ofFn']
   convert primes_range 1069 1129 (by omega)
+  decide
 
 def PB5943I20 : PrimesBelowBoundCertificateInterval O 1069 1129 5943 where
   m := 9

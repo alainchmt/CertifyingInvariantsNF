@@ -554,6 +554,7 @@ lemma PB397I8_primes (p : ℕ) :
   p ∈ Set.range ![367, 373, 379, 383, 389] ↔ Nat.Prime p ∧ 359 < p ∧ p ≤ 396 := by
   rw [← List.mem_ofFn']
   convert primes_range 359 396 (by omega)
+  decide
 
 def PB397I8 : PrimesBelowBoundCertificateInterval O 359 396 397 where
   m := 5

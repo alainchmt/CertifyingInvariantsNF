@@ -1533,6 +1533,7 @@ lemma PB177I3_primes (p : ℕ) :
   p ∈ Set.range ![79, 83, 89, 97, 101, 103, 107] ↔ Nat.Prime p ∧ 73 < p ∧ p ≤ 107 := by
   rw [← List.mem_ofFn']
   convert primes_range 73 107 (by omega)
+  decide
 
 def PB177I3 : PrimesBelowBoundCertificateInterval O 73 107 177 where
   m := 7

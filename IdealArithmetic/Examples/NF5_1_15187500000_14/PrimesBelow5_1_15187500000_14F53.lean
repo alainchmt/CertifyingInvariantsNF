@@ -918,6 +918,7 @@ lemma PB7672I53_primes (p : ℕ) :
   p ∈ Set.range ![3391, 3407, 3413, 3433, 3449, 3457, 3461, 3463, 3467] ↔ Nat.Prime p ∧ 3389 < p ∧ p ≤ 3467 := by
   rw [← List.mem_ofFn']
   convert primes_range 3389 3467 (by omega)
+  decide
 
 def PB7672I53 : PrimesBelowBoundCertificateInterval O 3389 3467 7672 where
   m := 9

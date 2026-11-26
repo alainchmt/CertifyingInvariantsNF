@@ -367,6 +367,7 @@ lemma PB9I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 8 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 8 (by omega)
+  decide
 
 def PB9I0 : PrimesBelowBoundCertificateInterval O 1 8 9 where
   m := 4
@@ -385,10 +386,10 @@ def PB9I0 : PrimesBelowBoundCertificateInterval O 1 8 9 where
     cases i
     rename_i i h
     interval_cases i
-    · convert (containsPrimesAbove_of_KummerData K2)
-    · convert (containsPrimesAbove_of_KummerData K3)
-    · convert (containsPrimesAbove_of_KummerData K5)
-    · convert (containsPrimesAbove_of_KummerData K7)
+    · convert (containsPrimesAbove_of_KummerData K2) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K3) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K5) <;> rfl
+    · convert (containsPrimesAbove_of_KummerData K7) <;> rfl
   N := fun i => by
     cases i
     rename_i i h

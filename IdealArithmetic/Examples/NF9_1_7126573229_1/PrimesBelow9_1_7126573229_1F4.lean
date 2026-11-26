@@ -1473,6 +1473,7 @@ lemma PB208I4_primes (p : ℕ) :
   p ∈ Set.range ![137, 139, 149, 151, 157, 163, 167, 173] ↔ Nat.Prime p ∧ 131 < p ∧ p ≤ 173 := by
   rw [← List.mem_ofFn']
   convert primes_range 131 173 (by omega)
+  decide
 
 def PB208I4 : PrimesBelowBoundCertificateInterval O 131 173 208 where
   m := 8

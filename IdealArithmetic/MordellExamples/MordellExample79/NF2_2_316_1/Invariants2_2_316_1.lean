@@ -8,6 +8,11 @@ import IdealArithmetic.Signature.ResultantRecursive
 import IdealArithmetic.DedekindProject.Discriminant
 import IdealArithmetic.Generation.ClassGroupGeneration
 
+/-!
+# AI Use
+Opus 5 was used for the section "Units modulo cubes"
+-/
+
 namespace NF2_2_316_1
 
 set_option linter.all false
@@ -65,13 +70,16 @@ instance : Module.Free ℤ (Additive ((↥O)ˣ ⧸ CommGroup.torsion (↥O)ˣ)) 
 
 instance :  Fintype ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
-  exact NumberField.Units.instFintypeSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
+  exact @Fintype.ofFinite _
+    (NumberField.Units.instFiniteSubtypeUnitsRingOfIntegersMemSubgroupTorsion K)
 
 instance : IsCyclic ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
   exact NumberField.Units.instIsCyclicSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
 
 instance DD' : IsDedekindDomain O  := by
+  haveI : Module.Finite ℚ K :=
+    Module.Finite.of_basis (IsAdjoinRootMonic.basis ⟨Adj, Polynomial.Monic.map _ T_monic⟩)
   rw [O_integral_closure]
   exact integralClosure.isDedekindDomain ℤ ℚ K
 
@@ -193,7 +201,7 @@ def NPSU3 : pSaturatedClassGroupCertificateNDvdT 3 ![J0] ![3] where
   · decide
  h := fun i =>
   match i with 
-  | 0 => by convert J0_pow3
+  | 0 => by convert J0_pow3 <;> rfl
  N := ![![2], ![2]]
  hM2 := by 
   intro (i : Fin 2) j
@@ -207,6 +215,7 @@ def NPSU3 : pSaturatedClassGroupCertificateNDvdT 3 ![J0] ![3] where
 lemma T_discr : T.discr = 316 :=  by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
   rw [T_ofList]
+  decide
 
 theorem K_discr : NumberField.discr K = 316 := by
   rw [discr_numberField_eq_discrSubalgebraBuilder T_irreducible BQ O_integral_closure]
@@ -247,7 +256,7 @@ lemma primesGenerationBelow : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.a
 def 𝔭' : Fin 7 → nonZeroDivisors (Ideal O) := by
   intro i
   have : PB9.β i ∈ List.ofFn PB9.β := by
-    simp only [List.mem_ofFn, exists_apply_eq_apply]
+    exact List.mem_ofFn.mpr ⟨i, rfl⟩
   refine Ideal.toNonZeroDivisorOfNeZero ((PB9.β) i)
     (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate_Fn _ PB9) (hc ▸ this) ))
 
@@ -275,13 +284,13 @@ lemma relations_proof0 (i : Fin 7) : IsInClass O J (𝔭 0 i) (BM 0 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R7N1 <;> rfl
 
 theorem class_group_generator : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (J' i))) = ⊤ := by
   refine subgroup_closure_eq_classGroup'' (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv

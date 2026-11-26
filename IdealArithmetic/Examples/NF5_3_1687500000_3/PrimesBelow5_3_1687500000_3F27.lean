@@ -953,6 +953,7 @@ lemma PB2009I27_primes (p : ℕ) :
   p ∈ Set.range ![1549, 1553, 1559, 1567, 1571, 1579, 1583, 1597, 1601] ↔ Nat.Prime p ∧ 1543 < p ∧ p ≤ 1601 := by
   rw [← List.mem_ofFn']
   convert primes_range 1543 1601 (by omega)
+  decide
 
 def PB2009I27 : PrimesBelowBoundCertificateInterval O 1543 1601 2009 where
   m := 9

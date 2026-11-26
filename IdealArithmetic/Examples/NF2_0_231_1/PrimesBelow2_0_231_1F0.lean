@@ -182,6 +182,7 @@ lemma PB10I0_primes (p : ℕ) :
   p ∈ Set.range ![2, 3, 5, 7] ↔ Nat.Prime p ∧ 1 < p ∧ p ≤ 9 := by
   rw [← List.mem_ofFn']
   convert primes_range 1 9 (by omega)
+  decide
 
 def PB10I0 : PrimesBelowBoundCertificateInterval O 1 9 10 where
   m := 4

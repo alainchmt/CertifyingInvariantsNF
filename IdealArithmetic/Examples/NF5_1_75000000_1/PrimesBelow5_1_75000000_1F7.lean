@@ -1033,6 +1033,7 @@ lemma PB540I7_primes (p : ℕ) :
   p ∈ Set.range ![311, 313, 317, 331, 337, 347, 349, 353, 359] ↔ Nat.Prime p ∧ 307 < p ∧ p ≤ 359 := by
   rw [← List.mem_ofFn']
   convert primes_range 307 359 (by omega)
+  decide
 
 def PB540I7 : PrimesBelowBoundCertificateInterval O 307 359 540 where
   m := 9

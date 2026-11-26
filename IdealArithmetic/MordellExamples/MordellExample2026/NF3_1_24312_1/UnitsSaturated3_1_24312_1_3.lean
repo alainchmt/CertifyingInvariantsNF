@@ -6,6 +6,8 @@ import IdealArithmetic.Computation.ExponentiationZMod
 import Mathlib.RingTheory.AdjoinRoot
 import IdealArithmetic.MordellExamples.MordellExample2026.NF3_1_24312_1.RI3_1_24312_1
 
+namespace NF3_1_24312_1
+
 set_option linter.all false
 
 open BigOperators Classical Matrix Polynomial
@@ -61,3 +63,7 @@ def Log00: DiscreteLogCertificate N0 ((orderOf_of_IsOrderOf R7) ▸ IsPrimitiveR
  heql := by decide
 
 end Sat3
+
+end
+
+end NF3_1_24312_1

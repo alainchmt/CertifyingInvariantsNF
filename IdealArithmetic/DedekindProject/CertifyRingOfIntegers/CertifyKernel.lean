@@ -80,9 +80,9 @@ noncomputable def basisKernelOfLinearIndependentKerIm {B: Type*} [DivisionRing R
   refine Basis.mk (R := R) (v := w) ?_ ?_
   rwa [ ← hwd, LinearMap.linearIndependent_iff] at hlin1
   refine Submodule.ker_subtype  _
-  haveI : FiniteDimensional R A := Module.Basis.finiteDimensional_of_finite b
-  haveI : FiniteDimensional  R (LinearMap.ker f) := FiniteDimensional.finiteDimensional_submodule _
-  haveI : FiniteDimensional  R (Submodule.span R (Set.range v)) := FiniteDimensional.finiteDimensional_submodule _
+  have : FiniteDimensional R A := Module.Basis.finiteDimensional_of_finite b
+  have : FiniteDimensional  R (LinearMap.ker f) := FiniteDimensional.finiteDimensional_submodule _
+  have : FiniteDimensional  R (Submodule.span R (Set.range v)) := FiniteDimensional.finiteDimensional_submodule _
   have hspan : Submodule.span R (Set.range v) = LinearMap.ker f := by
     refine Submodule.eq_of_le_of_finrank_le ?_ ?_
     rwa [Submodule.span_le, Set.range_subset_iff]
@@ -126,7 +126,7 @@ lemma kernel_eq_bot_of_linearIndependent_im {B : Type*} [DivisionRing R]
     [Module R A][AddCommGroup B][Module R B] {τ : Type* } [Fintype τ] (b : Basis τ R A) (f : A →ₗ[R] B ) (v' : τ → A )
     (hlin2 : LinearIndependent R (f ∘ v' )) :
     LinearMap.ker f = ⊥ := by
-  haveI : FiniteDimensional R A := Module.Basis.finiteDimensional_of_finite b
+  have : FiniteDimensional R A := Module.Basis.finiteDimensional_of_finite b
   rw [← Submodule.finrank_eq_zero]
   let v : Fin 0 → A := λ _ => 0
   have hker : ∀ (i : Fin 0), f (v i) = 0 := by simp only [IsEmpty.forall_iff]

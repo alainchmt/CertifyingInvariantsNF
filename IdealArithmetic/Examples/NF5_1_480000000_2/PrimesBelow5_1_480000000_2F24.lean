@@ -258,6 +258,7 @@ lemma PB1364I24_primes (p : ℕ) :
   p ∈ Set.range ![1327, 1361] ↔ Nat.Prime p ∧ 1321 < p ∧ p ≤ 1363 := by
   rw [← List.mem_ofFn']
   convert primes_range 1321 1363 (by omega)
+  decide
 
 def PB1364I24 : PrimesBelowBoundCertificateInterval O 1321 1363 1364 where
   m := 2

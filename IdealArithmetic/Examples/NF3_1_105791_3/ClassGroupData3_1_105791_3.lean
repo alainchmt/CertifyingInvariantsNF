@@ -121,19 +121,19 @@ lemma PowJ0_1J1_1 : J0 ^ 1*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.s
  rfl
 def MulR12_J0_1J1_2 : IdealMulEqCertificate timesTableO (J0) (J1*J1)
   ![![3, 0, 0], ![-1, 1, 0]] ![![9, 0, 0], ![4, 1, 0]]
-  ![![9, 0, 0], ![4, -3, -1]] where
+  ![![9, 0, 0], ![11, 6, -2]] where
  T := Table
  heq := timesTableT_eq_Table
  hI1 := rfl
  hI2 := ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ10
  M := ![![![27, 0, 0], ![12, 3, 0]], ![![-9, 9, 0], ![-4, 3, 1]]]
  hmul := by decide
- f := ![![![![1645, 549, 48], ![-3597, -438, 0]], ![![130, 0, 0], ![18, 0, 0]]], ![![![44, 15, 1], ![-96, -12, 0]], ![![0, 0, 0], ![8, 0, 0]]]]
- g := ![![![![325, 60, 32], ![126, 54, 0]], ![![137, 27, 14], ![57, 23, 0]]], ![![![-128, -21, -12], ![-45, -21, 0]], ![![-55, -9, -5], ![-19, -9, 0]]]]
+ f := ![![![![1645, 549, 48], ![-3597, -438, 0]], ![![130, 0, 0], ![18, 0, 0]]], ![![![3519, 1177, 104], ![-7695, -944, 0]], ![![286, 0, 0], ![22, 0, 0]]]]
+ g := ![![![![183, -99, 18], ![162, 27, 0]], ![![71, -42, 8], ![69, 11, 0]]], ![![![-92, 39, -6], ![-63, -12, 0]], ![![-35, 18, -3], ![-29, -5, 0]]]]
  hle1 := by decide
  hle2 := by decide
 
-lemma PowJ0_1J1_2 : J0 ^ 1*J1 ^ 2 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0], ![4, -3, -1]] i)) := by 
+lemma PowJ0_1J1_2 : J0 ^ 1*J1 ^ 2 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0], ![11, 6, -2]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR12_J0_1J1_2]
  rfl
@@ -144,19 +144,19 @@ lemma PowJ0_2J1_0 : J0 ^ 2*J1 ^ 0 = Ideal.span (Set.range fun i ↦ B.equivFun.s
  rfl     
 def MulR21_J0_2J1_1 : IdealMulEqCertificate timesTableO ((J0*J0)) J1
   ![![9, 0, 0], ![-4, 1, 0]] ![![3, 0, 0], ![1, 1, 0]]
-  ![![9, 0, 0], ![22, 6, -4]] where
+  ![![9, 0, 0], ![16, 3, -4]] where
  T := Table
  heq := timesTableT_eq_Table
  hI1 := ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulJ00
  hI2 := rfl
  M := ![![![27, 0, 0], ![9, 9, 0]], ![![-12, 3, 0], ![-4, -3, 1]]]
  hmul := by decide
- f := ![![![![2998, 799, 248], ![-3497, -650, 0]], ![![4116, -288, 0], ![18, 0, 0]]], ![![![8904, 2441, 713], ![-10386, -1915, 0]], ![![12228, -688, 0], ![44, 0, 0]]]]
- g := ![![![![2485, -2334, 1460], ![3933, 432, 0]], ![![677, -651, 408], ![1098, 120, 0]]], ![![![-1172, 1075, -672], ![-1812, -200, 0]], ![![-334, 299, -187], ![-505, -56, 0]]]]
+ f := ![![![![2998, 799, 248], ![-3497, -650, 0]], ![![4116, -288, 0], ![18, 0, 0]]], ![![![6130, 1668, 495], ![-7150, -1321, 0]], ![![8418, -504, 0], ![32, 0, 0]]]]
+ g := ![![![![215, -66, 127], ![306, 27, 0]], ![![41, -15, 30], ![72, 6, 0]]], ![![![-104, 32, -61], ![-147, -13, 0]], ![![-24, 7, -14], ![-34, -3, 0]]]]
  hle1 := by decide
  hle2 := by decide
 
-lemma PowJ0_2J1_1 : J0 ^ 2*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0], ![22, 6, -4]] i)) := by 
+lemma PowJ0_2J1_1 : J0 ^ 2*J1 ^ 1 = Ideal.span (Set.range fun i ↦ B.equivFun.symm (![![9, 0, 0], ![16, 3, -4]] i)) := by 
  simp only [pow_succ, pow_one, pow_zero, one_mul, mul_one]
  simp only [ideal_eq_mul_of_IdealMulEqCertificate timesTableO _ _ _ _ _ MulR21_J0_2J1_1]
  rfl

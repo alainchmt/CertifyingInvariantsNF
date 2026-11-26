@@ -626,6 +626,7 @@ lemma PB752I14_primes (p : ℕ) :
   p ∈ Set.range ![709, 719, 727, 733, 739, 743, 751] ↔ Nat.Prime p ∧ 701 < p ∧ p ≤ 751 := by
   rw [← List.mem_ofFn']
   convert primes_range 701 751 (by omega)
+  decide
 
 def PB752I14 : PrimesBelowBoundCertificateInterval O 701 751 752 where
   m := 7

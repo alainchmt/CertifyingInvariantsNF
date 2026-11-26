@@ -414,6 +414,7 @@ lemma PB441I9_primes (p : ℕ) :
   p ∈ Set.range ![421, 431, 433, 439] ↔ Nat.Prime p ∧ 419 < p ∧ p ≤ 440 := by
   rw [← List.mem_ofFn']
   convert primes_range 419 440 (by omega)
+  decide
 
 def PB441I9 : PrimesBelowBoundCertificateInterval O 419 440 441 where
   m := 4

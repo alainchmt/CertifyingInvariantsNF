@@ -19,7 +19,9 @@ Assembly of the two halves of the argument:
 Once `x` is known, `y` is determined up to sign by the equation itself, which is why the
 descent only ever had to conclude about `x`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

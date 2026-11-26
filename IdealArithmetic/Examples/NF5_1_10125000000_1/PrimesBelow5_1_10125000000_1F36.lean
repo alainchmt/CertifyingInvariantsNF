@@ -1219,6 +1219,7 @@ lemma PB6264I36_primes (p : ℕ) :
   p ∈ Set.range ![2153, 2161, 2179, 2203, 2207, 2213, 2221, 2237, 2239] ↔ Nat.Prime p ∧ 2143 < p ∧ p ≤ 2239 := by
   rw [← List.mem_ofFn']
   convert primes_range 2143 2239 (by omega)
+  decide
 
 def PB6264I36 : PrimesBelowBoundCertificateInterval O 2143 2239 6264 where
   m := 9

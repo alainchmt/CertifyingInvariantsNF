@@ -931,6 +931,7 @@ lemma PB8404I58_primes (p : ℕ) :
   p ∈ Set.range ![3761, 3767, 3769, 3779, 3793, 3797, 3803, 3821, 3823] ↔ Nat.Prime p ∧ 3739 < p ∧ p ≤ 3823 := by
   rw [← List.mem_ofFn']
   convert primes_range 3739 3823 (by omega)
+  decide
 
 def PB8404I58 : PrimesBelowBoundCertificateInterval O 3739 3823 8404 where
   m := 9

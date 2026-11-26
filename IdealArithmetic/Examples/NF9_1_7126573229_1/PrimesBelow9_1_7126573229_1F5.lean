@@ -918,6 +918,7 @@ lemma PB208I5_primes (p : ℕ) :
   p ∈ Set.range ![179, 181, 191, 193, 197, 199] ↔ Nat.Prime p ∧ 173 < p ∧ p ≤ 207 := by
   rw [← List.mem_ofFn']
   convert primes_range 173 207 (by omega)
+  decide
 
 def PB208I5 : PrimesBelowBoundCertificateInterval O 173 207 208 where
   m := 6

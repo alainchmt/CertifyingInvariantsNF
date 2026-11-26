@@ -1120,6 +1120,7 @@ lemma PB7672I34_primes (p : ℕ) :
   p ∈ Set.range ![2027, 2029, 2039, 2053, 2063, 2069, 2081, 2083, 2087] ↔ Nat.Prime p ∧ 2017 < p ∧ p ≤ 2087 := by
   rw [← List.mem_ofFn']
   convert primes_range 2017 2087 (by omega)
+  decide
 
 def PB7672I34 : PrimesBelowBoundCertificateInterval O 2017 2087 7672 where
   m := 9

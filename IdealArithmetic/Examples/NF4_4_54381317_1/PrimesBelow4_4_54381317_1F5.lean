@@ -1073,6 +1073,7 @@ lemma PB692I5_primes (p : ℕ) :
   p ∈ Set.range ![233, 239, 241, 251, 257, 263, 269, 271, 277, 281] ↔ Nat.Prime p ∧ 229 < p ∧ p ≤ 281 := by
   rw [← List.mem_ofFn']
   convert primes_range 229 281 (by omega)
+  decide
 
 def PB692I5 : PrimesBelowBoundCertificateInterval O 229 281 692 where
   m := 10

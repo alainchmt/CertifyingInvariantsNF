@@ -993,6 +993,7 @@ lemma PB4920I10_primes (p : ℕ) :
   p ∈ Set.range ![467, 479, 487, 491, 499, 503, 509, 521, 523] ↔ Nat.Prime p ∧ 463 < p ∧ p ≤ 523 := by
   rw [← List.mem_ofFn']
   convert primes_range 463 523 (by omega)
+  decide
 
 def PB4920I10 : PrimesBelowBoundCertificateInterval O 463 523 4920 where
   m := 9

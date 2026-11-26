@@ -1042,6 +1042,7 @@ lemma PB4698I38_primes (p : ℕ) :
   p ∈ Set.range ![2309, 2311, 2333, 2339, 2341, 2347, 2351, 2357, 2371] ↔ Nat.Prime p ∧ 2297 < p ∧ p ≤ 2371 := by
   rw [← List.mem_ofFn']
   convert primes_range 2297 2371 (by omega)
+  decide
 
 def PB4698I38 : PrimesBelowBoundCertificateInterval O 2297 2371 4698 where
   m := 9

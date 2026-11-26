@@ -18,7 +18,9 @@ pushed forward along `eO`; `JK k` is `J0 ^ k · 𝓞 K`.
 * `class_group_equiv_one`  : `![1] ↦ [J0 · 𝓞 K]`;
 * `class_group_equiv_two`  : `![2] ↦ [J0 ^ 2 · 𝓞 K]` (see `JK_pow_coe`).
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false
@@ -94,25 +96,17 @@ lemma J0_pow_cube (j : ℕ) : (J0 ^ j) ^ 3 = Ideal.span {alpha0 ^ j} := by
 instance : Finite (ClassGroup O) :=
   Finite.of_equiv _ (ClassGroupO_equiv.toEquiv.trans Additive.toMul)
 
-lemma J0_mem : J0 ∈ nonZeroDivisors (Ideal O) := by
-  have h := (J' 0).2
-  rw [J'_apply 0] at h
-  exact h
-
-lemma classGroup_gen (C : ClassGroup O) : ∃ k : ℕ, C = ClassGroup.mk0 ⟨J0, J0_mem⟩ ^ k := by
+lemma classGroup_gen (C : ClassGroup O) : ∃ k : ℕ, C = ClassGroup.mk0 (J' 0) ^ k := by
   obtain ⟨x, hx⟩ := ClassGroupO_equiv.surjective (Additive.ofMul C)
   refine ⟨(x 0).val, ?_⟩
-  have hC : C = ClassGroup.mk0 (J' 0) ^ (x 0).val := by
-    rw [← classGroupO_equiv_apply, hx]; rfl
-  rw [hC]
-  exact congrArg (· ^ (x 0).val) (congrArg ClassGroup.mk0 (Subtype.ext (J'_apply 0)))
+  rw [← classGroupO_equiv_apply, hx]; rfl
 
 /-- **The class-group representatives, inside `O`.**  The classes of `1, J0, J0 ^ 2` exhaust
 `Cl(O)`, hence in particular its `3`-torsion -- which is the class-group input the descent
 asks for. -/
-theorem class_group_covers_O (C : ClassGroup O) (hC : C ^ 3 = 1) :
-    ∃ j : Fin 3, C = ClassGroup.mk0 ⟨J0 ^ (j : ℕ), Submonoid.pow_mem _ J0_mem _⟩ :=
-  exists_eq_mk0_pow_of_cyclic_three J0_mem ⟨alpha0, J0_cube⟩ classGroup_gen C hC
+theorem class_group_covers_O (C : ClassGroup O) (_hC : C ^ 3 = 1) :
+    ∃ j : Fin 3, C = ClassGroup.mk0 (J' 0 ^ (j : ℕ)) :=
+  exists_eq_mk0_pow_of_cyclic_three (A := J0) (J'_apply 0) ⟨alpha0, J0_cube⟩ classGroup_gen C
 
 /-! ### The representatives
 
@@ -137,12 +131,7 @@ lemma JK_six : (JK : Ideal (RingOfIntegers K)) ^ 6 = Ideal.span {eO (alpha0 ^ 2)
   rw [show (6 : ℕ) = 3 * 2 from rfl, pow_mul, JK_cube, map_pow, Ideal.span_singleton_pow]
 
 lemma mk0_JK_cube : ClassGroup.mk0 (JK ^ 3) = 1 := by
-  rw [show (JK ^ 3 : nonZeroDivisors (Ideal (RingOfIntegers K)))
-      = ⟨(JK : Ideal (RingOfIntegers K)) ^ 3,
-          by rw [← SubmonoidClass.coe_pow]; exact (JK ^ 3).2⟩ from
-    Subtype.ext (SubmonoidClass.coe_pow JK 3)]
-  refine (ClassGroup.mk0_eq_one_iff _).mpr ?_
-  rw [JK_cube]
+  rw [ClassGroup.mk0_eq_one_iff, SubmonoidClass.coe_pow, JK_cube]
   exact ⟨eO alpha0, rfl⟩
 
 /-- **The class-group representatives.**  Every nonzero ideal `I` of `𝓞 K` satisfies one of the

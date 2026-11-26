@@ -1311,6 +1311,7 @@ lemma PB208I2_primes (p : ℕ) :
   p ∈ Set.range ![59, 61, 67, 71, 73, 79, 83, 89] ↔ Nat.Prime p ∧ 53 < p ∧ p ≤ 89 := by
   rw [← List.mem_ofFn']
   convert primes_range 53 89 (by omega)
+  decide
 
 def PB208I2 : PrimesBelowBoundCertificateInterval O 53 89 208 where
   m := 8

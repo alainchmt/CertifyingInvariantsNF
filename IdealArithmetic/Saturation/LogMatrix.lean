@@ -35,7 +35,7 @@ lemma unit_eq_primitive_root_pow {R : Type*} [CommRing R] [Fintype R]
     ∃ (n : ℕ), ζ ^ n = x := by
   have hu : IsUnit ζ := IsPrimitiveRoot.isUnit hr (pos_iff_ne_zero.1 Fintype.card_pos)
   obtain ⟨ζ',hz ⟩ := hu
-  haveI : Fintype (Subgroup.zpowers ζ') := by exact
+  have : Fintype (Subgroup.zpowers ζ') := by exact
     (Subgroup.zpowers ζ').instFintypeSubtypeMemOfDecidablePred
   have heq : Subgroup.zpowers ζ' = ⊤ := by
     refine Subgroup.eq_top_of_le_card _ ?_
@@ -232,7 +232,7 @@ lemma exponent_vec_eq_zero_of_full_rank_matrix {S ι τ : Type*} {p : ℕ} [Fact
     by_contra hc
     rw [LinearIndependent.rank_matrix ?_] at hle
     contradiction
-    rw [linearIndependent_fin_succ]
+    rw [linearIndependent_finSucc]
     simp only [Nat.reduceAdd, Fin.tail_def, linearIndependent_empty_type, range_empty,
       Submodule.span_empty, Fin.isValue, Submodule.mem_bot, true_and]
     obtain ⟨j, hj⟩ := Function.ne_iff.mp hc
@@ -364,7 +364,7 @@ lemma linearIndependent_int_iff_no_common_divisor {M ι R: Type*} [AddCommGroup 
     · use s , g
     · push Not at hc
       let S := Finset.filter (fun x => g x ≠ 0) s
-      haveI hS : S.Nonempty := by
+      have hS : S.Nonempty := by
         rw [Finset.filter_nonempty_iff]
         use bhneq.choose
         simp only [ne_eq]
@@ -569,7 +569,7 @@ lemma units_linear_independent_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ
    LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk
     (s := (CommGroup.torsion Sˣ)) (hu i).unit)) := by
   by_contra hi
-  · haveI : HasUniqueDiv (Additive (Sˣ ⧸ CommGroup.torsion Sˣ)) :=
+  · have : HasUniqueDiv (Additive (Sˣ ⧸ CommGroup.torsion Sˣ)) :=
       ⟨fun _ hn _ _ hab => eq_of_nsmul_eq_nsmul_of_addCommute hn (AddCommute.all _ _) hab⟩
     rw [linearIndependent_int_iff_no_common_divisor (Nat.prime_iff_prime_int.1 hp.out)] at hi
     obtain ⟨ s , g , ⟨k, hk,  hdvdp⟩ , hg⟩ := hi
@@ -645,7 +645,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_not_dvd_torsion {S ι τ : Ty
       Finset.prod_ne_zero_iff]
     intro i hi
     exact moduleSmithCoeffs_ne_zero _ B B' i
-  haveI : Finite (N ⧸ M) := (Nat.card_ne_zero.1 hinz).2
+  have : Finite (N ⧸ M) := (Nat.card_ne_zero.1 hinz).2
   have auxcard : (Nat.card (CommGroup.torsion Sˣ)).Coprime p := by
       rw [Nat.coprime_comm, Nat.Prime.coprime_iff_not_dvd]
       exact hpndvdt
@@ -745,7 +745,7 @@ lemma units_linear_independent_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ:
     LinearIndependent ℤ (fun i => Additive.ofMul (QuotientGroup.mk
       (s := (CommGroup.torsion Sˣ)) (hu i).unit)) := by
   by_contra hi
-  · haveI : HasUniqueDiv (Additive (Sˣ ⧸ CommGroup.torsion Sˣ)) :=
+  · have : HasUniqueDiv (Additive (Sˣ ⧸ CommGroup.torsion Sˣ)) :=
       ⟨fun _ hn _ _ hab => eq_of_nsmul_eq_nsmul_of_addCommute hn (AddCommute.all _ _) hab⟩
     rw [linearIndependent_int_iff_no_common_divisor (Nat.prime_iff_prime_int.1 hp.out)] at hi
     obtain ⟨ s , g , ⟨k, hk,  hdvdp⟩ , hg⟩ := hi
@@ -826,7 +826,7 @@ lemma units_up_to_p_power_of_full_rank_matrix_of_p_dvd_torsion {S ι τ κ: Type
       Finset.prod_ne_zero_iff]
     intro i hi
     exact moduleSmithCoeffs_ne_zero _ B B' i
-  haveI : Finite (N ⧸ M) := (Nat.card_ne_zero.1 hinz).2
+  have : Finite (N ⧸ M) := (Nat.card_ne_zero.1 hinz).2
   have hpmaximal : ¬ p ∣ Nat.card (N ⧸ M) := by
     by_contra hpdvd
     obtain ⟨x  , hx ⟩ := exists_prime_addOrderOf_dvd_card' p hpdvd

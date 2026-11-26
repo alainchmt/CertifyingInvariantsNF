@@ -8,7 +8,9 @@ Every unit of `O` is `± zeta1 ^ n`.  `artin_inequality_bound_index'` is fed wit
 and `c/d = 11/2`, so the index bound is `(c*b)/(a*d) = 44/18 = 2` and the only prime to
 certify is `p = 2`, by the saturation certificate `NPCU2`.
 
-Opus 5
+# AI Use
+Generated with Opus 5 after being prompted with the general strategy and pointed to the
+relevant files and scripts
 -/
 
 set_option linter.all false

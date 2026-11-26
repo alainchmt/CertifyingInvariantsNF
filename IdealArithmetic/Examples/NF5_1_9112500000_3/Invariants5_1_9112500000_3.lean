@@ -130,9 +130,9 @@ theorem O_integral_closure : O = integralClosure ℤ K := by
   intro p hp
   by_cases hc : p ∈ [2, 3, 5]
   · fin_cases hc
-    exact @pMaximal_of_MaximalOrderCertificateWLists K 2 _ IsAddTorsionFree.to_noZeroSMulDivisors_int _ O Om hm _ _ M2
-    exact @pMaximal_of_MaximalOrderCertificateWLists K 3 _ IsAddTorsionFree.to_noZeroSMulDivisors_int _ O Om hm _ _ M3
-    exact @pMaximal_of_MaximalOrderCertificateWLists K 5 _ IsAddTorsionFree.to_noZeroSMulDivisors_int _ O Om hm _ _ M5
+    exact @pMaximal_of_MaximalOrderCertificateWLists K 2 _ HasUniqueDiv.to_noZeroSMulDivisors_int _ O Om hm _ _ M2
+    exact @pMaximal_of_MaximalOrderCertificateWLists K 3 _ HasUniqueDiv.to_noZeroSMulDivisors_int _ O Om hm _ _ M3
+    exact @pMaximal_of_MaximalOrderCertificateWLists K 5 _ HasUniqueDiv.to_noZeroSMulDivisors_int _ O Om hm _ _ M5
   · haveI : Fact $ Nat.Prime p := fact_iff.2 hp
     refine piMaximal_of_root_in_order_of_satisfiesDedekindCriterion_int Adj T_monic hm ?_ hroot_mem
      (satisfiesDedekindAlmostAllLists_of_certificate T _ T_ofList [2, 3, 5] D p hp hc)
@@ -150,13 +150,16 @@ instance : Module.Free ℤ (Additive ((↥O)ˣ ⧸ CommGroup.torsion (↥O)ˣ)) 
 
 instance :  Fintype ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
-  exact NumberField.Units.instFintypeSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
+  exact @Fintype.ofFinite _
+    (NumberField.Units.instFiniteSubtypeUnitsRingOfIntegersMemSubgroupTorsion K)
 
 instance : IsCyclic ↥(CommGroup.torsion (↥O)ˣ) := by
   rw [O_integral_closure]
   exact NumberField.Units.instIsCyclicSubtypeUnitsRingOfIntegersMemSubgroupTorsion K
 
 instance DD' : IsDedekindDomain O  := by
+  haveI : Module.Finite ℚ K :=
+    Module.Finite.of_basis (IsAdjoinRootMonic.basis ⟨Adj, Polynomial.Monic.map _ T_monic⟩)
   rw [O_integral_closure]
   exact integralClosure.isDedekindDomain ℤ ℚ K
 
@@ -281,7 +284,7 @@ def NPSU2 : pSaturatedClassGroupCertificateDvdT 2 ![J0] ![2] where
   · decide
  h := fun i =>
   match i with 
-  | 0 => by convert J0_pow2
+  | 0 => by convert J0_pow2 <;> rfl
  N := ![![0], ![1], ![1], ![0]]
  hM3 := by 
   intro (i : Fin 4) j
@@ -297,6 +300,7 @@ def NPSU2 : pSaturatedClassGroupCertificateDvdT 2 ![J0] ![2] where
 lemma T_discr : T.discr = 13122000000000000 :=  by
   convert discriminant_eq_DiscriminantOfPRemainder_of_SturmBuilderOfList SturmRC
   rw [T_ofList]
+  decide
 
 theorem K_discr : NumberField.discr K = 9112500000 := by
   rw [discr_numberField_eq_discrSubalgebraBuilder T_irreducible BQ O_integral_closure]
@@ -425,7 +429,7 @@ lemma primesGenerationBelow : {I : Ideal O | 0 < I.absNorm ∧ I.IsPrime ∧ I.a
 def 𝔭' : Fin 821 → nonZeroDivisors (Ideal O) := by
   intro i
   have : PB5943.β i ∈ List.ofFn PB5943.β := by
-    simp only [List.mem_ofFn, exists_apply_eq_apply]
+    exact List.mem_ofFn.mpr ⟨i, rfl⟩
   refine Ideal.toNonZeroDivisorOfNeZero ((PB5943.β) i)
     (fun hc => ((zero_ne_mem_of_PrimesBelowCertificate_Fn _ PB5943) (hc ▸ this) ))
 
@@ -455,34 +459,34 @@ lemma relations_proof0 (i : Fin 13) : IsInClass O J (𝔭 0 i) (BM 0 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3N0 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R17N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R17N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R13N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R17N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R17N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R19N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R19N1 <;> rfl
 
 lemma relations_proof1 (i : Fin 12) : IsInClass O J (𝔭 1 i) (BM 1 i) := by
   show IsInClass O J (𝔭 1 i) (![![1], ![1], ![1], ![1], ![0], ![0], ![0], ![0], ![0], ![1], ![1], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R29N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R37N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R41N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R41N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R29N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R37N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R41N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R41N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R53N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R59N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R53N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R59N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof2 (i : Fin 6) : IsInClass O J (𝔭 2 i) (BM 2 i) := by
@@ -491,46 +495,46 @@ lemma relations_proof2 (i : Fin 6) : IsInClass O J (𝔭 2 i) (BM 2 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R71N0
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R71N0 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R71N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R71N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R103N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R103N2 <;> rfl
 
 lemma relations_proof3 (i : Fin 11) : IsInClass O J (𝔭 3 i) (BM 3 i) := by
   show IsInClass O J (𝔭 3 i) (![![1], ![0], ![1], ![0], ![1], ![1], ![1], ![0], ![1], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R107N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R107N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R113N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R113N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R127N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R131N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R131N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R127N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R131N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R131N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R137N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R137N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R139N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R137N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R137N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R139N1 <;> rfl
 
 lemma relations_proof4 (i : Fin 12) : IsInClass O J (𝔭 4 i) (BM 4 i) := by
   show IsInClass O J (𝔭 4 i) (![![1], ![0], ![1], ![0], ![0], ![1], ![1], ![1], ![1], ![1], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R157N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R157N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R163N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R163N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R173N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R173N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R173N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R179N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R191N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R191N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R197N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R173N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R173N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R173N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R179N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R191N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R191N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R197N1 <;> rfl
 
 lemma relations_proof5 (i : Fin 11) : IsInClass O J (𝔭 5 i) (BM 5 i) := by
   show IsInClass O J (𝔭 5 i) (![![0], ![1], ![1], ![1], ![0], ![1], ![1], ![0], ![0], ![1], ![1]] i)
@@ -538,36 +542,36 @@ lemma relations_proof5 (i : Fin 11) : IsInClass O J (𝔭 5 i) (BM 5 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R227N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R227N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R227N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R227N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R227N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R227N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R233N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R233N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R233N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R233N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R241N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R251N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R241N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R251N1 <;> rfl
 
 lemma relations_proof6 (i : Fin 14) : IsInClass O J (𝔭 6 i) (BM 6 i) := by
   show IsInClass O J (𝔭 6 i) (![![1], ![1], ![1], ![1], ![0], ![1], ![0], ![0], ![0], ![1], ![1], ![1], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R257N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R263N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R263N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R271N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R257N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R263N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R263N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R271N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R277N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R277N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R281N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R283N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R307N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R307N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R307N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R281N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R283N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R307N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R307N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R307N3 <;> rfl
 
 lemma relations_proof7 (i : Fin 4) : IsInClass O J (𝔭 7 i) (BM 7 i) := by
   show IsInClass O J (𝔭 7 i) (![![0], ![0], ![0], ![1]] i)
@@ -577,20 +581,20 @@ lemma relations_proof7 (i : Fin 4) : IsInClass O J (𝔭 7 i) (BM 7 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R353N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R353N2 <;> rfl
 
 lemma relations_proof8 (i : Fin 10) : IsInClass O J (𝔭 8 i) (BM 8 i) := by
   show IsInClass O J (𝔭 8 i) (![![1], ![1], ![0], ![1], ![0], ![1], ![1], ![0], ![0], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R373N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R373N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R373N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R373N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R379N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R379N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R397N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R397N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R397N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R397N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -603,14 +607,14 @@ lemma relations_proof9 (i : Fin 11) : IsInClass O J (𝔭 9 i) (BM 9 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R439N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R439N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R439N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R439N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R461N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R461N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R461N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R463N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R461N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R463N2 <;> rfl
 
 lemma relations_proof10 (i : Fin 2) : IsInClass O J (𝔭 10 i) (BM 10 i) := by
   show IsInClass O J (𝔭 10 i) (![![0], ![1]] i)
@@ -618,7 +622,7 @@ lemma relations_proof10 (i : Fin 2) : IsInClass O J (𝔭 10 i) (BM 10 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R491N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R491N1 <;> rfl
 
 lemma relations_proof11 (i : Fin 10) : IsInClass O J (𝔭 11 i) (BM 11 i) := by
   show IsInClass O J (𝔭 11 i) (![![0], ![0], ![1], ![1], ![1], ![1], ![1], ![1], ![0], ![0]] i)
@@ -627,12 +631,12 @@ lemma relations_proof11 (i : Fin 10) : IsInClass O J (𝔭 11 i) (BM 11 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R557N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R571N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R557N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R571N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R577N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
@@ -643,14 +647,14 @@ lemma relations_proof12 (i : Fin 11) : IsInClass O J (𝔭 12 i) (BM 12 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R601N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R613N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R601N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R613N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R613N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R613N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R617N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R641N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R641N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R617N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R641N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R641N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof13 (i : Fin 6) : IsInClass O J (𝔭 13 i) (BM 13 i) := by
@@ -658,8 +662,8 @@ lemma relations_proof13 (i : Fin 6) : IsInClass O J (𝔭 13 i) (BM 13 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R659N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R661N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R659N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R661N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -671,16 +675,16 @@ lemma relations_proof14 (i : Fin 11) : IsInClass O J (𝔭 14 i) (BM 14 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R709N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R709N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R719N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R719N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R727N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R727N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R751N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R751N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R761N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R761N2 <;> rfl
 
 lemma relations_proof15 (i : Fin 8) : IsInClass O J (𝔭 15 i) (BM 15 i) := by
   show IsInClass O J (𝔭 15 i) (![![0], ![1], ![1], ![0], ![0], ![0], ![0], ![1]] i)
@@ -688,24 +692,24 @@ lemma relations_proof15 (i : Fin 8) : IsInClass O J (𝔭 15 i) (BM 15 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R787N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R797N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R787N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R797N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R827N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R827N1 <;> rfl
 
 lemma relations_proof16 (i : Fin 9) : IsInClass O J (𝔭 16 i) (BM 16 i) := by
   show IsInClass O J (𝔭 16 i) (![![1], ![0], ![0], ![1], ![1], ![0], ![0], ![0], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R829N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R829N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R859N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R859N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R859N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R859N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -717,13 +721,13 @@ lemma relations_proof17 (i : Fin 14) : IsInClass O J (𝔭 17 i) (BM 17 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R887N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R887N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R907N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R907N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R911N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R911N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R929N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R929N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -737,10 +741,10 @@ lemma relations_proof18 (i : Fin 5) : IsInClass O J (𝔭 18 i) (BM 18 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R997N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1009N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R997N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1009N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1019N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1019N1 <;> rfl
 
 lemma relations_proof19 (i : Fin 10) : IsInClass O J (𝔭 19 i) (BM 19 i) := by
   show IsInClass O J (𝔭 19 i) (![![0], ![1], ![1], ![1], ![0], ![0], ![0], ![1], ![0], ![1]] i)
@@ -748,15 +752,15 @@ lemma relations_proof19 (i : Fin 10) : IsInClass O J (𝔭 19 i) (BM 19 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1031N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1031N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1051N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1031N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1031N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1051N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1063N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1063N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1069N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1069N1 <;> rfl
 
 lemma relations_proof20 (i : Fin 9) : IsInClass O J (𝔭 20 i) (BM 20 i) := by
   show IsInClass O J (𝔭 20 i) (![![0], ![0], ![1], ![0], ![1], ![1], ![1], ![0], ![1]] i)
@@ -765,43 +769,43 @@ lemma relations_proof20 (i : Fin 9) : IsInClass O J (𝔭 20 i) (BM 20 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1091N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1091N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1093N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1093N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1097N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1093N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1093N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1097N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1117N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1117N1 <;> rfl
 
 lemma relations_proof21 (i : Fin 10) : IsInClass O J (𝔭 21 i) (BM 21 i) := by
   show IsInClass O J (𝔭 21 i) (![![1], ![1], ![0], ![0], ![1], ![1], ![0], ![0], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1151N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1153N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1151N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1153N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1187N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1193N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1187N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1193N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1213N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1213N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1213N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1213N3 <;> rfl
 
 lemma relations_proof22 (i : Fin 9) : IsInClass O J (𝔭 22 i) (BM 22 i) := by
   show IsInClass O J (𝔭 22 i) (![![1], ![1], ![1], ![1], ![1], ![1], ![0], ![1], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1223N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1223N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1231N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1231N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1237N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1249N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1223N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1223N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1231N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1231N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1237N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1249N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1259N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1259N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof23 (i : Fin 9) : IsInClass O J (𝔭 23 i) (BM 23 i) := by
@@ -809,13 +813,13 @@ lemma relations_proof23 (i : Fin 9) : IsInClass O J (𝔭 23 i) (BM 23 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1283N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1283N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1301N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1301N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1303N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1307N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1303N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1307N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
@@ -824,14 +828,14 @@ lemma relations_proof24 (i : Fin 9) : IsInClass O J (𝔭 24 i) (BM 24 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1361N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1361N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1373N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1361N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1361N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1373N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1409N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1409N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1427N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1427N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof25 (i : Fin 13) : IsInClass O J (𝔭 25 i) (BM 25 i) := by
@@ -840,18 +844,18 @@ lemma relations_proof25 (i : Fin 13) : IsInClass O J (𝔭 25 i) (BM 25 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1433N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1433N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1447N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1451N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1447N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1451N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1459N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1459N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1459N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1459N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1481N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1481N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1481N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1481N2 <;> rfl
 
 lemma relations_proof26 (i : Fin 2) : IsInClass O J (𝔭 26 i) (BM 26 i) := by
   show IsInClass O J (𝔭 26 i) (![![0], ![0]] i)
@@ -866,28 +870,28 @@ lemma relations_proof27 (i : Fin 10) : IsInClass O J (𝔭 27 i) (BM 27 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1553N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1553N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1553N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1553N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1571N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1571N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1597N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1597N1 <;> rfl
 
 lemma relations_proof28 (i : Fin 10) : IsInClass O J (𝔭 28 i) (BM 28 i) := by
   show IsInClass O J (𝔭 28 i) (![![1], ![0], ![0], ![1], ![1], ![0], ![1], ![0], ![0], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1607N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1607N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1627N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1627N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1627N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1627N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1657N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1657N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -897,11 +901,11 @@ lemma relations_proof29 (i : Fin 6) : IsInClass O J (𝔭 29 i) (BM 29 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1693N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1693N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1709N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1709N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1733N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1733N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof30 (i : Fin 14) : IsInClass O J (𝔭 30 i) (BM 30 i) := by
@@ -910,18 +914,18 @@ lemma relations_proof30 (i : Fin 14) : IsInClass O J (𝔭 30 i) (BM 30 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1753N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1753N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1759N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1753N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1753N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1759N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1777N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1777N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1777N4
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1777N4 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1801N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1801N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof31 (i : Fin 14) : IsInClass O J (𝔭 31 i) (BM 31 i) := by
@@ -932,69 +936,69 @@ lemma relations_proof31 (i : Fin 14) : IsInClass O J (𝔭 31 i) (BM 31 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1823N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1823N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1831N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1831N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1867N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1873N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1867N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1873N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1877N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1877N1 <;> rfl
 
 lemma relations_proof32 (i : Fin 10) : IsInClass O J (𝔭 32 i) (BM 32 i) := by
   show IsInClass O J (𝔭 32 i) (![![1], ![0], ![0], ![0], ![0], ![0], ![0], ![1], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1879N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1879N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1949N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1951N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1951N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1949N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1951N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1951N2 <;> rfl
 
 lemma relations_proof33 (i : Fin 12) : IsInClass O J (𝔭 33 i) (BM 33 i) := by
   show IsInClass O J (𝔭 33 i) (![![1], ![1], ![1], ![1], ![1], ![0], ![0], ![0], ![1], ![0], ![0], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1973N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1979N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1993N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1997N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1997N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1973N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1979N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1993N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1997N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R1997N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2003N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2003N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2011N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2011N1 <;> rfl
 
 lemma relations_proof34 (i : Fin 12) : IsInClass O J (𝔭 34 i) (BM 34 i) := by
   show IsInClass O J (𝔭 34 i) (![![1], ![0], ![0], ![0], ![1], ![0], ![0], ![1], ![0], ![1], ![0], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2027N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2027N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2053N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2053N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2069N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2069N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2081N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2081N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2087N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2087N2 <;> rfl
 
 lemma relations_proof35 (i : Fin 11) : IsInClass O J (𝔭 35 i) (BM 35 i) := by
   show IsInClass O J (𝔭 35 i) (![![0], ![0], ![0], ![1], ![1], ![0], ![1], ![1], ![0], ![1], ![1]] i)
@@ -1004,14 +1008,14 @@ lemma relations_proof35 (i : Fin 11) : IsInClass O J (𝔭 35 i) (BM 35 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2129N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2129N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2129N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2129N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2131N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2131N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2131N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2131N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2143N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2143N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2143N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2143N2 <;> rfl
 
 lemma relations_proof36 (i : Fin 11) : IsInClass O J (𝔭 36 i) (BM 36 i) := by
   show IsInClass O J (𝔭 36 i) (![![0], ![1], ![0], ![1], ![1], ![0], ![0], ![0], ![0], ![1], ![1]] i)
@@ -1019,16 +1023,16 @@ lemma relations_proof36 (i : Fin 11) : IsInClass O J (𝔭 36 i) (BM 36 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2161N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2161N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2179N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2179N3
-  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2179N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2179N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2239N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2239N2
+  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
+  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2239N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2239N2 <;> rfl
 
 lemma relations_proof37 (i : Fin 9) : IsInClass O J (𝔭 37 i) (BM 37 i) := by
   show IsInClass O J (𝔭 37 i) (![![0], ![0], ![0], ![0], ![0], ![0], ![0], ![1], ![1]] i)
@@ -1042,35 +1046,35 @@ lemma relations_proof37 (i : Fin 9) : IsInClass O J (𝔭 37 i) (BM 37 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2287N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2287N4
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2287N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2287N4 <;> rfl
 
 lemma relations_proof38 (i : Fin 9) : IsInClass O J (𝔭 38 i) (BM 38 i) := by
   show IsInClass O J (𝔭 38 i) (![![1], ![1], ![0], ![0], ![1], ![0], ![1], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2311N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2333N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2311N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2333N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2347N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2347N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2351N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2351N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2357N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2351N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2351N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2357N1 <;> rfl
 
 lemma relations_proof39 (i : Fin 6) : IsInClass O J (𝔭 39 i) (BM 39 i) := by
   show IsInClass O J (𝔭 39 i) (![![1], ![0], ![1], ![0], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2377N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2377N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2417N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2417N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2423N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2423N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2423N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2423N2 <;> rfl
 
 lemma relations_proof40 (i : Fin 11) : IsInClass O J (𝔭 40 i) (BM 40 i) := by
   show IsInClass O J (𝔭 40 i) (![![0], ![1], ![0], ![0], ![0], ![0], ![1], ![0], ![0], ![1], ![0]] i)
@@ -1078,15 +1082,15 @@ lemma relations_proof40 (i : Fin 11) : IsInClass O J (𝔭 40 i) (BM 40 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2447N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2447N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2467N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2467N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2521N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2521N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof41 (i : Fin 5) : IsInClass O J (𝔭 41 i) (BM 41 i) := by
@@ -1095,10 +1099,10 @@ lemma relations_proof41 (i : Fin 5) : IsInClass O J (𝔭 41 i) (BM 41 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2549N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2549N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2593N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2593N2 <;> rfl
 
 lemma relations_proof42 (i : Fin 8) : IsInClass O J (𝔭 42 i) (BM 42 i) := by
   show IsInClass O J (𝔭 42 i) (![![0], ![0], ![1], ![0], ![0], ![1], ![1], ![0]] i)
@@ -1107,11 +1111,11 @@ lemma relations_proof42 (i : Fin 8) : IsInClass O J (𝔭 42 i) (BM 42 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2657N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2657N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2659N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2671N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2659N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2671N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof43 (i : Fin 10) : IsInClass O J (𝔭 43 i) (BM 43 i) := by
@@ -1120,31 +1124,31 @@ lemma relations_proof43 (i : Fin 10) : IsInClass O J (𝔭 43 i) (BM 43 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2677N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2677N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2687N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2687N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2699N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2711N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2711N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2699N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2711N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2711N2 <;> rfl
 
 lemma relations_proof44 (i : Fin 10) : IsInClass O J (𝔭 44 i) (BM 44 i) := by
   show IsInClass O J (𝔭 44 i) (![![1], ![1], ![1], ![0], ![1], ![1], ![1], ![1], ![0], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2719N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2719N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N0
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2719N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2719N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N0 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N4
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2731N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2729N4 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2731N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2731N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2731N3 <;> rfl
 
 lemma relations_proof45 (i : Fin 5) : IsInClass O J (𝔭 45 i) (BM 45 i) := by
   show IsInClass O J (𝔭 45 i) (![![0], ![1], ![1], ![1], ![1]] i)
@@ -1152,10 +1156,10 @@ lemma relations_proof45 (i : Fin 5) : IsInClass O J (𝔭 45 i) (BM 45 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2791N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2803N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2837N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2843N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2791N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2803N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2837N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2843N1 <;> rfl
 
 lemma relations_proof46 (i : Fin 13) : IsInClass O J (𝔭 46 i) (BM 46 i) := by
   show IsInClass O J (𝔭 46 i) (![![0], ![0], ![1], ![0], ![1], ![1], ![1], ![1], ![1], ![1], ![0], ![0], ![0]] i)
@@ -1164,14 +1168,14 @@ lemma relations_proof46 (i : Fin 13) : IsInClass O J (𝔭 46 i) (BM 46 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2879N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2879N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2887N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2903N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2903N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2909N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2917N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2917N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2887N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2903N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2903N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2909N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2917N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2917N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1181,8 +1185,8 @@ lemma relations_proof47 (i : Fin 11) : IsInClass O J (𝔭 47 i) (BM 47 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2939N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2953N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2939N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R2953N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1190,7 +1194,7 @@ lemma relations_proof47 (i : Fin 11) : IsInClass O J (𝔭 47 i) (BM 47 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3001N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3001N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof48 (i : Fin 11) : IsInClass O J (𝔭 48 i) (BM 48 i) := by
@@ -1200,28 +1204,28 @@ lemma relations_proof48 (i : Fin 11) : IsInClass O J (𝔭 48 i) (BM 48 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3023N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3037N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3023N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3037N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3041N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3041N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3061N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3079N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3083N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3061N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3079N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3083N1 <;> rfl
 
 lemma relations_proof49 (i : Fin 8) : IsInClass O J (𝔭 49 i) (BM 49 i) := by
   show IsInClass O J (𝔭 49 i) (![![1], ![0], ![1], ![1], ![0], ![1], ![1], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3089N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3089N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3109N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3119N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3109N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3119N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3181N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3181N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3181N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3181N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof50 (i : Fin 8) : IsInClass O J (𝔭 50 i) (BM 50 i) := by
@@ -1232,10 +1236,10 @@ lemma relations_proof50 (i : Fin 8) : IsInClass O J (𝔭 50 i) (BM 50 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3209N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3217N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3221N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3251N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3209N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3217N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3221N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3251N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof51 (i : Fin 12) : IsInClass O J (𝔭 51 i) (BM 51 i) := by
@@ -1246,15 +1250,15 @@ lemma relations_proof51 (i : Fin 12) : IsInClass O J (𝔭 51 i) (BM 51 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3271N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3301N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3307N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3307N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3307N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3271N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3301N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3307N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3307N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3307N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3319N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3323N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3319N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3323N1 <;> rfl
 
 lemma relations_proof52 (i : Fin 5) : IsInClass O J (𝔭 52 i) (BM 52 i) := by
   show IsInClass O J (𝔭 52 i) (![![0], ![1], ![1], ![1], ![1]] i)
@@ -1262,22 +1266,22 @@ lemma relations_proof52 (i : Fin 5) : IsInClass O J (𝔭 52 i) (BM 52 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3329N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3331N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3359N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3389N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3329N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3331N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3359N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3389N1 <;> rfl
 
 lemma relations_proof53 (i : Fin 6) : IsInClass O J (𝔭 53 i) (BM 53 i) := by
   show IsInClass O J (𝔭 53 i) (![![1], ![1], ![1], ![0], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3391N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3391N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3449N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3391N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3391N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3449N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3457N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3463N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3457N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3463N2 <;> rfl
 
 lemma relations_proof54 (i : Fin 6) : IsInClass O J (𝔭 54 i) (BM 54 i) := by
   show IsInClass O J (𝔭 54 i) (![![0], ![1], ![0], ![0], ![0], ![1]] i)
@@ -1285,11 +1289,11 @@ lemma relations_proof54 (i : Fin 6) : IsInClass O J (𝔭 54 i) (BM 54 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3491N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3491N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3539N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3539N1 <;> rfl
 
 lemma relations_proof55 (i : Fin 8) : IsInClass O J (𝔭 55 i) (BM 55 i) := by
   show IsInClass O J (𝔭 55 i) (![![0], ![1], ![1], ![0], ![1], ![0], ![0], ![0]] i)
@@ -1297,10 +1301,10 @@ lemma relations_proof55 (i : Fin 8) : IsInClass O J (𝔭 55 i) (BM 55 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3541N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3541N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3541N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3541N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3571N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3571N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1312,10 +1316,10 @@ lemma relations_proof56 (i : Fin 7) : IsInClass O J (𝔭 56 i) (BM 56 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3623N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3623N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3623N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3623N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3643N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3643N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof57 (i : Fin 4) : IsInClass O J (𝔭 57 i) (BM 57 i) := by
@@ -1323,9 +1327,9 @@ lemma relations_proof57 (i : Fin 4) : IsInClass O J (𝔭 57 i) (BM 57 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3709N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3709N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3727N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3727N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof58 (i : Fin 11) : IsInClass O J (𝔭 58 i) (BM 58 i) := by
@@ -1333,31 +1337,31 @@ lemma relations_proof58 (i : Fin 11) : IsInClass O J (𝔭 58 i) (BM 58 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3761N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3761N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3761N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3761N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3767N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3769N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3767N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3769N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3793N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3793N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3803N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3821N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3823N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3803N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3821N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3823N2 <;> rfl
 
 lemma relations_proof59 (i : Fin 13) : IsInClass O J (𝔭 59 i) (BM 59 i) := by
   show IsInClass O J (𝔭 59 i) (![![1], ![0], ![0], ![0], ![0], ![0], ![1], ![1], ![0], ![0], ![0], ![0], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3833N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3833N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3877N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3877N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3877N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3877N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1369,38 +1373,38 @@ lemma relations_proof60 (i : Fin 12) : IsInClass O J (𝔭 60 i) (BM 60 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3911N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3911N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3919N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3929N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3919N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3929N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3931N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3931N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3947N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3947N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3967N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3967N2 <;> rfl
 
 lemma relations_proof61 (i : Fin 14) : IsInClass O J (𝔭 61 i) (BM 61 i) := by
   show IsInClass O J (𝔭 61 i) (![![1], ![1], ![1], ![0], ![0], ![0], ![0], ![0], ![1], ![0], ![1], ![1], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3989N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4001N0
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4001N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R3989N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4001N0 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4001N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4007N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4007N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4019N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4021N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4049N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4049N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4019N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4021N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4049N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4049N2 <;> rfl
 
 lemma relations_proof62 (i : Fin 7) : IsInClass O J (𝔭 62 i) (BM 62 i) := by
   show IsInClass O J (𝔭 62 i) (![![0], ![0], ![0], ![0], ![0], ![1], ![0]] i)
@@ -1412,7 +1416,7 @@ lemma relations_proof62 (i : Fin 7) : IsInClass O J (𝔭 62 i) (BM 62 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4093N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4093N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof63 (i : Fin 7) : IsInClass O J (𝔭 63 i) (BM 63 i) := by
@@ -1420,11 +1424,11 @@ lemma relations_proof63 (i : Fin 7) : IsInClass O J (𝔭 63 i) (BM 63 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4139N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4139N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4153N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4153N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
@@ -1434,12 +1438,12 @@ lemma relations_proof64 (i : Fin 8) : IsInClass O J (𝔭 64 i) (BM 64 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4229N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4231N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4229N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4231N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4243N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4259N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4243N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4259N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof65 (i : Fin 12) : IsInClass O J (𝔭 65 i) (BM 65 i) := by
@@ -1447,17 +1451,17 @@ lemma relations_proof65 (i : Fin 12) : IsInClass O J (𝔭 65 i) (BM 65 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4283N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4283N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4283N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4297N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4327N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4327N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4283N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4283N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4283N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4297N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4327N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4327N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4337N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4339N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4349N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4349N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4337N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4339N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4349N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4349N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof66 (i : Fin 9) : IsInClass O J (𝔭 66 i) (BM 66 i) := by
@@ -1465,12 +1469,12 @@ lemma relations_proof66 (i : Fin 9) : IsInClass O J (𝔭 66 i) (BM 66 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4357N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4363N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4363N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4357N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4363N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4363N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4373N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4391N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4373N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4391N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1480,8 +1484,8 @@ lemma relations_proof67 (i : Fin 2) : IsInClass O J (𝔭 67 i) (BM 67 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4451N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4483N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4451N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4483N1 <;> rfl
 
 lemma relations_proof68 (i : Fin 16) : IsInClass O J (𝔭 68 i) (BM 68 i) := by
   show IsInClass O J (𝔭 68 i) (![![0], ![0], ![1], ![1], ![1], ![1], ![1], ![0], ![0], ![1], ![1], ![0], ![0], ![1], ![0], ![1]] i)
@@ -1490,20 +1494,20 @@ lemma relations_proof68 (i : Fin 16) : IsInClass O J (𝔭 68 i) (BM 68 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4517N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4519N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4523N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4523N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4523N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4517N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4519N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4523N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4523N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4523N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4547N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4549N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4547N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4549N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4583N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4583N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4591N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4591N2 <;> rfl
 
 lemma relations_proof69 (i : Fin 9) : IsInClass O J (𝔭 69 i) (BM 69 i) := by
   show IsInClass O J (𝔭 69 i) (![![0], ![1], ![1], ![0], ![0], ![0], ![0], ![0], ![0]] i)
@@ -1511,8 +1515,8 @@ lemma relations_proof69 (i : Fin 9) : IsInClass O J (𝔭 69 i) (BM 69 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4621N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4621N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4621N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4621N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1525,18 +1529,18 @@ lemma relations_proof70 (i : Fin 12) : IsInClass O J (𝔭 70 i) (BM 70 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4663N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4663N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4679N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4679N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4703N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4721N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4703N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4721N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4723N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4723N3 <;> rfl
 
 lemma relations_proof71 (i : Fin 18) : IsInClass O J (𝔭 71 i) (BM 71 i) := by
   show IsInClass O J (𝔭 71 i) (![![0], ![0], ![0], ![0], ![0], ![1], ![1], ![0], ![1], ![0], ![1], ![1], ![0], ![0], ![1], ![0], ![0], ![1]] i)
@@ -1548,40 +1552,40 @@ lemma relations_proof71 (i : Fin 18) : IsInClass O J (𝔭 71 i) (BM 71 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4759N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4759N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4759N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4759N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4783N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4783N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4789N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4789N3
-  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4799N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4789N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4789N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4813N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4799N2 <;> rfl
+  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
+  · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4813N1 <;> rfl
 
 lemma relations_proof72 (i : Fin 15) : IsInClass O J (𝔭 72 i) (BM 72 i) := by
   show IsInClass O J (𝔭 72 i) (![![1], ![0], ![1], ![1], ![0], ![1], ![0], ![0], ![1], ![0], ![1], ![0], ![1], ![1], ![1]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4831N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4831N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4861N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4871N0
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4861N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4871N0 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4871N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4871N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4877N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4877N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4889N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4889N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4909N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4909N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4909N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4909N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4909N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4909N3 <;> rfl
 
 lemma relations_proof73 (i : Fin 13) : IsInClass O J (𝔭 73 i) (BM 73 i) := by
   show IsInClass O J (𝔭 73 i) (![![0], ![1], ![0], ![1], ![0], ![1], ![1], ![1], ![1], ![0], ![1], ![1], ![0]] i)
@@ -1589,17 +1593,17 @@ lemma relations_proof73 (i : Fin 13) : IsInClass O J (𝔭 73 i) (BM 73 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4931N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4931N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4933N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4933N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4933N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4937N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4957N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4967N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4933N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4937N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4957N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4967N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4969N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4969N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4969N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R4969N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof74 (i : Fin 7) : IsInClass O J (𝔭 74 i) (BM 74 i) := by
@@ -1609,11 +1613,11 @@ lemma relations_proof74 (i : Fin 7) : IsInClass O J (𝔭 74 i) (BM 74 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5003N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5003N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5003N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5003N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5023N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5039N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5023N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5039N2 <;> rfl
 
 lemma relations_proof75 (i : Fin 11) : IsInClass O J (𝔭 75 i) (BM 75 i) := by
   show IsInClass O J (𝔭 75 i) (![![0], ![1], ![0], ![1], ![0], ![0], ![0], ![1], ![1], ![1], ![0]] i)
@@ -1621,15 +1625,15 @@ lemma relations_proof75 (i : Fin 11) : IsInClass O J (𝔭 75 i) (BM 75 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5059N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5059N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5087N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5087N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5101N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5107N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5107N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5101N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5107N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5107N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof76 (i : Fin 7) : IsInClass O J (𝔭 76 i) (BM 76 i) := by
@@ -1639,18 +1643,18 @@ lemma relations_proof76 (i : Fin 7) : IsInClass O J (𝔭 76 i) (BM 76 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5171N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5171N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5209N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5209N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5209N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5209N2 <;> rfl
 
 lemma relations_proof77 (i : Fin 12) : IsInClass O J (𝔭 77 i) (BM 77 i) := by
   show IsInClass O J (𝔭 77 i) (![![1], ![0], ![0], ![0], ![0], ![0], ![0], ![0], ![1], ![1], ![0], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5227N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5227N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1658,8 +1662,8 @@ lemma relations_proof77 (i : Fin 12) : IsInClass O J (𝔭 77 i) (BM 77 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5273N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5279N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5273N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5279N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
@@ -1669,9 +1673,9 @@ lemma relations_proof78 (i : Fin 9) : IsInClass O J (𝔭 78 i) (BM 78 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5309N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5309N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5351N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5351N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1685,11 +1689,11 @@ lemma relations_proof79 (i : Fin 8) : IsInClass O J (𝔭 79 i) (BM 79 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5407N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5407N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5413N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5413N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5413N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5413N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof80 (i : Fin 9) : IsInClass O J (𝔭 80 i) (BM 80 i) := by
@@ -1698,11 +1702,11 @@ lemma relations_proof80 (i : Fin 9) : IsInClass O J (𝔭 80 i) (BM 80 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5477N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5477N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5501N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5501N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5501N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5501N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5501N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5501N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1712,30 +1716,30 @@ lemma relations_proof81 (i : Fin 11) : IsInClass O J (𝔭 81 i) (BM 81 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5527N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5527N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5563N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5563N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5563N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5563N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5563N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5563N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5573N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5573N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5573N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5591N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5573N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5591N2 <;> rfl
 
 lemma relations_proof82 (i : Fin 8) : IsInClass O J (𝔭 82 i) (BM 82 i) := by
   show IsInClass O J (𝔭 82 i) (![![1], ![1], ![1], ![0], ![1], ![1], ![1], ![0]] i)
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5623N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5623N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5639N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5623N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5623N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5639N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5641N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5641N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5653N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5641N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5641N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5653N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof83 (i : Fin 10) : IsInClass O J (𝔭 83 i) (BM 83 i) := by
@@ -1744,12 +1748,12 @@ lemma relations_proof83 (i : Fin 10) : IsInClass O J (𝔭 83 i) (BM 83 i) := by
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5701N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5701N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5737N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5737N1 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
@@ -1764,7 +1768,7 @@ lemma relations_proof84 (i : Fin 7) : IsInClass O J (𝔭 84 i) (BM 84 i) := by
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5813N3
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5813N3 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
 
 lemma relations_proof85 (i : Fin 7) : IsInClass O J (𝔭 85 i) (BM 85 i) := by
@@ -1772,13 +1776,13 @@ lemma relations_proof85 (i : Fin 7) : IsInClass O J (𝔭 85 i) (BM 85 i) := by
   unfold IsInClass
   simp only [Fin.isValue, Fin.prod_univ_castSucc, Finset.univ_eq_empty, Finset.prod_empty, Fin.succ_zero_eq_one, one_mul]
   fin_cases i
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5851N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5857N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5851N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5857N2 <;> rfl
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5869N2
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5869N3
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5879N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5879N2
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5869N2 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5869N3 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5879N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5879N2 <;> rfl
 
 lemma relations_proof86 (i : Fin 4) : IsInClass O J (𝔭 86 i) (BM 86 i) := by
   show IsInClass O J (𝔭 86 i) (![![0], ![0], ![1], ![1]] i)
@@ -1787,8 +1791,8 @@ lemma relations_proof86 (i : Fin 4) : IsInClass O J (𝔭 86 i) (BM 86 i) := by
   fin_cases i
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
   · refine ideal_mem_principal_class''' (by decide) J rfl (by unfold_prod)
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5923N1
-  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5939N1
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5923N1 <;> rfl
+  · convert exists_ne_zero_mul_of_relation (by decide) (by decide) R5939N1 <;> rfl
 
 theorem class_group_generator : Subgroup.closure (Set.range (fun i => ClassGroup.mk0 (J' i))) = ⊤ := by
   refine subgroup_closure_eq_classGroup'' (Subalgebra.equivOfEq _ _ O_integral_closure).toRingEquiv

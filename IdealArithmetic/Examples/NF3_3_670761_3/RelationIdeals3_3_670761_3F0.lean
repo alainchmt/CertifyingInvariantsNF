@@ -36,14 +36,14 @@ lemma R5N0 : Ideal.span {5} * I5N0 =  Ideal.span {B.equivFun.symm ![6, 1, 0]} * 
   exact relation_of_RelationCertificate timesTableT_eq_Table rfl PowJ0_1J1_0 E5RS0 
 
 
-noncomputable def E5RS1 : RelationCertificate Table 5 ![![5, 0, 0], ![-71, -4, 2]]
+noncomputable def E5RS1 : RelationCertificate Table 5 ![![5, 0, 0], ![-72, 0, 2]]
   ![-11, -1, 0] ![![5, 0, 0], ![-2, 1, 0]] where
-    su := ![![25, 0, 0], ![-355, -20, 10]]
+    su := ![![25, 0, 0], ![-360, 0, 10]]
     hsu := by decide
     w := ![![-55, -5, 0], ![20, -10, -5]]
     hw := by decide
-    g := ![![![-2610, -700, 29], ![906, 0, 48]], ![![37978, 10188, -419], ![-13152, 0, -700]]]
-    h := ![![![-43, 21, 84], ![736, 86, 0]], ![![76, -6, -37], ![-304, -36, 0]]]
+    g := ![![![-2610, -700, 29], ![906, 0, 48]], ![![37588, 10078, -416], ![-13016, 0, -692]]]
+    h := ![![![41, -173, -74], ![209, 24, 0]], ![![-28, -346, -145], ![410, 48, 0]]]
     hle1 := by decide
     hle2 := by decide
 
